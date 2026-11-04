@@ -1,0 +1,18 @@
+# Material de referência local (enunciado, projeto-base, POC): nunca versionar
+/_referencia/
+
+# Sistema / IDE
+.DS_Store
+.idea/
+*.iml
+.vscode/
+
+# Java / Gradle
+out/
+build/
+.gradle/
+*.class
+local.properties
+
+# Dados gerados pelo jogo
+ranking.json
