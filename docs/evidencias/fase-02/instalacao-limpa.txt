@@ -1,0 +1,26 @@
+Instalação limpa (critério da issue #3), executada em 2026-11-04 no macOS (arm64):
+
+1. git clone --branch sprint-1 <repositório> <pasta temporária nova>
+2. JAVA_HOME removido do ambiente; o "java" do PATH é o Homebrew OpenJDK 11.0.27
+3. GRADLE_USER_HOME apontando para uma pasta vazia (sem Gradle nem dependências em cache)
+
+$ java -version
+openjdk version "11.0.27" 2025-04-15
+$ ./gradlew clean build
+BUILD SUCCESSFUL in 10s
+  - o wrapper baixou gradle-8.14.3-bin para o GRADLE_USER_HOME vazio
+  - o Maven Central forneceu junit-jupiter-api-5.10.2.jar (e o restante do JUnit 5)
+  - resultado: 65 testes, 0 falhas (build/test-results/test/*.xml)
+  - gerado: build/libs/missao-marte-unifor-2.0.0.jar
+
+$ ./gradlew javaToolchains
+  + Homebrew JDK 11.0.27   Detected by: Current JVM       <- JVM que executa o próprio Gradle
+  + Azul Zulu JDK 17.0.11  Detected by: MacOS java_home   <- usado pelo toolchain
+  + Amazon Corretto 11.0.26 Detected by: IntelliJ
+
+$ ./gradlew clean build --info | grep toolchain
+Compiling with toolchain '/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home'.
+
+Conclusão: basta ter um JDK 17 instalado em qualquer lugar que o Gradle detecte. O "java" padrão pode ser
+outro, e o Gradle não precisa estar instalado (o wrapper o baixa).
+Não verificado: Windows (gradlew.bat) e Linux. Não havia essas máquinas disponíveis.

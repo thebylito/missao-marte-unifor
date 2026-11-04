@@ -7,7 +7,7 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 |---|---|---|---|
 | 0 — Projeto inicial (console) | validada | `fase-0` | [comportamento de referência](docs/fase-00-comportamento-referencia.md) |
 | 1 — Refatoração arquitetural | validada | `fase-1` | [tutorial](docs/fase-01-tutorial.md) |
-| 2 — Gradle | planejada | | |
+| 2 — Gradle | validada | `fase-2` | [tutorial](docs/fase-02-tutorial.md) |
 | 3 — libGDX | planejada | | |
 | 4 — Interface gráfica | planejada | | |
 | 5 — Servidor e ranking global | planejada | | |
@@ -17,27 +17,33 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 Decisões de arquitetura: [docs/decisoes-arquiteturais.md](docs/decisoes-arquiteturais.md).
 Kanban: [GitHub Project](https://github.com/users/thebylito/projects/2).
 
-## Executar (estado atual: Fase 1)
+## Executar (estado atual: Fase 2)
 
-Requisito: **JDK 17**. Se `java -version` mostrar outra versão, aponte `JAVA_HOME` para o JDK 17.
+Requisito: **um JDK 17 instalado**. O Gradle o encontra sozinho (toolchain), mesmo que o `java` padrão seja outro.
+Não é preciso instalar o Gradle: o wrapper (`gradlew`) baixa a versão certa (8.14.3).
 
 ```bash
-./build.sh          # compila e roda os testes
-./build.sh run      # compila, testa e inicia o jogo
+./gradlew build                     # compila, roda os testes (JUnit 5) e gera o jar
+./gradlew run -q --console=plain    # joga no terminal (-q esconde as mensagens do Gradle)
 ```
 
 ```powershell
-.\build.ps1
-.\build.ps1 -Run
+.\gradlew.bat build
+.\gradlew.bat run -q --console=plain
 ```
 
-Controles: `w/a/s/d` movem a nave, `c` embarca o passageiro da célula, `q` aborta a missão.
-O ranking fica em `ranking.json`, no diretório de onde o jogo é iniciado.
-Opção `-Dmissaomarte.semente=N` (por exemplo, `java -Dmissaomarte.semente=7 -cp build/classes br.edu.unifor.missaomarte.Main`):
-mesmo mapa e mesmos movimentos dos inimigos a cada execução.
+Outras formas: `./gradlew installDist` gera `build/install/missao-marte-unifor/bin/missao-marte-unifor`;
+`java -jar build/libs/missao-marte-unifor-2.0.0.jar` (com Java 17 no PATH). Relatório dos testes:
+`build/reports/tests/test/index.html`.
 
-Para ver uma versão anterior: `git checkout fase-0` (compilar com `javac -encoding UTF-8 -d out src/*.java`
-e executar com `java -cp out Main`).
+Controles: `w/a/s/d` movem a nave, `c` embarca o passageiro da célula, `q` aborta a missão.
+O ranking fica em `ranking.json`, na pasta de trabalho do jogo: com `./gradlew run`, a pasta do projeto
+(outra pasta: `-PpastaDoJogo=/caminho`); com o script ou o jar, a pasta de onde foram chamados.
+Opção `-Dmissaomarte.semente=N` (por exemplo, `./gradlew run -q --console=plain -Dmissaomarte.semente=7`): mesmo mapa e
+mesmos movimentos dos inimigos a cada execução.
+
+Para ver uma versão anterior: `git checkout fase-0` (`javac -encoding UTF-8 -d out src/*.java` e `java -cp out Main`)
+ou `git checkout fase-1` (`./build.sh run`).
 
 ## Validação
 

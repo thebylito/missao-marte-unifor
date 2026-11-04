@@ -51,3 +51,13 @@ depois, com um teste que falha no código antigo e a diferença no gabarito expl
 **Decisão.** Anotação `@Teste`, classe `Verifica` e `ExecutarTestes`, cerca de 150 linhas em `test/.../teste/`.
 **Consequências.** A Fase 1 já tem 65 testes. A Fase 2 troca o executor pelo JUnit 5 via Gradle, com uma
 mudança mecânica (`@Teste` → `@Test`).
+
+## DA-07 — Gradle 8.14.3 com DSL Groovy, toolchain Java 17 e JUnit 5.10.2 (Fase 2)
+
+**Contexto.** O referencial teórico usa Gradle 8.7 e Groovy. A máquina de desenvolvimento tem Java 11 como
+padrão e JDK 17 instalado. O libGDX da Fase 3 (1.13.1) já foi usado nesta máquina com Gradle 8.14.3.
+**Decisão.** Wrapper do Gradle 8.14.3 (distribuição `bin`) versionado, DSL Groovy como no referencial, toolchain
+`JavaLanguageVersion.of(17)` e JUnit 5.10.2 por BOM. `build.sh`, `build.ps1` e o executor de testes próprio foram removidos.
+**Consequências.** Um único comando (`./gradlew build`) em qualquer máquina com um JDK 17 instalado, provado num
+clone limpo com cache vazio e Java 11 como padrão. A divergência em relação ao referencial (8.7 → 8.14.3) fica
+registrada aqui e no tutorial da Fase 2. Para o Gradle 9, a sintaxe do build já está sem avisos de obsoleto.

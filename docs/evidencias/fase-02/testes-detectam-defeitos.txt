@@ -1,0 +1,9 @@
+Defeitos inseridos de propósito numa cópia descartável do projeto; ./gradlew test precisa falhar.
+Falhas contadas nos relatórios XML do JUnit (build/test-results/test).
+
+[movimento custa 2] -> PEGO: 4 de 65 testes falharam
+[astronauta vale 10] -> PEGO: 2 de 65 testes falharam
+[empate entra no top] -> PEGO: 2 de 65 testes falharam
+[zero pontos continua] -> PEGO: 2 de 65 testes falharam
+
+Mesmas contagens da Fase 1 com o executor próprio: a migração para o JUnit não perdeu nenhuma verificação.
