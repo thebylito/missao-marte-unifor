@@ -1,7 +1,7 @@
 package br.edu.unifor.missaomarte.console;
 
-import static br.edu.unifor.missaomarte.teste.Verifica.igual;
-import static br.edu.unifor.missaomarte.teste.Verifica.verdadeiro;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.edu.unifor.missaomarte.aplicacao.GeradorDeMissao;
 import br.edu.unifor.missaomarte.aplicacao.Relogio;
@@ -9,7 +9,7 @@ import br.edu.unifor.missaomarte.aplicacao.RepositorioRanking;
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
 import br.edu.unifor.missaomarte.dominio.Ranking;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
-import br.edu.unifor.missaomarte.teste.Teste;
+import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -69,27 +69,27 @@ class JogoConsoleTeste {
         return bufferDeSaida.toString(StandardCharsets.UTF_8);
     }
 
-    @Teste
+    @Test
     void menuApareceAntesDeEsperarAPrimeiraEscolha() {
         EntradaQueObserva entrada = new EntradaQueObserva("4\n");
         jogar(entrada);
-        verdadeiro(entrada.telaNaPrimeiraLeitura.contains("--- MENU PRINCIPAL ---"),
+        assertTrue(entrada.telaNaPrimeiraLeitura.contains("--- MENU PRINCIPAL ---"),
                 "o menu deveria estar na tela antes da leitura, mas a tela era:\n" + entrada.telaNaPrimeiraLeitura);
-        verdadeiro(entrada.telaNaPrimeiraLeitura.endsWith("Escolha uma opção: "), "o prompt também");
+        assertTrue(entrada.telaNaPrimeiraLeitura.endsWith("Escolha uma opção: "), "o prompt também");
     }
 
-    @Teste
+    @Test
     void primeiroEnterNaoViraOpcaoInvalidaSemMenu() {
         String tela = jogar(new EntradaQueObserva("2\n4\n"));
-        verdadeiro(tela.contains("RANKING TOP 5"), "a primeira linha digitada é a opção escolhida");
-        verdadeiro(!tela.contains("Opção inválida"), "nenhuma opção inválida");
+        assertTrue(tela.contains("RANKING TOP 5"), "a primeira linha digitada é a opção escolhida");
+        assertTrue(!tela.contains("Opção inválida"), "nenhuma opção inválida");
     }
 
-    @Teste
+    @Test
     void fimDaEntradaNoMenuEncerraComMensagem() {
         String tela = jogar(new EntradaQueObserva(""));
-        verdadeiro(tela.endsWith("Escolha uma opção: \nEntrada encerrada. Obrigado por jogar!\n"),
+        assertTrue(tela.endsWith("Escolha uma opção: \nEntrada encerrada. Obrigado por jogar!\n"),
                 "termina com o menu e a mensagem de encerramento, foi:\n" + tela);
-        igual(1, tela.split("MENU PRINCIPAL", -1).length - 1, "menu mostrado uma vez");
+        assertEquals(1, tela.split("MENU PRINCIPAL", -1).length - 1, "menu mostrado uma vez");
     }
 }

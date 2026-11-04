@@ -1,13 +1,13 @@
 package br.edu.unifor.missaomarte.aplicacao;
 
-import static br.edu.unifor.missaomarte.teste.Verifica.falso;
-import static br.edu.unifor.missaomarte.teste.Verifica.igual;
-import static br.edu.unifor.missaomarte.teste.Verifica.verdadeiro;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.dominio.Ranking;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
-import br.edu.unifor.missaomarte.teste.Teste;
+import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,42 +47,42 @@ class ServicoRankingTeste {
         return new ResultadoPartida("Ana", Dificuldade.DIFICIL, pontos, 12, 34, 5);
     }
 
-    @Teste
+    @Test
     void vitoriaQueEntraNoTopEhSalvaComDataFormatada() {
         ServicoRanking.Registro r = servico.registrarVitoria(servico.carregar(), vitoria(50));
-        verdadeiro(r.entrou(), "entrou");
-        igual(null, r.erroAoSalvar());
-        igual(List.of(new RegistroRanking("Ana", 50, Dificuldade.DIFICIL, 5, "2026-11-04 10:15:30", 34)),
+        assertTrue(r.entrou(), "entrou");
+        assertEquals(null, r.erroAoSalvar());
+        assertEquals(List.of(new RegistroRanking("Ana", 50, Dificuldade.DIFICIL, 5, "2026-11-04 10:15:30", 34)),
                 repositorio.salvos);
     }
 
-    @Teste
+    @Test
     void vitoriaQueNaoSuperaOQuintoNaoEhSalva() {
         for (int i = 1; i <= 5; i++) {
             servico.registrarVitoria(servico.carregar(), vitoria(i * 10));
         }
         ServicoRanking.Registro r = servico.registrarVitoria(servico.carregar(), vitoria(10));
-        falso(r.entrou(), "não supera o 5º");
-        igual(5, repositorio.salvos.size());
+        assertFalse(r.entrou(), "não supera o 5º");
+        assertEquals(5, repositorio.salvos.size());
     }
 
-    @Teste
+    @Test
     void pontuacaoNaoPositivaNuncaEntra() {
-        falso(servico.registrarVitoria(Ranking.vazio(), vitoria(0)).entrou(), "zero pontos");
-        igual(0, repositorio.salvos.size());
+        assertFalse(servico.registrarVitoria(Ranking.vazio(), vitoria(0)).entrou(), "zero pontos");
+        assertEquals(0, repositorio.salvos.size());
     }
 
-    @Teste
+    @Test
     void falhaAoSalvarAindaContaComoEntradaETrazOMotivo() {
         repositorio.falharAoSalvar = true;
         ServicoRanking.Registro r = servico.registrarVitoria(Ranking.vazio(), vitoria(50));
-        verdadeiro(r.entrou(), "entrou no Top 5");
-        igual("disco cheio", r.erroAoSalvar());
+        assertTrue(r.entrou(), "entrou no Top 5");
+        assertEquals("disco cheio", r.erroAoSalvar());
     }
 
-    @Teste
+    @Test
     void apagarDelegaAoRepositorio() throws IOException {
         servico.apagar();
-        verdadeiro(repositorio.apagado, "apagou");
+        assertTrue(repositorio.apagado, "apagou");
     }
 }

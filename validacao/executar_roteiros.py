@@ -8,6 +8,9 @@ Serve para qualquer fase: o comando que inicia o jogo é passado depois de "--".
     # compara outra fase com o gabarito
     python3 validacao/executar_roteiros.py --comparar validacao/gabarito/fase-01 -- java -cp build/classes br.edu.unifor.missaomarte.Main
 
+Se o comando precisar saber a pasta de trabalho (por exemplo, `./gradlew run`, que roda na pasta do projeto),
+use o marcador {pasta}:  -- ./gradlew -p . run -q --console=plain -PpastaDoJogo={pasta}
+
 Cada roteiro `NN-nome.in` é a entrada digitada. Se existir `NN-nome.ranking.json`, ele é copiado para o
 diretório de trabalho antes da execução (ranking pré-existente). O jogo roda num diretório temporário
 limpo, então o ranking.json local nunca é tocado.
@@ -46,7 +49,8 @@ def executar(roteiro, comando):
         fixture = roteiro.with_suffix('.ranking.json')
         if fixture.exists():
             shutil.copy(fixture, Path(tmp) / 'ranking.json')
-        r = subprocess.run(comando, input=entrada, cwd=tmp, capture_output=True, timeout=60)
+        cmd = [parte.replace('{pasta}', tmp) for parte in comando]
+        r = subprocess.run(cmd, input=entrada, cwd=tmp, capture_output=True, timeout=120)
         ranking = Path(tmp) / 'ranking.json'
         final = ranking.read_text(encoding='utf-8') if ranking.exists() else '<ausente>'
     saida = r.stdout.decode('utf-8', errors='replace')

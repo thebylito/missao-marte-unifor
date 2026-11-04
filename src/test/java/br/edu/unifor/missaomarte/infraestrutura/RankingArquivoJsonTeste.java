@@ -1,12 +1,14 @@
 package br.edu.unifor.missaomarte.infraestrutura;
 
-import static br.edu.unifor.missaomarte.teste.Verifica.falso;
-import static br.edu.unifor.missaomarte.teste.Verifica.igual;
-import static br.edu.unifor.missaomarte.teste.Verifica.verdadeiro;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
-import br.edu.unifor.missaomarte.teste.Teste;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,37 +22,39 @@ class RankingArquivoJsonTeste {
     private static final RegistroRanking BRUNO =
             new RegistroRanking("Bruno \"Foguete\"", 57, Dificuldade.DIFICIL, 5, "2026-11-02 11:30:00", 80);
 
-    private final Path pasta;
-    private final Path arquivo;
+    @TempDir
+    Path pasta; // o JUnit cria uma pasta temporária por teste e apaga depois
 
-    RankingArquivoJsonTeste() throws IOException {
-        pasta = Files.createTempDirectory("ranking-teste");
+    private Path arquivo;
+
+    @BeforeEach
+    void prepararArquivo() {
         arquivo = pasta.resolve("ranking.json");
     }
 
-    @Teste
+    @Test
     void arquivoAusenteEhRankingVazio() {
-        igual(List.of(), new RankingArquivoJson(arquivo).carregar());
+        assertEquals(List.of(), new RankingArquivoJson(arquivo).carregar());
     }
 
-    @Teste
+    @Test
     void gravaNoMesmoFormatoDaVersaoOriginal() throws IOException {
         new RankingArquivoJson(arquivo).salvar(List.of(BRUNO, ANA));
-        igual("[{\"name\":\"Bruno \\\"Foguete\\\"\",\"score\":57,\"dificuldade\":\"DIFICIL\",\"passageirosColetados\":5,"
+        assertEquals("[{\"name\":\"Bruno \\\"Foguete\\\"\",\"score\":57,\"dificuldade\":\"DIFICIL\",\"passageirosColetados\":5,"
                         + "\"dataHora\":\"2026-11-02 11:30:00\",\"tempoJogo\":80},"
                         + "{\"name\":\"Ana\",\"score\":42,\"dificuldade\":\"FACIL\",\"passageirosColetados\":4,"
                         + "\"dataHora\":\"2026-11-01 10:00:00\",\"tempoJogo\":35}]",
                 Files.readString(arquivo, StandardCharsets.UTF_8));
     }
 
-    @Teste
+    @Test
     void leDeVoltaOrdenadoPelaMaiorPontuacao() throws IOException {
         RankingArquivoJson repo = new RankingArquivoJson(arquivo);
         repo.salvar(List.of(ANA, BRUNO));
-        igual(List.of(BRUNO, ANA), repo.carregar());
+        assertEquals(List.of(BRUNO, ANA), repo.carregar());
     }
 
-    @Teste
+    @Test
     void nomesComCaracteresEspeciaisSobrevivemAIdaEVolta() throws IOException {
         // corrigido na Fase 1: o leitor original descartava nomes com vírgula
         RankingArquivoJson repo = new RankingArquivoJson(arquivo);
@@ -61,41 +65,41 @@ class RankingArquivoJsonTeste {
                 new RegistroRanking("dois:pontos {x}", 60, Dificuldade.MEDIO, 5, "2026-11-01 10:00:00", 35),
                 new RegistroRanking("quebra\nde linha\te tab", 50, Dificuldade.MEDIO, 5, "2026-11-01 10:00:00", 35));
         repo.salvar(especiais);
-        igual(especiais, repo.carregar());
+        assertEquals(especiais, repo.carregar());
     }
 
-    @Teste
+    @Test
     void leArquivosGravadosPelaVersaoOriginal() {
         String original = "[{\"name\":\"Ana\",\"score\":42,\"dificuldade\":\"FACIL\",\"passageirosColetados\":4,"
                 + "\"dataHora\":\"2026-11-01 10:00:00\",\"tempoJogo\":35},"
                 + "{\"name\":\"Bruno \\\"Foguete\\\"\",\"score\":57,\"dificuldade\":\"DIFICIL\",\"passageirosColetados\":5,"
                 + "\"dataHora\":\"2026-11-02 11:30:00\",\"tempoJogo\":80}]";
-        igual(List.of(ANA, BRUNO), RankingArquivoJson.ler(original));
+        assertEquals(List.of(ANA, BRUNO), RankingArquivoJson.ler(original));
     }
 
-    @Teste
+    @Test
     void toleraEspacosCamposExtrasEFaltantes() {
         String json = " [ { \"score\" : 10 , \"name\" : \"Só nome e pontos\" , \"extra\" : true } ,\n"
                 + "  { \"name\": \"sem pontos\" } ] ";
-        igual(List.of(new RegistroRanking("Só nome e pontos", 10, Dificuldade.MEDIO, 0, "", 0)), RankingArquivoJson.ler(json));
+        assertEquals(List.of(new RegistroRanking("Só nome e pontos", 10, Dificuldade.MEDIO, 0, "", 0)), RankingArquivoJson.ler(json));
     }
 
-    @Teste
+    @Test
     void arquivoMalformadoMantemOQueFoiLido() {
         String json = "[{\"name\":\"Ana\",\"score\":42},{\"name\":\"corta";
-        igual(List.of(new RegistroRanking("Ana", 42, Dificuldade.MEDIO, 0, "", 0)), RankingArquivoJson.ler(json));
-        igual(List.of(), RankingArquivoJson.ler("isto não é json"));
-        igual(List.of(), RankingArquivoJson.ler("[]"));
-        igual(List.of(), RankingArquivoJson.ler(""));
+        assertEquals(List.of(new RegistroRanking("Ana", 42, Dificuldade.MEDIO, 0, "", 0)), RankingArquivoJson.ler(json));
+        assertEquals(List.of(), RankingArquivoJson.ler("isto não é json"));
+        assertEquals(List.of(), RankingArquivoJson.ler("[]"));
+        assertEquals(List.of(), RankingArquivoJson.ler(""));
     }
 
-    @Teste
+    @Test
     void apagarRemoveOArquivo() throws IOException {
         RankingArquivoJson repo = new RankingArquivoJson(arquivo);
         repo.salvar(List.of(ANA));
-        verdadeiro(Files.exists(arquivo), "gravou");
+        assertTrue(Files.exists(arquivo), "gravou");
         repo.apagar();
-        falso(Files.exists(arquivo), "apagou");
+        assertFalse(Files.exists(arquivo), "apagou");
         repo.apagar(); // apagar de novo não é erro
     }
 }

@@ -1,10 +1,10 @@
 package br.edu.unifor.missaomarte.dominio;
 
-import static br.edu.unifor.missaomarte.teste.Verifica.falso;
-import static br.edu.unifor.missaomarte.teste.Verifica.igual;
-import static br.edu.unifor.missaomarte.teste.Verifica.verdadeiro;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import br.edu.unifor.missaomarte.teste.Teste;
+import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,45 +18,45 @@ class RankingTeste {
         return r.getRegistros().stream().map(RegistroRanking::nome).collect(Collectors.toList());
     }
 
-    @Teste
+    @Test
     void comVagaQualquerPontuacaoEntra() {
-        verdadeiro(Ranking.vazio().entraNoTop(1), "ranking vazio");
+        assertTrue(Ranking.vazio().entraNoTop(1), "ranking vazio");
         Ranking quatro = new Ranking(List.of(reg("a", 50), reg("b", 40), reg("c", 30), reg("d", 20)));
-        verdadeiro(quatro.entraNoTop(1), "ainda há vaga");
+        assertTrue(quatro.entraNoTop(1), "ainda há vaga");
     }
 
-    @Teste
+    @Test
     void cheioSoEntraQuemSuperaOUltimo() {
         Ranking cheio = new Ranking(List.of(reg("a", 50), reg("b", 40), reg("c", 30), reg("d", 20), reg("e", 10)));
-        verdadeiro(cheio.entraNoTop(11), "supera o 5º");
-        falso(cheio.entraNoTop(10), "empatar com o 5º não basta");
-        falso(cheio.entraNoTop(5), "abaixo do 5º");
+        assertTrue(cheio.entraNoTop(11), "supera o 5º");
+        assertFalse(cheio.entraNoTop(10), "empatar com o 5º não basta");
+        assertFalse(cheio.entraNoTop(5), "abaixo do 5º");
     }
 
-    @Teste
+    @Test
     void incluirOrdenaELimitaACinco() {
         Ranking cheio = new Ranking(List.of(reg("a", 50), reg("b", 40), reg("c", 30), reg("d", 20), reg("e", 10)));
         Ranking novo = cheio.com(reg("novo", 35));
-        igual(List.of("a", "b", "novo", "c", "d"), nomes(novo));
-        igual(5, cheio.getRegistros().size(), "o original não muda");
+        assertEquals(List.of("a", "b", "novo", "c", "d"), nomes(novo));
+        assertEquals(5, cheio.getRegistros().size(), "o original não muda");
     }
 
-    @Teste
+    @Test
     void empateMantemQuemChegouPrimeiro() {
         Ranking r = new Ranking(List.of(reg("antigo", 30))).com(reg("novo", 30));
-        igual(List.of("antigo", "novo"), nomes(r));
+        assertEquals(List.of("antigo", "novo"), nomes(r));
     }
 
-    @Teste
+    @Test
     void liderEhOPrimeiro() {
-        falso(Ranking.vazio().getLider().isPresent(), "vazio não tem líder");
+        assertFalse(Ranking.vazio().getLider().isPresent(), "vazio não tem líder");
         Ranking r = Ranking.vazio().com(reg("b", 10)).com(reg("a", 90));
-        igual("a", r.getLider().orElseThrow().nome());
+        assertEquals("a", r.getLider().orElseThrow().nome());
     }
 
-    @Teste
+    @Test
     void ordenarColocaAMaiorPontuacaoPrimeiro() {
         List<RegistroRanking> ordenados = Ranking.ordenar(List.of(reg("x", 1), reg("y", 9), reg("z", 5)));
-        igual(List.of(9, 5, 1), ordenados.stream().map(RegistroRanking::pontos).collect(Collectors.toList()));
+        assertEquals(List.of(9, 5, 1), ordenados.stream().map(RegistroRanking::pontos).collect(Collectors.toList()));
     }
 }
