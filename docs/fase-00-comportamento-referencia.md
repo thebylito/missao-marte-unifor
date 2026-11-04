@@ -65,6 +65,10 @@ flowchart TD
 
 ## Problemas encontrados (preservados na Fase 0)
 
+> Os problemas 1 e 2 foram corrigidos na Fase 1 (ver o [tutorial da Fase 1](fase-01-tutorial.md), seção 8).
+> O 3 é mantido como regra do jogo. Um quinto, encontrado durante a refatoração, também está na seção 8:
+> a data do ranking pode falhar em vitórias com segundos e nanossegundos zerados.
+
 1. **O menu só aparece depois do primeiro Enter.** O laço chama `scanner.hasNextLine()` *antes* de imprimir o
    menu, e essa chamada bloqueia esperando entrada. Esse Enter é consumido como opção, e o jogo responde "Opção inválida".
    Confirmado executando o jogo com a entrada aberta: 2 s depois de abrir só aparece o banner.
@@ -76,7 +80,7 @@ flowchart TD
 
 ## Validação da Fase 0
 
-Ferramentas em `validacao/`. Elas recebem o comando do jogo como argumento, então valem para todas as fases.
+Ferramentas em `validacao/`; o gabarito da Fase 0 está em `validacao/gabarito/fase-00/`. Elas recebem o comando do jogo como argumento, então valem para todas as fases.
 
 | Verificação | Resultado |
 |---|---|

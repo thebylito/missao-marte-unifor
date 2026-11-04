@@ -1,0 +1,11 @@
+Defeitos inseridos de propósito, um por vez, numa cópia descartável do código (src/ e test/ copiados para
+uma pasta temporária); em cada caso os testes precisam falhar.
+
+[movimento custa 2]      Partida: pontos--  ->  pontos -= 2                    PEGO: 4 testes falharam
+[astronauta vale 10]     Astronauta: return 20  ->  return 10                  PEGO: 2 testes falharam
+[empate entra no top]    Ranking: pontos > ultimo  ->  pontos >= ultimo        PEGO: 2 testes falharam
+[zero pontos continua]   Partida: pontos <= 0  ->  pontos < 0                  PEGO: 2 testes falharam
+
+Testes dos bugs corrigidos, executados contra o código ANTERIOR à correção:
+- JogoConsoleTeste (menu antes da leitura): 2 de 3 testes falham no código antigo, 0 no novo.
+- RankingArquivoJsonTeste (nome com vírgula): o teste de ida e volta falha no leitor antigo, passa no novo.

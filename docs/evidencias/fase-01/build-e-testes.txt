@@ -1,0 +1,15 @@
+ComandoTeste                  2 testes  ok
+GeradorDeMissaoTeste          4 testes  ok
+PartidaTeste                 14 testes  ok
+ServicoRankingTeste           5 testes  ok
+JogoConsoleTeste              3 testes  ok
+DificuldadeTeste              3 testes  ok
+MapaTeste                     3 testes  ok
+MissaoTeste                   6 testes  ok
+MovimentoAleatorioTeste       3 testes  ok
+NaveTeste                     6 testes  ok
+PassageiroTeste               2 testes  ok
+RankingTeste                  6 testes  ok
+RankingArquivoJsonTeste       8 testes  ok
+
+65 testes, 0 falhas

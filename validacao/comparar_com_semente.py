@@ -5,6 +5,10 @@ Com a mesma semente, as duas versões sorteiam o mesmo mapa e movem os inimigos 
 automático é determinístico, o diálogo inteiro (mapas, mensagens, pontos) precisa sair igual. Só a linha
 "Tempo de Jogo" é mascarada, porque depende do relógio real.
 
+Com --so-saida, as teclas enviadas pelo piloto são retiradas do log e compara-se só o texto impresso, na
+ordem. Serve quando uma versão imprime algo mais cedo do que a outra (na Fase 1 o menu passou a aparecer
+antes de o jogador digitar): o texto é o mesmo, só muda onde a tecla aparece no log.
+
     python3 validacao/comparar_com_semente.py --sementes 1-40 \\
         --referencia "java -Dmissaomarte.semente={semente} -cp /tmp/fase0 Main" \\
         --candidato  "java -Dmissaomarte.semente={semente} -cp build/classes br.edu.unifor.missaomarte.Main"
@@ -34,7 +38,7 @@ def faixa(texto):
     return range(int(ini), int(fim or ini) + 1)
 
 
-def jogar(modelo, semente, cenario, pasta):
+def jogar(modelo, semente, cenario, pasta, so_saida=False):
     modo, dificuldade, tamanho = cenario
     log = Path(pasta) / f'{semente}-{modo}-{dificuldade}.log'
     comando = shlex.split(modelo.format(semente=semente))
@@ -42,7 +46,8 @@ def jogar(modelo, semente, cenario, pasta):
                     '--tamanho', str(tamanho), '--log', str(log), '--', *comando],
                    capture_output=True, timeout=300)
     texto = log.read_text(encoding='utf-8') if log.exists() else '<sem log>'
-    return re.sub(r'Tempo de Jogo: \d+ segundos', 'Tempo de Jogo: <t> segundos', texto)
+    texto = re.sub(r'Tempo de Jogo: \d+ segundos', 'Tempo de Jogo: <t> segundos', texto)
+    return re.sub(r'<<[^>]*>>\n', '', texto) if so_saida else texto
 
 
 def main():
@@ -51,12 +56,14 @@ def main():
     p.add_argument('--referencia', required=True)
     p.add_argument('--candidato', required=True)
     p.add_argument('--paralelo', type=int, default=6)
+    p.add_argument('--so-saida', action='store_true', help='compara só o texto impresso, sem as teclas')
     a = p.parse_args()
 
     casos = [(s, c) for s in faixa(a.sementes) for c in CENARIOS]
     with tempfile.TemporaryDirectory() as ref, tempfile.TemporaryDirectory() as cand, \
             ThreadPoolExecutor(a.paralelo) as pool:
-        futuros = [(s, c, pool.submit(jogar, a.referencia, s, c, ref), pool.submit(jogar, a.candidato, s, c, cand))
+        futuros = [(s, c, pool.submit(jogar, a.referencia, s, c, ref, a.so_saida),
+                    pool.submit(jogar, a.candidato, s, c, cand, a.so_saida))
                    for s, c in casos]
         diferentes, finais = 0, {}
         for s, c, fr, fc in futuros:
