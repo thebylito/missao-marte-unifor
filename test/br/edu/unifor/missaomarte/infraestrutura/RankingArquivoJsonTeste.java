@@ -51,11 +51,42 @@ class RankingArquivoJsonTeste {
     }
 
     @Teste
-    void nomeComVirgulaEhDescartadoAoLer() throws IOException {
-        // comportamento herdado da Fase 0 (problema 2 em docs/fase-00-comportamento-referencia.md)
+    void nomesComCaracteresEspeciaisSobrevivemAIdaEVolta() throws IOException {
+        // corrigido na Fase 1: o leitor original descartava nomes com vírgula
         RankingArquivoJson repo = new RankingArquivoJson(arquivo);
-        repo.salvar(List.of(new RegistroRanking("Silva, Ana", 30, Dificuldade.FACIL, 4, "2026-11-01 10:00:00", 35), ANA));
-        igual(List.of(ANA), repo.carregar());
+        List<RegistroRanking> especiais = List.of(
+                new RegistroRanking("Silva, Ana", 90, Dificuldade.FACIL, 4, "2026-11-01 10:00:00", 35),
+                new RegistroRanking("chave } e colchete ]", 80, Dificuldade.MEDIO, 5, "2026-11-01 10:00:00", 35),
+                new RegistroRanking("barra \\ e \"aspas\"", 70, Dificuldade.DIFICIL, 5, "2026-11-01 10:00:00", 35),
+                new RegistroRanking("dois:pontos {x}", 60, Dificuldade.MEDIO, 5, "2026-11-01 10:00:00", 35),
+                new RegistroRanking("quebra\nde linha\te tab", 50, Dificuldade.MEDIO, 5, "2026-11-01 10:00:00", 35));
+        repo.salvar(especiais);
+        igual(especiais, repo.carregar());
+    }
+
+    @Teste
+    void leArquivosGravadosPelaVersaoOriginal() {
+        String original = "[{\"name\":\"Ana\",\"score\":42,\"dificuldade\":\"FACIL\",\"passageirosColetados\":4,"
+                + "\"dataHora\":\"2026-11-01 10:00:00\",\"tempoJogo\":35},"
+                + "{\"name\":\"Bruno \\\"Foguete\\\"\",\"score\":57,\"dificuldade\":\"DIFICIL\",\"passageirosColetados\":5,"
+                + "\"dataHora\":\"2026-11-02 11:30:00\",\"tempoJogo\":80}]";
+        igual(List.of(ANA, BRUNO), RankingArquivoJson.ler(original));
+    }
+
+    @Teste
+    void toleraEspacosCamposExtrasEFaltantes() {
+        String json = " [ { \"score\" : 10 , \"name\" : \"Só nome e pontos\" , \"extra\" : true } ,\n"
+                + "  { \"name\": \"sem pontos\" } ] ";
+        igual(List.of(new RegistroRanking("Só nome e pontos", 10, Dificuldade.MEDIO, 0, "", 0)), RankingArquivoJson.ler(json));
+    }
+
+    @Teste
+    void arquivoMalformadoMantemOQueFoiLido() {
+        String json = "[{\"name\":\"Ana\",\"score\":42},{\"name\":\"corta";
+        igual(List.of(new RegistroRanking("Ana", 42, Dificuldade.MEDIO, 0, "", 0)), RankingArquivoJson.ler(json));
+        igual(List.of(), RankingArquivoJson.ler("isto não é json"));
+        igual(List.of(), RankingArquivoJson.ler("[]"));
+        igual(List.of(), RankingArquivoJson.ler(""));
     }
 
     @Teste
