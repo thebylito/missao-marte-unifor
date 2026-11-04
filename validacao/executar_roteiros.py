@@ -4,9 +4,9 @@
 Serve para qualquer fase: o comando que inicia o jogo é passado depois de "--".
 
     # gera o gabarito a partir da Fase 0
-    python3 validacao/executar_roteiros.py --gerar validacao/gabarito -- java -cp /tmp/out Main
+    python3 validacao/executar_roteiros.py --gerar validacao/gabarito/fase-00 -- java -cp /tmp/out Main
     # compara outra fase com o gabarito
-    python3 validacao/executar_roteiros.py --comparar validacao/gabarito -- java -cp build/classes ...
+    python3 validacao/executar_roteiros.py --comparar validacao/gabarito/fase-01 -- java -cp build/classes br.edu.unifor.missaomarte.Main
 
 Cada roteiro `NN-nome.in` é a entrada digitada. Se existir `NN-nome.ranking.json`, ele é copiado para o
 diretório de trabalho antes da execução (ranking pré-existente). O jogo roda num diretório temporário

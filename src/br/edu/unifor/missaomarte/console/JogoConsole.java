@@ -11,6 +11,7 @@ import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.dominio.Mapa;
 import br.edu.unifor.missaomarte.dominio.Ranking;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Fluxo do jogo no console: menu, perguntas iniciais e laço de turnos. Traduz o que foi digitado em
@@ -41,12 +42,14 @@ public class JogoConsole {
         tela.boasVindas();
         boolean rodando = true;
         while (rodando) {
-            if (!entrada.temLinha()) {
+            // Corrigido na Fase 1: o original esperava a entrada ANTES de mostrar o menu.
+            tela.menu();
+            Optional<String> opcao = entrada.lerLinhaOuFim("Escolha uma opção: ");
+            if (opcao.isEmpty()) {
                 tela.mensagem("\nEntrada encerrada. Obrigado por jogar!");
                 break;
             }
-            tela.menu();
-            switch (entrada.lerLinha("Escolha uma opção: ", "1")) {
+            switch (opcao.get()) {
                 case "1":
                     jogarPartida(ranking);
                     ranking = servicoRanking.carregar();
