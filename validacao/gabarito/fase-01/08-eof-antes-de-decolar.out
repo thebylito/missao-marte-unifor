@@ -1,0 +1,32 @@
+================================================================
+             MISSÃO MARTE UNIFOR - VERSÃO 10.0                  
+================================================================
+  Pilote sua nave, salve os passageiros e desvie dos perigos!   
+================================================================
+
+--- MENU PRINCIPAL ---
+1. Iniciar Nova Missão
+2. Visualizar Ranking Top 5
+3. Resetar Histórico de Ranking
+4. Sair do Jogo
+----------------------
+Escolha uma opção: 
+Digite o nome do piloto: Escolha a Dificuldade (facil/medio/dificil): Tamanho do mapa (ex: 5 para mapa de -5 a +5): 
+Iniciando missão na dificuldade Difícil...
+Pressione Enter para decolar!
+Entrada encerrada. Missão não iniciada.
+
+--- MENU PRINCIPAL ---
+1. Iniciar Nova Missão
+2. Visualizar Ranking Top 5
+3. Resetar Histórico de Ranking
+4. Sair do Jogo
+----------------------
+Escolha uma opção: 
+Entrada encerrada. Obrigado por jogar!
+
+----- código de saída: 0
+----- stderr:
+
+----- ranking.json final:
+<ausente>

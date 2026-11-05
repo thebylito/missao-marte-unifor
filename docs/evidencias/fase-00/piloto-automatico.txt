@@ -1,0 +1,5 @@
+modo=vencer dificuldade=facil tamanho=2: 10 partidas, finais={'Missão cumprida!': 10}, partidas com regra violada=0
+modo=vencer dificuldade=medio tamanho=3: 10 partidas, finais={'Missão cumprida!': 7, 'GAME OVER!': 3}, partidas com regra violada=0
+modo=vencer dificuldade=dificil tamanho=3: 10 partidas, finais={'Missão cumprida!': 9, 'GAME OVER!': 1}, partidas com regra violada=0
+modo=colidir dificuldade=dificil tamanho=2: 10 partidas, finais={'GAME OVER!': 10}, partidas com regra violada=0
+modo=esgotar dificuldade=medio tamanho=4: 10 partidas, finais={'Missão perdida.': 10}, partidas com regra violada=0

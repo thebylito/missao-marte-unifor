@@ -1,0 +1,56 @@
+================================================================
+             MISSÃO MARTE UNIFOR - VERSÃO 10.0                  
+================================================================
+  Pilote sua nave, salve os passageiros e desvie dos perigos!   
+================================================================
+
+--- MENU PRINCIPAL ---
+1. Iniciar Nova Missão
+2. Visualizar Ranking Top 5
+3. Resetar Histórico de Ranking
+4. Sair do Jogo
+----------------------
+Escolha uma opção: 
+Digite o nome do piloto: Escolha a Dificuldade (facil/medio/dificil): Tamanho do mapa (ex: 5 para mapa de -5 a +5): 
+Iniciando missão na dificuldade Médio...
+Pressione Enter para decolar!
+
+Mapa da Missão (Pontos: 20) - Piloto: Piloto Anônimo
+     -5 -4 -3 -2 -1  0  1  2  3  4  5
+     __ __ __ __ __ __ __ __ __ __ __
+ -5| <sorteado>
+ -4| <sorteado>
+ -3| <sorteado>
+ -2| <sorteado>
+ -1| <sorteado>
+  0| <sorteado>
+  1| <sorteado>
+  2| <sorteado>
+  3| <sorteado>
+  4| <sorteado>
+  5| <sorteado>
+Legenda: @=Nave, P=Professor, E=Engenheiro, T=Astronauta, #=Asteroide, X=Inimigo, L=Plataforma de Pouso, .=Vazio
+Comandos: w/s/a/d (mover), c (embarcar), q (sair)
+Passageiros na superfície marciana:
+ - Dr. Silva (Professor) em (x,y)
+ - Eng. Rosa (Engenheiro) em (x,y)
+ - Dr. Lima (Professor) em (x,y)
+ - Eng. Carlos (Engenheiro) em (x,y)
+ - Ast. Maria (Astronauta) em (x,y)
+Nave em (0,0) | Pontos: 20 | Vidas: 3 | A bordo: 0/5 | Restantes: 5
+Comando (w/s/a/d/c/q): Missão abortada pelo piloto.
+
+--- MENU PRINCIPAL ---
+1. Iniciar Nova Missão
+2. Visualizar Ranking Top 5
+3. Resetar Histórico de Ranking
+4. Sair do Jogo
+----------------------
+Escolha uma opção: 
+Obrigado por jogar a Missão Marte Unifor!
+
+----- código de saída: 0
+----- stderr:
+
+----- ranking.json final:
+<ausente>

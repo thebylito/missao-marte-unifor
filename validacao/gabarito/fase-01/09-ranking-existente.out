@@ -1,0 +1,34 @@
+================================================================
+             MISSÃO MARTE UNIFOR - VERSÃO 10.0                  
+================================================================
+  Pilote sua nave, salve os passageiros e desvie dos perigos!   
+================================================================
+
+--- MENU PRINCIPAL ---
+1. Iniciar Nova Missão
+2. Visualizar Ranking Top 5
+3. Resetar Histórico de Ranking
+4. Sair do Jogo
+----------------------
+Escolha uma opção: 
+====== RANKING TOP 5 PILOTOS ======
+1. Bruno "Foguete" - 57 pts | Dificuldade: Difícil | Coletados: 5 | Tempo: 80s | 2026-11-02 11:30:00
+2. Ana - 42 pts | Dificuldade: Fácil | Coletados: 4 | Tempo: 35s | 2026-11-01 10:00:00
+3. Carla - 12 pts | Dificuldade: Médio | Coletados: 5 | Tempo: 60s | 2026-11-03 09:15:00
+===================================
+
+--- MENU PRINCIPAL ---
+1. Iniciar Nova Missão
+2. Visualizar Ranking Top 5
+3. Resetar Histórico de Ranking
+4. Sair do Jogo
+----------------------
+Escolha uma opção: 
+Obrigado por jogar a Missão Marte Unifor!
+
+----- código de saída: 0
+----- stderr:
+
+----- ranking.json final:
+[{"name":"Ana","score":42,"dificuldade":"FACIL","passageirosColetados":4,"dataHora":"2026-11-01 10:00:00","tempoJogo":35},{"name":"Bruno \"Foguete\"","score":57,"dificuldade":"DIFICIL","passageirosColetados":5,"dataHora":"2026-11-02 11:30:00","tempoJogo":80},{"name":"Carla","score":12,"dificuldade":"MEDIO","passageirosColetados":5,"dataHora":"2026-11-03 09:15:00","tempoJogo":60}]
+
