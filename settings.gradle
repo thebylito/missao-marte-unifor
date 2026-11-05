@@ -1,1 +1,5 @@
 rootProject.name = 'missao-marte-unifor'
+
+// Fase 3: projeto multi-módulo.
+include 'nucleo'    // regras do jogo (domínio, aplicação, ranking em arquivo); Java puro, sem libGDX
+include 'console'   // o jogo em modo texto, que continua funcionando

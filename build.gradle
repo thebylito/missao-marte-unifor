@@ -1,64 +1,45 @@
-// Fase 2 — build do jogo de console com Gradle (DSL Groovy).
-plugins {
-    id 'java'          // compileJava, test, jar...
-    id 'application'   // run, installDist, distZip
+// Fase 3 — build raiz do projeto multi-módulo (DSL Groovy).
+// Aqui fica só o que é comum a todos os módulos; cada módulo tem o seu build.gradle.
+
+ext {
+    // versão da libGDX num único lugar (usada por core e lwjgl3)
+    gdxVersion = '1.14.2'
 }
 
-group = 'br.edu.unifor.missaomarte'
-version = '2.0.0'
+subprojects {
+    apply plugin: 'java'
 
-java {
-    // Toolchain: compila e executa com JDK 17 mesmo que o "java" padrão da máquina seja outro.
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+    group = 'br.edu.unifor.missaomarte'
+    version = '3.0.0'
+
+    java {
+        // Toolchain: compila e executa com JDK 17 mesmo que o "java" padrão da máquina seja outro.
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
     }
-}
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    // BOM: fixa versões compatíveis entre os módulos do JUnit 5
-    testImplementation platform('org.junit:junit-bom:5.10.2')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << '-Xlint:all'
-}
-
-application {
-    mainClass = 'br.edu.unifor.missaomarte.Main'
-}
-
-tasks.named('run') {
-    // o jogo lê o teclado: sem isto, o Scanner veria a entrada vazia
-    standardInput = System.in
-    // o ranking.json fica na pasta de trabalho do jogo: por padrão, a do projeto.
-    // Outra pasta: ./gradlew run -PpastaDoJogo=/caminho
-    if (project.hasProperty('pastaDoJogo')) {
-        workingDir = file(project.property('pastaDoJogo'))
+    repositories {
+        mavenCentral()
     }
-    // repassa a opção de sorteio reproduzível: ./gradlew run -Dmissaomarte.semente=7
-    if (System.getProperty('missaomarte.semente')) {
-        systemProperty 'missaomarte.semente', System.getProperty('missaomarte.semente')
-    }
-}
 
-tasks.named('test') {
-    useJUnitPlatform()
-    testLogging {
-        events 'failed'
-        exceptionFormat = 'full'
+    dependencies {
+        // BOM: fixa versões compatíveis entre os módulos do JUnit 5
+        testImplementation platform('org.junit:junit-bom:5.10.2')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
-}
 
-tasks.named('jar') {
-    // jar executável: java -jar build/libs/missao-marte-unifor-2.0.0.jar
-    manifest {
-        attributes 'Main-Class': application.mainClass
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs << '-Xlint:all'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+        testLogging {
+            events 'failed'
+            exceptionFormat = 'full'
+        }
     }
 }
