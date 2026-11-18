@@ -1,20 +1,22 @@
 package br.edu.unifor.missaomarte.grafico.telas;
 
-import br.edu.unifor.missaomarte.dominio.Ranking;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
-import br.edu.unifor.missaomarte.grafico.apresentacao.TextosDaInterface;
-import com.badlogic.gdx.Input.Keys;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking.Aba;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 
-/** Top 5 lido do ranking.json (o mesmo arquivo do console). Enter ou Esc volta ao menu. */
+/**
+ * Ranking com duas abas: Top 5 local (o ranking.json, o mesmo do console) e Top 10 global (servidor, Fase 5).
+ * Setas ou Tab trocam de aba; Enter ou Esc volta ao menu. As decisões ficam no {@link ControladorDoRanking}.
+ */
 public class TelaRanking extends TelaBase {
 
-    private final Ranking ranking;
+    private final ControladorDoRanking controlador;
 
-    public TelaRanking(MissaoMarteGame jogo, Ranking ranking) {
+    public TelaRanking(MissaoMarteGame jogo, ControladorDoRanking controlador) {
         super(jogo);
-        this.ranking = ranking;
+        this.controlador = controlador;
     }
 
     @Override
@@ -22,7 +24,7 @@ public class TelaRanking extends TelaBase {
         return new InputAdapter() {
             @Override
             public boolean keyDown(int tecla) {
-                if (tecla == Keys.ENTER || tecla == Keys.NUMPAD_ENTER || tecla == Keys.ESCAPE) {
+                if (controlador.teclaPressionada(tecla) == ControladorDoRanking.Acao.VOLTAR) {
                     jogo.irParaMenu();
                 }
                 return true;
@@ -32,13 +34,17 @@ public class TelaRanking extends TelaBase {
 
     @Override
     protected void desenhar() {
+        boolean local = controlador.getAba() == Aba.LOCAL;
         lote().begin();
-        escreverTitulo("RANKING TOP 5 PILOTOS", 500, Color.ORANGE, 2f);
+        escreverTitulo(local ? "RANKING TOP 5 PILOTOS" : "RANKING GLOBAL TOP 10", 520, Color.ORANGE, 2f);
+        escreverCentralizado((local ? "[ Local ]" : "  Local  ") + "      " + (local ? "  Global  " : "[ Global ]"),
+                455, Color.SKY, 1.1f);
         float y = 410;
-        for (String linha : TextosDaInterface.ranking(ranking)) {
-            y -= escreverComQuebra(linha, 60, y, 680, Color.WHITE, 1.1f) + 14;
+        float escala = local ? 1.1f : 0.95f;
+        for (String linha : controlador.linhas()) {
+            y -= escreverComQuebra(linha, 60, y, 680, Color.WHITE, escala) + (local ? 14 : 8);
         }
-        escreverCentralizado("Enter: voltar ao menu", 70, Color.SKY, 1.1f);
+        escreverCentralizado("Setas: Local / Global   |   Enter: voltar ao menu", 70, Color.SKY, 1.1f);
         lote().end();
     }
 }

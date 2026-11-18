@@ -3,10 +3,17 @@ package br.edu.unifor.missaomarte.grafico.apresentacao;
 import br.edu.unifor.missaomarte.aplicacao.Evento;
 import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.aplicacao.ResultadoPartida;
+import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.dominio.Missao;
 import br.edu.unifor.missaomarte.dominio.Nave;
 import br.edu.unifor.missaomarte.dominio.Ranking;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
+import br.edu.unifor.missaomarte.grafico.online.PartidaDoHistorico;
+import br.edu.unifor.missaomarte.grafico.online.PosicaoGlobal;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,5 +110,61 @@ public final class TextosDaInterface {
                     r.tempoJogoSegundos(), r.dataHora()));
         }
         return linhas;
+    }
+
+    // ------------------------------------------------------------------ Fase 5: servidor
+
+    private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    /** Top 10 global, no mesmo estilo do Top 5 local. */
+    public static List<String> rankingGlobal(List<PosicaoGlobal> ranking) {
+        if (ranking.isEmpty()) {
+            return List.of("Nenhuma vitória registrada no servidor ainda.");
+        }
+        List<String> linhas = new ArrayList<>();
+        for (PosicaoGlobal p : ranking) {
+            linhas.add(String.format("%d. %s - %d pts | %s | Coletados: %d | Tempo: %ds | %s", p.posicao(), p.nome(),
+                    p.pontos(), dificuldade(p.dificuldade()), p.passageiros(), p.tempoSegundos(), data(p.registradaEm())));
+        }
+        return linhas;
+    }
+
+    /** Histórico do jogador conectado, da partida mais recente para a mais antiga. */
+    public static List<String> historico(List<PartidaDoHistorico> partidas) {
+        if (partidas.isEmpty()) {
+            return List.of("Nenhuma partida registrada ainda.");
+        }
+        List<String> linhas = new ArrayList<>();
+        for (PartidaDoHistorico p : partidas) {
+            linhas.add(String.format("%s | %s | %d pts | %s | %d passageiro(s) | %d movimentos", data(p.registradaEm()),
+                    resultado(p.resultado()), p.pontos(), dificuldade(p.dificuldade()), p.passageiros(), p.movimentos()));
+        }
+        return linhas;
+    }
+
+    static String resultado(String r) {
+        switch (r) {
+            case "VITORIA": return "Vitória";
+            case "DERROTA": return "Derrota";
+            case "ABORTADA": return "Abortada";
+            default: return r;
+        }
+    }
+
+    static String dificuldade(String d) {
+        try {
+            return Dificuldade.valueOf(d).toString();     // "Fácil", "Médio", "Difícil", como no jogo
+        } catch (IllegalArgumentException e) {
+            return d;
+        }
+    }
+
+    /** Data do servidor (UTC, ISO-8601) no fuso da máquina do jogador. */
+    static String data(String iso) {
+        try {
+            return DATA.format(Instant.parse(iso).atZone(ZoneId.systemDefault()));
+        } catch (DateTimeParseException | NullPointerException e) {
+            return String.valueOf(iso);
+        }
     }
 }

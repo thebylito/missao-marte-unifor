@@ -59,4 +59,12 @@ class ControladorDoMenuTeste {
         menu.teclaPressionada(Keys.NUM_2);
         assertEquals("", menu.getMensagem());
     }
+
+    @Test
+    void fase5HistoricoETrocaDePiloto() {
+        assertEquals(Acao.HISTORICO, menu.teclaPressionada(Keys.NUM_5));
+        assertEquals(Acao.HISTORICO, menu.teclaPressionada(Keys.NUMPAD_5));
+        assertEquals(Acao.TROCAR_PILOTO, menu.teclaPressionada(Keys.NUM_6));
+        assertEquals(Acao.TROCAR_PILOTO, menu.teclaPressionada(Keys.NUMPAD_6));
+    }
 }

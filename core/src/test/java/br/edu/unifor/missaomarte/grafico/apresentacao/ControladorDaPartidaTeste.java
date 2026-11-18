@@ -19,6 +19,7 @@ import br.edu.unifor.missaomarte.dominio.Posicao;
 import br.edu.unifor.missaomarte.dominio.Professor;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
 import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
+import br.edu.unifor.missaomarte.grafico.online.PartidaParaEnviar;
 import com.badlogic.gdx.Input.Keys;
 import java.util.Comparator;
 import java.util.List;
@@ -151,6 +152,27 @@ class ControladorDaPartidaTeste {
         FimDePartida fim = c.getFim().orElseThrow();
         assertEquals("disco cheio", fim.erroAoSalvar().orElseThrow());
         assertTrue(TextosDaInterface.linhasDoFim(fim).contains("Não foi possível salvar o ranking: disco cheio"));
+    }
+
+    // ---- Fase 5: o resumo que vai para o servidor, lido da Partida
+
+    @Test
+    void resumoDaVitoriaParaOServidor() {
+        ControladorDaPartida c = controlador(missaoComProfessorAoLado());
+        relogio.millis = 42_000;
+        c.teclaPressionada(Keys.D);
+        c.teclaPressionada(Keys.C);
+        c.teclaPressionada(Keys.A);
+        assertEquals(new PartidaParaEnviar("VITORIA", "MEDIO", 28, 1, 2, 42), c.getFim().orElseThrow().paraOServidor());
+    }
+
+    @Test
+    void resumoDaDerrotaEDoAbandonoLevaOsPassageirosABordoETempoZero() {
+        ControladorDaPartida c = controlador(missaoComProfessorAoLado());
+        c.teclaPressionada(Keys.D);
+        c.teclaPressionada(Keys.C);
+        c.teclaPressionada(Keys.Q);
+        assertEquals(new PartidaParaEnviar("ABORTADA", "MEDIO", 29, 1, 1, 0), c.getFim().orElseThrow().paraOServidor());
     }
 
     // ---- partida sorteada com semente fixa, como o console faz com -Dmissaomarte.semente ----

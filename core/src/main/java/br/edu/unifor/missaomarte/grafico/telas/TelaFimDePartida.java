@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.grafico.telas;
 
 import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
+import br.edu.unifor.missaomarte.grafico.apresentacao.EnvioDoResultado;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ReacaoAosEventos;
 import br.edu.unifor.missaomarte.grafico.recursos.Folha;
@@ -19,6 +20,7 @@ public class TelaFimDePartida extends TelaBase {
 
     private final FimDePartida fim;
     private float tempo;
+    private EnvioDoResultado envio;
 
     public TelaFimDePartida(MissaoMarteGame jogo, FimDePartida fim) {
         super(jogo);
@@ -29,6 +31,8 @@ public class TelaFimDePartida extends TelaBase {
     public void show() {
         super.show();
         ReacaoAosEventos.somDoFim(fim.estado()).ifPresent(jogo.getSons()::tocar);
+        // Fase 5: com um jogador conectado, o resultado vai ao servidor em segundo plano
+        envio = EnvioDoResultado.iniciar(jogo.getSessao(), jogo.getServicos().servidor(), fim.paraOServidor());
     }
 
     @Override
@@ -59,6 +63,11 @@ public class TelaFimDePartida extends TelaBase {
         float y = 410;
         for (String linha : TextosDaInterface.linhasDoFim(fim)) {
             y -= escreverComQuebra(linha, 140, y, 520, Color.WHITE, 1.2f) + 10;
+        }
+        if (envio != null) {
+            Color cor = envio.getEstado() == EnvioDoResultado.Estado.FALHOU ? Color.YELLOW
+                    : envio.getEstado() == EnvioDoResultado.Estado.ENVIADO ? Color.LIME : Color.LIGHT_GRAY;
+            escreverCentralizado(envio.texto(), 120, cor, 0.95f);
         }
         escreverCentralizado("Enter: voltar ao menu", 70, Color.SKY, 1.1f);
         lote().end();

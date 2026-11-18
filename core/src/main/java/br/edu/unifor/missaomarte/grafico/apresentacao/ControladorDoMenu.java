@@ -5,12 +5,13 @@ import com.badlogic.gdx.Input.Keys;
 import java.io.IOException;
 
 /**
- * Menu principal da janela, com as mesmas 4 opções do console. Decide o que cada tecla faz; a tela só
+ * Menu principal da janela, com as mesmas 4 opções do console e, na Fase 5, o histórico online (5) e a troca de
+ * piloto (6). Decide o que cada tecla faz; a tela só
  * desenha e troca de tela conforme a {@link Acao} devolvida (Humble Object, como o ControladorDaPartida).
  */
 public final class ControladorDoMenu {
 
-    public enum Acao { NENHUMA, NOVA_PARTIDA, RANKING, SAIR }
+    public enum Acao { NENHUMA, NOVA_PARTIDA, RANKING, SAIR, HISTORICO, TROCAR_PILOTO }
 
     public static final String PERGUNTA_APAGAR = "Você realmente deseja limpar o histórico de ranking? (S/N)";
 
@@ -45,6 +46,14 @@ public final class ControladorDoMenu {
             case Keys.NUM_4:
             case Keys.NUMPAD_4:
                 return Acao.SAIR;
+            case Keys.NUM_5:              // Fase 5: histórico no servidor
+            case Keys.NUMPAD_5:
+                mensagem = "";
+                return Acao.HISTORICO;
+            case Keys.NUM_6:              // Fase 5: entrar com outra conta ou como convidado
+            case Keys.NUMPAD_6:
+                mensagem = "";
+                return Acao.TROCAR_PILOTO;
             default:
                 mensagem = "Opção inválida. Tente novamente.";
                 return Acao.NENHUMA;

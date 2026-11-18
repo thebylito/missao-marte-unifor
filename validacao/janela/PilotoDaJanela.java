@@ -3,6 +3,7 @@ import br.edu.unifor.missaomarte.aplicacao.Relogio;
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
 import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
+import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -33,7 +34,10 @@ import java.util.zip.Deflater;
  *   java -XstartOnFirstThread -cp "<projeto>/$L/*:/tmp/piloto" PilotoDaJanela /tmp/janela/prints 3 vitoria
  * (-XstartOnFirstThread só no macOS.) Roteiros (semente 3, Fácil, mapa 3):
  *   vitoria  - ddcsscdwcaaaaaawwwcdddss: resgata os 4 passageiros e vence com 60 pontos;
- *   colisao  - ddcsssaaaadada: embarca um passageiro e bate 3 vezes no asteroide em (-2,3) até a nave ser destruída.
+ *   colisao  - ddcsssaaaadada: embarca um passageiro e bate 3 vezes no asteroide em (-2,3) até a nave ser destruída;
+ *   online   - (Fase 5, servidor ligado) cria a conta "Ana", vence, envia o resultado e abre o ranking global e o
+ *              histórico. Endereço do servidor: -Dmissaomarte.servidor=http://localhost:8080 (o padrão);
+ *   offline  - (Fase 5, servidor desligado) tenta entrar, vê o aviso, joga como convidado e abre o ranking global.
  */
 public class PilotoDaJanela extends MissaoMarteGame {
 
@@ -50,13 +54,18 @@ public class PilotoDaJanela extends MissaoMarteGame {
         this.pasta = pasta;
         if (roteiro.equals("colisao")) {
             montarRoteiroDeColisao();
+        } else if (roteiro.equals("online")) {
+            montarRoteiroOnline();
+        } else if (roteiro.equals("offline")) {
+            montarRoteiroOffline();
         } else {
             montarRoteiro();
         }
     }
 
-    /** Começo comum: menu, ranking vazio, apagar cancelado e a nova partida (Ana, Fácil, mapa 3). */
+    /** Começo comum: entra como convidado, menu, ranking vazio, apagar cancelado e a nova partida (Ana, Fácil, mapa 3). */
     private void comecoComum() {
+        tecla(Keys.NUM_3, '3');               // Fase 5: tela de entrada -> jogar como convidado
         print("menu");
         tecla(Keys.NUM_2, '2'); print("ranking-vazio");
         tecla(Keys.ENTER, '\r');
@@ -99,6 +108,67 @@ public class PilotoDaJanela extends MissaoMarteGame {
         }
         aguardar(1.2f);
         print("fim-derrota");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_4, '4');
+    }
+
+    /** Digita um texto, uma tecla por caractere (keyDown, keyTyped, keyUp). */
+    private void texto(String t) {
+        for (char c : t.toCharArray()) {
+            tecla(Character.isDigit(c) ? Keys.NUM_0 + (c - '0') : Keys.valueOf(String.valueOf(Character.toUpperCase(c))), c);
+        }
+    }
+
+    /** Fase 5, servidor ligado: cadastro, vitória enviada, ranking global e histórico. */
+    private void montarRoteiroOnline() {
+        print("entrada");
+        tecla(Keys.NUM_2, '2');               // criar conta
+        texto("Ana");
+        tecla(Keys.ENTER, '\r');
+        texto("segredo1");
+        print("entrada-cadastro-preenchido");
+        tecla(Keys.ENTER, '\r');
+        aguardar(1.5f);                       // cadastro + login no servidor
+        print("menu-conectado");
+        tecla(Keys.NUM_1, '1');               // nova partida: o nome já vem preenchido com o da conta
+        tecla(Keys.LEFT, (char) 0);
+        tecla(Keys.DOWN, (char) 0); tecla(Keys.DOWN, (char) 0); print("nova-partida-conectado");
+        tecla(Keys.ENTER, '\r');
+        texto("ddcsscdwcaaaaaawwwcdddss");
+        aguardar(1.5f);
+        print("fim-vitoria-enviada");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_2, '2'); print("ranking-local");
+        tecla(Keys.RIGHT, (char) 0);
+        aguardar(1f);
+        print("ranking-global");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_5, '5');
+        aguardar(1f);
+        print("historico");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_4, '4');
+    }
+
+    /** Fase 5, servidor desligado: o login falha com aviso, o convidado joga e o ranking global avisa. */
+    private void montarRoteiroOffline() {
+        tecla(Keys.NUM_1, '1');               // entrar
+        texto("Ana");
+        tecla(Keys.ENTER, '\r');
+        texto("segredo1");
+        tecla(Keys.ENTER, '\r');
+        aguardar(1.5f);
+        print("entrada-servidor-indisponivel");
+        tecla(Keys.ESCAPE, (char) 27);
+        tecla(Keys.NUM_3, '3');               // convidado
+        print("menu-convidado");
+        tecla(Keys.NUM_2, '2');
+        tecla(Keys.RIGHT, (char) 0);
+        aguardar(1f);
+        print("ranking-global-indisponivel");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_5, '5');
+        print("historico-convidado");
         tecla(Keys.ENTER, '\r');
         tecla(Keys.NUM_4, '4');
     }
@@ -153,7 +223,8 @@ public class PilotoDaJanela extends MissaoMarteGame {
     public static void main(String[] args) {
         Relogio relogio = Relogio.DO_SISTEMA;
         ServicosDoJogo servicos = new ServicosDoJogo(new GeradorDeMissao(new Random(Long.parseLong(args[1]))),
-                new ServicoRanking(new RankingArquivoJson(Paths.get("ranking.json")), relogio), relogio);
+                new ServicoRanking(new RankingArquivoJson(Paths.get("ranking.json")), relogio), relogio,
+                ServidorHttp.daLibgdx(System.getProperty("missaomarte.servidor", "http://localhost:8080")));
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle("Missão Marte Unifor (piloto automático)");
         config.setWindowedMode(800, 600);
