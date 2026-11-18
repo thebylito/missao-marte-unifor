@@ -1,6 +1,7 @@
 package br.edu.unifor.missaomarte.grafico.apresentacao;
 
 import br.edu.unifor.missaomarte.aplicacao.Evento;
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.aplicacao.ResultadoPartida;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
@@ -18,6 +19,8 @@ import java.util.Optional;
  * @param entrouNoTop    a vitória entrou no Top 5
  * @param erroAoSalvar   motivo, se o ranking não pôde ser gravado
  * @param paraOServidor  resumo da partida no formato da API (Fase 5), enviado se houver um jogador conectado
+ * @param modo           clássico ou pilotagem (Fase 7)
+ * @param voo            na pilotagem, os números do voo (bônus de combustível e pousos)
  */
 public record FimDePartida(
         Partida.Estado estado,
@@ -26,9 +29,23 @@ public record FimDePartida(
         Optional<RegistroRanking> liderAnterior,
         boolean entrouNoTop,
         Optional<String> erroAoSalvar,
-        PartidaParaEnviar paraOServidor) {
+        PartidaParaEnviar paraOServidor,
+        Modo modo,
+        Optional<ResumoDoVoo> voo) {
+
+    /** Os números que só a pilotagem tem: os pontos dos resgates, o bônus de combustível e os pousos. */
+    public record ResumoDoVoo(int pontosDosResgates, int bonus, int pousos) {
+    }
 
     public FimDePartida {
         eventosFinais = List.copyOf(eventosFinais);
+    }
+
+    /** O fim de uma partida clássica (o formato das Fases 3 a 6). */
+    public FimDePartida(Partida.Estado estado, List<Evento> eventosFinais, Optional<ResultadoPartida> resultado,
+                        Optional<RegistroRanking> liderAnterior, boolean entrouNoTop, Optional<String> erroAoSalvar,
+                        PartidaParaEnviar paraOServidor) {
+        this(estado, eventosFinais, resultado, liderAnterior, entrouNoTop, erroAoSalvar, paraOServidor, Modo.CLASSICO,
+                Optional.empty());
     }
 }

@@ -15,7 +15,11 @@ public enum Folha {
     ENGENHEIRO("sprites/engenheiro.png", 48, 64, 8, 1, 8),
     PROFESSOR("sprites/professor.png", 48, 64, 8, 1, 8),
     PLATAFORMA("sprites/plataforma_base.png", 256, 64, 1, 1, 1),
-    FUNDO("sprites/fundo.png", 1200, 900, 1, 1, 1);
+    FUNDO("sprites/fundo.png", 1200, 900, 1, 1, 1),
+    // Fase 7 (pilotagem): já estavam em assets/ desde a Fase 4, vindos da POC
+    CHAMA("sprites/chama.png", 64, 96, 4, 1, 4),
+    ROCHA("sprites/rocha_tile.png", 256, 256, 1, 1, 1),
+    PLATAFORMA_PASSAGEIRO("sprites/plataforma_passageiro.png", 160, 48, 1, 1, 1);
 
     private final String caminho;
     private final int largura;

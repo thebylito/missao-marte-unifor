@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.apresentacao;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import br.edu.unifor.missaomarte.aplicacao.Relogio;
 import br.edu.unifor.missaomarte.aplicacao.RepositorioRanking;
 import br.edu.unifor.missaomarte.grafico.audio.Som;
@@ -121,8 +122,8 @@ final class Apoio {
         }
 
         @Override
-        public void ranking(Resposta<List<PosicaoGlobal>> r) {
-            pedidos.add("ranking");
+        public void ranking(Modo modo, Resposta<List<PosicaoGlobal>> r) {
+            pedidos.add(modo == Modo.CLASSICO ? "ranking" : "ranking " + modo);
             ranking = r;
         }
 

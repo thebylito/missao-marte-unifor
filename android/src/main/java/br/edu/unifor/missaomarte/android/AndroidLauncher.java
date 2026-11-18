@@ -46,7 +46,9 @@ public class AndroidLauncher extends AndroidApplication {
                 new GeradorDeMissao(sorteio()),
                 new ServicoRanking(new RankingArquivoJson(new File(getFilesDir(), "ranking.json").toPath()), relogio),
                 relogio,
-                ServidorHttp.daLibgdx(servidor::endereco));
+                ServidorHttp.daLibgdx(servidor::endereco),
+                new ServicoRanking(new RankingArquivoJson(new File(getFilesDir(), "ranking-pilotagem.json").toPath()),
+                        relogio));
 
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
         config.useImmersiveMode = true;      // esconde as barras do sistema durante o jogo

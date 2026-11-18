@@ -51,7 +51,9 @@ public final class Lwjgl3Launcher {
                 new GeradorDeMissao(semente == null ? new Random() : new Random(semente)),
                 new ServicoRanking(new RankingArquivoJson(Paths.get("ranking.json")), relogio),
                 relogio,
-                ServidorHttp.daLibgdx(servidor::endereco));
+                ServidorHttp.daLibgdx(servidor::endereco),
+                // Fase 7: a pilotagem tem o seu Top 5, ao lado do ranking.json
+                new ServicoRanking(new RankingArquivoJson(Paths.get("ranking-pilotagem.json")), relogio));
     }
 
     static Lwjgl3ApplicationConfiguration configuracao() {

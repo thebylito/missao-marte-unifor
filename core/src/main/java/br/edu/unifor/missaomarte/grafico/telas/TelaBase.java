@@ -111,13 +111,24 @@ public abstract class TelaBase implements Screen {
 
             @Override
             public boolean touchDown(int x, int y, int dedo, int botao) {
-                return tocar(x, y);
+                return tocar(x, y, dedo, botao);
+            }
+
+            /** Fase 7: soltar e arrastar o dedo (a pilotagem usa botões que valem enquanto apertados). */
+            @Override
+            public boolean touchUp(int x, int y, int dedo, int botao) {
+                return entradaAtual.touchUp(x, y, dedo, botao);
+            }
+
+            @Override
+            public boolean touchDragged(int x, int y, int dedo) {
+                return entradaAtual.touchDragged(x, y, dedo);
             }
         }));
     }
 
     /** Converte o toque (pixels da tela) para o mundo e executa o primeiro alvo que o contém. */
-    private boolean tocar(int xNaTela, int yNaTela) {
+    private boolean tocar(int xNaTela, int yNaTela, int dedo, int botao) {
         viewport.unproject(toque.set(xNaTela, yNaTela));
         for (AlvoDeToque alvo : alvosDeToque()) {
             if (alvo.area().contem(toque.x, toque.y)) {
@@ -125,7 +136,20 @@ public abstract class TelaBase implements Screen {
                 return true;
             }
         }
-        return entradaAtual.touchDown(xNaTela, yNaTela, 0, 0);
+        return entradaAtual.touchDown(xNaTela, yNaTela, dedo, botao);
+    }
+
+    /** Fase 7: um ponto em pixels da tela nas coordenadas das telas (as dos layouts e dos alvos de toque). */
+    protected float[] naTela(int xNaTela, int yNaTela) {
+        Vector2 p = viewport.unproject(new Vector2(xNaTela, yNaTela));
+        return new float[] {p.x, p.y};
+    }
+
+    /** Fase 7: volta à câmera das telas (depois de desenhar com outra, como o mundo da pilotagem). */
+    protected void usarCameraDaTela() {
+        viewport.apply();
+        formas().setProjectionMatrix(camera.combined);
+        lote().setProjectionMatrix(camera.combined);
     }
 
     /** Um alvo que "aperta" uma tecla: keyDown, o caractere (se houver) e keyUp, como o teclado faria. */

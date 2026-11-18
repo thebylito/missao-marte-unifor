@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import java.util.List;
 
 /**
@@ -15,7 +16,13 @@ public interface ServidorDoJogo {
 
     void registrarPartida(Sessao sessao, PartidaParaEnviar partida, Resposta<Void> resposta);
 
-    void ranking(Resposta<List<PosicaoGlobal>> resposta);
+    /** Fase 7: o ranking global de um modo (cada modo tem o seu). */
+    void ranking(Modo modo, Resposta<List<PosicaoGlobal>> resposta);
+
+    /** O ranking do modo clássico (o único das Fases 5 e 6). */
+    default void ranking(Resposta<List<PosicaoGlobal>> resposta) {
+        ranking(Modo.CLASSICO, resposta);
+    }
 
     void historico(Sessao sessao, Resposta<List<PartidaDoHistorico>> resposta);
 
@@ -24,7 +31,7 @@ public interface ServidorDoJogo {
         @Override public void cadastrar(String nome, String senha, Resposta<Void> r) { r.falha(Falha.semConexao()); }
         @Override public void entrar(String nome, String senha, Resposta<Sessao> r) { r.falha(Falha.semConexao()); }
         @Override public void registrarPartida(Sessao s, PartidaParaEnviar p, Resposta<Void> r) { r.falha(Falha.semConexao()); }
-        @Override public void ranking(Resposta<List<PosicaoGlobal>> r) { r.falha(Falha.semConexao()); }
+        @Override public void ranking(Modo modo, Resposta<List<PosicaoGlobal>> r) { r.falha(Falha.semConexao()); }
         @Override public void historico(Sessao s, Resposta<List<PartidaDoHistorico>> r) { r.falha(Falha.semConexao()); }
     };
 }

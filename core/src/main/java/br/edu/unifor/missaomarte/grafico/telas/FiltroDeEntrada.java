@@ -42,4 +42,15 @@ public final class FiltroDeEntrada extends InputAdapter {
     public boolean touchDown(int x, int y, int dedo, int botao) {
         return alvo.touchDown(x, y, dedo, botao);
     }
+
+    /** Fase 7: soltar e arrastar o dedo também passam direto (a pilotagem segura os botões). */
+    @Override
+    public boolean touchUp(int x, int y, int dedo, int botao) {
+        return alvo.touchUp(x, y, dedo, botao);
+    }
+
+    @Override
+    public boolean touchDragged(int x, int y, int dedo) {
+        return alvo.touchDragged(x, y, dedo);
+    }
 }

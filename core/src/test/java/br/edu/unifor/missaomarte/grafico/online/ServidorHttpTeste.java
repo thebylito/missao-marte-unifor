@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,7 +31,7 @@ import org.junit.jupiter.api.Test;
 class ServidorHttpTeste {
 
     /** O que o servidor falso recebeu. */
-    record Pedido(String metodo, String rota, String autorizacao, String tipo, String corpo) {
+    record Pedido(String metodo, String rota, String autorizacao, String tipo, String corpo, String consulta) {
     }
 
     /** O que o adaptador respondeu: valor ou falha. */
@@ -50,7 +51,7 @@ class ServidorHttpTeste {
             String corpo = new String(troca.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             pedidos.add(new Pedido(troca.getRequestMethod(), troca.getRequestURI().getPath(),
                     troca.getRequestHeaders().getFirst("Authorization"),
-                    troca.getRequestHeaders().getFirst("Content-Type"), corpo));
+                    troca.getRequestHeaders().getFirst("Content-Type"), corpo, troca.getRequestURI().getQuery()));
             byte[] bytes = respostaDoServidor.getBytes(StandardCharsets.UTF_8);
             troca.getResponseHeaders().add("Content-Type",
                     codigo >= 400 ? "application/problem+json" : "application/json");
@@ -190,6 +191,33 @@ class ServidorHttpTeste {
         assertEquals(4, corpo.getInt("passageiros"));
         assertEquals(20, corpo.getInt("movimentos"));
         assertEquals(35, corpo.getLong("tempoSegundos"));
+        assertEquals("CLASSICO", corpo.getString("modo"), "Fase 7: o resumo clássico diz o modo");
+    }
+
+    @Test
+    void partidaDaPilotagemVaiComOModo() throws Exception {
+        responder(201, "{\"id\":4}");
+        ServidorHttpTeste.<Void>esperar(resposta -> cliente.registrarPartida(new Sessao("Ana", "tok"),
+                new PartidaParaEnviar("VITORIA", "MEDIO", 61, 3, 6, 140, "PILOTAGEM"), resposta));
+        assertEquals("PILOTAGEM", json(pedidos.get(0).corpo()).getString("modo"));
+    }
+
+    @Test
+    void oRankingDeCadaModoEhPedidoPeloModo() throws Exception {
+        responder(200, "[]");
+        ServidorHttpTeste.<List<PosicaoGlobal>>esperar(cliente::ranking);
+        ServidorHttpTeste.<List<PosicaoGlobal>>esperar(resposta -> cliente.ranking(Modo.PILOTAGEM, resposta));
+        assertEquals("modo=CLASSICO", pedidos.get(0).consulta(), "sem modo, o clássico (Fases 5 e 6)");
+        assertEquals("modo=PILOTAGEM", pedidos.get(1).consulta());
+        assertEquals("/api/ranking", pedidos.get(1).rota());
+    }
+
+    @Test
+    void historicoLeOModoDeCadaPartida() throws Exception {
+        responder(200, "[{\"resultado\":\"VITORIA\",\"dificuldade\":\"MEDIO\",\"pontos\":61,\"passageiros\":3,"
+                + "\"movimentos\":6,\"tempoSegundos\":140,\"registradaEm\":\"2026-11-18T12:00:00Z\",\"modo\":\"PILOTAGEM\"}]");
+        Retorno<List<PartidaDoHistorico>> r = esperar(resposta -> cliente.historico(new Sessao("Ana", "t"), resposta));
+        assertEquals("PILOTAGEM", r.valor().get(0).modo());
     }
 
     @Test

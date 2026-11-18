@@ -1,23 +1,27 @@
 package br.edu.unifor.missaomarte.grafico;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.CenaDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPartida;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPilotagem;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida;
 import br.edu.unifor.missaomarte.grafico.audio.Sons;
 import br.edu.unifor.missaomarte.grafico.audio.SonsLibgdx;
-import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking;
 import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import br.edu.unifor.missaomarte.grafico.recursos.Recursos;
 import br.edu.unifor.missaomarte.grafico.telas.TelaCarregamento;
 import br.edu.unifor.missaomarte.grafico.telas.TelaEntrada;
-import br.edu.unifor.missaomarte.grafico.telas.TelaHistorico;
 import br.edu.unifor.missaomarte.grafico.telas.TelaFimDePartida;
+import br.edu.unifor.missaomarte.grafico.telas.TelaHistorico;
 import br.edu.unifor.missaomarte.grafico.telas.TelaMenu;
 import br.edu.unifor.missaomarte.grafico.telas.TelaNovaPartida;
 import br.edu.unifor.missaomarte.grafico.telas.TelaPartida;
+import br.edu.unifor.missaomarte.grafico.telas.TelaPilotagem;
 import br.edu.unifor.missaomarte.grafico.telas.TelaRanking;
+import br.edu.unifor.missaomarte.pilotagem.PartidaDePilotagem;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -160,6 +164,12 @@ public class MissaoMarteGame extends Game {
     }
 
     public void iniciarPartida(FormularioNovaPartida formulario) {
+        if (formulario.getModo() == Modo.PILOTAGEM) {   // Fase 7
+            Diario.registrar("pilotagem: " + formulario.getDificuldade());
+            PartidaDePilotagem voo = PartidaDePilotagem.nova(formulario.getPiloto(), formulario.getDificuldade());
+            trocarTela(new TelaPilotagem(this, new ControladorDaPilotagem(voo, servicos.rankingDaPilotagem())));
+            return;
+        }
         Partida partida = servicos.novaPartida(formulario.getPiloto(), formulario.getDificuldade(),
                 formulario.getTamanho());
         ControladorDaPartida controlador = new ControladorDaPartida(partida, servicos.ranking());
@@ -171,7 +181,8 @@ public class MissaoMarteGame extends Game {
     }
 
     public void irParaRanking() {
-        trocarTela(new TelaRanking(this, new ControladorDoRanking(servicos.ranking().carregar(), servicos.servidor())));
+        trocarTela(new TelaRanking(this, new ControladorDoRanking(servicos.ranking().carregar(),
+                servicos.rankingDaPilotagem().carregar(), servicos.servidor())));
     }
 
     public void sair() {

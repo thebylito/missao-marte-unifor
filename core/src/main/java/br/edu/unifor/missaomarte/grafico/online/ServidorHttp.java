@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Net.HttpMethods;
@@ -86,12 +87,13 @@ public final class ServidorHttp implements ServidorDoJogo {
         corpo.addChild("passageiros", new JsonValue(p.passageiros()));
         corpo.addChild("movimentos", new JsonValue(p.movimentos()));
         corpo.addChild("tempoSegundos", new JsonValue(p.tempoSegundos()));
+        corpo.addChild("modo", new JsonValue(p.modo()));   // Fase 7 (um servidor antigo ignora o campo)
         enviar(HttpMethods.POST, "/api/partidas", sessao, corpo, json -> null, resposta);
     }
 
     @Override
-    public void ranking(Resposta<List<PosicaoGlobal>> resposta) {
-        enviar(HttpMethods.GET, "/api/ranking", null, null, json -> lista(json, item -> new PosicaoGlobal(
+    public void ranking(Modo modo, Resposta<List<PosicaoGlobal>> resposta) {
+        enviar(HttpMethods.GET, "/api/ranking?modo=" + modo.name(), null, null, json -> lista(json, item -> new PosicaoGlobal(
                 item.getInt("posicao"), item.getString("nome"), item.getInt("pontos"), item.getString("dificuldade"),
                 item.getInt("passageiros"), item.getLong("tempoSegundos"), item.getString("registradaEm"))), resposta);
     }
@@ -101,7 +103,7 @@ public final class ServidorHttp implements ServidorDoJogo {
         enviar(HttpMethods.GET, "/api/partidas/minhas", sessao, null, json -> lista(json, item -> new PartidaDoHistorico(
                 item.getString("resultado"), item.getString("dificuldade"), item.getInt("pontos"),
                 item.getInt("passageiros"), item.getInt("movimentos"), item.getLong("tempoSegundos"),
-                item.getString("registradaEm"))), resposta);
+                item.getString("registradaEm"), item.getString("modo", "CLASSICO"))), resposta);
     }
 
     // ------------------------------------------------------------------ HTTP
