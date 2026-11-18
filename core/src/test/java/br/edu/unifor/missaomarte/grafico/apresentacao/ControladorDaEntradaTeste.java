@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaEntrada.Acao;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaEntrada.Etapa;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaEntrada.Modo;
+import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.Falha;
 import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import com.badlogic.gdx.Input.Keys;
@@ -46,7 +47,7 @@ class ControladorDaEntradaTeste {
     @Test
     void outraTeclaNaEscolhaPedeUmaOpcaoValida() {
         assertEquals(Acao.NENHUMA, entrada.teclaPressionada(Keys.X));
-        assertEquals("Escolha 1, 2 ou 3.", entrada.getMensagem());
+        assertEquals("Escolha 1, 2, 3 ou 4.", entrada.getMensagem());
         assertEquals(Etapa.ESCOLHA, entrada.getEtapa());
     }
 
@@ -158,5 +159,74 @@ class ControladorDaEntradaTeste {
         assertEquals("Ana", entrada.getNome());
         digitar("x".repeat(40));
         assertEquals(ControladorDaEntrada.NOME_MAXIMO, entrada.getNome().length());
+    }
+
+    // ------------------------------------------------------------------ Fase 6: servidor e toque
+
+    @Test
+    void quatroEditaOEnderecoDoServidorEEnterGrava() {
+        ConfiguracaoDoServidor config = ConfiguracaoDoServidor.emMemoria("http://10.0.2.2:8080");
+        ControladorDaEntrada e = new ControladorDaEntrada(servidor, config);
+        e.teclaPressionada(Keys.NUM_4);
+        e.digitar('4');                                   // o caractere da própria tecla é ignorado
+        assertEquals(Etapa.SERVIDOR, e.getEtapa());
+        assertEquals("http://10.0.2.2:8080", e.getEnderecoEditado());
+        for (int i = 0; i < "10.0.2.2:8080".length(); i++) {
+            e.teclaPressionada(Keys.BACKSPACE);
+        }
+        for (char c : "192.168.0.10:8080".toCharArray()) {
+            e.digitar(c);
+        }
+        e.teclaPressionada(Keys.ENTER);
+        assertEquals(Etapa.ESCOLHA, e.getEtapa());
+        assertEquals("http://192.168.0.10:8080", config.endereco());
+        assertEquals("Servidor: http://192.168.0.10:8080", e.getMensagem());
+    }
+
+    @Test
+    void enderecoInvalidoContinuaEditandoComOMotivo() {
+        ConfiguracaoDoServidor config = ConfiguracaoDoServidor.emMemoria("http://localhost:8080");
+        ControladorDaEntrada e = new ControladorDaEntrada(servidor, config);
+        e.salvarServidor("192.168.0.10:8080");
+        assertEquals(Etapa.SERVIDOR, e.getEtapa());
+        assertEquals("Use http:// ou https:// no começo do endereço.", e.getMensagem());
+        assertEquals("http://localhost:8080", config.endereco());
+        e.teclaPressionada(Keys.ESCAPE);
+        assertEquals(Etapa.ESCOLHA, e.getEtapa());
+    }
+
+    @Test
+    void enderecoDaLinhaDeComandoNaoAbreAEdicao() {
+        ConfiguracaoDoServidor.Preferencias vazias = new ConfiguracaoDoServidor.Preferencias() {
+            @Override public String ler(String chave) { return null; }
+            @Override public void gravar(String chave, String valor) { }
+        };
+        ControladorDaEntrada e = new ControladorDaEntrada(servidor,
+                new ConfiguracaoDoServidor(vazias, "http://localhost:8080", "http://forcado:9090"));
+        e.teclaPressionada(Keys.NUM_4);
+        assertEquals(Etapa.ESCOLHA, e.getEtapa());
+        assertEquals("Servidor definido ao abrir o jogo: http://forcado:9090", e.getMensagem());
+    }
+
+    @Test
+    void toqueCaixaDeTextoDoCelularPreencheOsCamposEConfirmarEnvia() {
+        abrir(Keys.NUM_1);
+        entrada.definirNome("  Ana  ");
+        entrada.definirSenha("segredo1");
+        assertEquals("Ana", entrada.getNome());
+        assertEquals("********", entrada.getSenhaMascarada());
+        entrada.confirmar();
+        assertEquals(List.of("entrar Ana segredo1"), servidor.pedidos);
+    }
+
+    @Test
+    void toqueNumCampoMudaOFocoDoTeclado() {
+        abrir(Keys.NUM_1);
+        entrada.focar(true);
+        digitar("abc");
+        assertEquals("***", entrada.getSenhaMascarada());
+        entrada.focar(false);
+        digitar("Bia");
+        assertEquals("Bia", entrada.getNome());
     }
 }

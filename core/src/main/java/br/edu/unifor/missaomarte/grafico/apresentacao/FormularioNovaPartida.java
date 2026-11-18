@@ -30,6 +30,16 @@ public final class FormularioNovaPartida {
         }
     }
 
+    /** Fase 6: caixa de texto do celular (substitui o nome). */
+    public void definirNome(String texto) {
+        nome.setLength(0);
+        if (texto != null) {
+            for (char c : texto.toCharArray()) {
+                digitar(c);
+            }
+        }
+    }
+
     public void apagarLetra() {
         if (nome.length() > 0) {
             nome.deleteCharAt(nome.length() - 1);

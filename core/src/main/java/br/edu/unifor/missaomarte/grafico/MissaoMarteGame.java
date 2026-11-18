@@ -20,6 +20,7 @@ import br.edu.unifor.missaomarte.grafico.telas.TelaPartida;
 import br.edu.unifor.missaomarte.grafico.telas.TelaRanking;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -45,6 +46,7 @@ public class MissaoMarteGame extends Game {
     public static final float ALTURA = 600;
 
     private final ServicosDoJogo servicos;
+    private final Plataforma plataforma;
     private ShapeRenderer formas;
     private SpriteBatch lote;
     private BitmapFont fonte;
@@ -54,12 +56,19 @@ public class MissaoMarteGame extends Game {
     private Sessao sessao;
 
     public MissaoMarteGame(ServicosDoJogo servicos) {
+        this(servicos, Plataforma.padrao());
+    }
+
+    /** Fase 6: cada launcher diz se a plataforma é de toque e onde está o servidor. */
+    public MissaoMarteGame(ServicosDoJogo servicos, Plataforma plataforma) {
         this.servicos = servicos;
+        this.plataforma = plataforma;
     }
 
     @Override
     public void create() {
         Diario.registrar("create: janela e contexto OpenGL prontos; criando os recursos compartilhados");
+        Gdx.input.setCatchKey(Keys.BACK, true);   // Android: o Voltar vira Esc em cada tela, em vez de fechar o app
         formas = new ShapeRenderer();
         lote = new SpriteBatch();
         fonte = new BitmapFont();   // fonte padrão da libGDX: só a tela de carregamento a usa
@@ -173,6 +182,7 @@ public class MissaoMarteGame extends Game {
     // ---- recursos compartilhados (válidos entre create e dispose) ----
 
     public ServicosDoJogo getServicos() { return servicos; }
+    public Plataforma getPlataforma() { return plataforma; }
     public ShapeRenderer getFormas() { return formas; }
     public SpriteBatch getLote() { return lote; }
     /** Fonte padrão da libGDX, usada antes de as fontes do jogo carregarem. */

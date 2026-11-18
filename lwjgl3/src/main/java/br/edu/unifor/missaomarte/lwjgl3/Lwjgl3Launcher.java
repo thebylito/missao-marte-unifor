@@ -4,7 +4,10 @@ import br.edu.unifor.missaomarte.aplicacao.GeradorDeMissao;
 import br.edu.unifor.missaomarte.aplicacao.Relogio;
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
+import br.edu.unifor.missaomarte.grafico.Plataforma;
 import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
+import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
+import br.edu.unifor.missaomarte.grafico.online.PreferenciasLibgdx;
 import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
 import br.edu.unifor.missaomarte.grafico.recursos.CatalogoDeAssets;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
@@ -25,6 +28,8 @@ public final class Lwjgl3Launcher {
     /** Fase 5: endereço do servidor de ranking. Ex.: -Dmissaomarte.servidor=http://192.168.0.10:8080 */
     static final String PROPRIEDADE_SERVIDOR = "missaomarte.servidor";
     static final String SERVIDOR_PADRAO = "http://localhost:8080";
+    /** Fase 6: -Dmissaomarte.toque=true mostra os controles de toque (para testar com o mouse). */
+    static final String PROPRIEDADE_TOQUE = "missaomarte.toque";
 
     private Lwjgl3Launcher() {
     }
@@ -33,17 +38,20 @@ public final class Lwjgl3Launcher {
         if (ReinicioNoMacOS.reiniciarSeNecessario(Lwjgl3Launcher.class, args)) {
             return;   // a janela abriu (e já fechou) no processo filho
         }
-        new Lwjgl3Application(new MissaoMarteGame(montarServicos()), configuracao());
+        ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(new PreferenciasLibgdx("missao-marte"),
+                SERVIDOR_PADRAO, System.getProperty(PROPRIEDADE_SERVIDOR));
+        Plataforma plataforma = new Plataforma(Boolean.getBoolean(PROPRIEDADE_TOQUE), servidor);
+        new Lwjgl3Application(new MissaoMarteGame(montarServicos(servidor), plataforma), configuracao());
     }
 
-    static ServicosDoJogo montarServicos() {
+    static ServicosDoJogo montarServicos(ConfiguracaoDoServidor servidor) {
         Relogio relogio = Relogio.DO_SISTEMA;
         Long semente = Long.getLong(PROPRIEDADE_SEMENTE);
         return new ServicosDoJogo(
                 new GeradorDeMissao(semente == null ? new Random() : new Random(semente)),
                 new ServicoRanking(new RankingArquivoJson(Paths.get("ranking.json")), relogio),
                 relogio,
-                ServidorHttp.daLibgdx(System.getProperty(PROPRIEDADE_SERVIDOR, SERVIDOR_PADRAO)));
+                ServidorHttp.daLibgdx(servidor::endereco));
     }
 
     static Lwjgl3ApplicationConfiguration configuracao() {

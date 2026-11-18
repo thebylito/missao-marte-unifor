@@ -221,4 +221,17 @@ class ServidorHttpTeste {
     void sessaoNaoMostraOTokenEmTexto() {
         assertEquals("Sessao[nome=Ana, token=***]", new Sessao("Ana", "segredo-do-token").toString());
     }
+
+    @Test
+    void oEnderecoEhLidoACadaPedido() throws Exception {
+        java.util.concurrent.atomic.AtomicReference<String> endereco = new java.util.concurrent.atomic.AtomicReference<>(
+                "http://127.0.0.1:1");
+        Net rede = new HeadlessNet(new HeadlessApplicationConfiguration());
+        ServidorHttp configuravel = new ServidorHttp(endereco::get, () -> rede, Runnable::run);
+        assertEquals(Falha.Motivo.SEM_CONEXAO,
+                ServidorHttpTeste.<List<PosicaoGlobal>>esperar(configuravel::ranking).falha().motivo());
+        endereco.set("http://127.0.0.1:" + servidor.getAddress().getPort());   // o jogador trocou o endereço
+        responder(200, "[]");
+        assertEquals(List.of(), ServidorHttpTeste.<List<PosicaoGlobal>>esperar(configuravel::ranking).valor());
+    }
 }

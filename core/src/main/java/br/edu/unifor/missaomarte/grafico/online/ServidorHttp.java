@@ -24,7 +24,7 @@ public final class ServidorHttp implements ServidorDoJogo {
     /** Tempo máximo de espera por resposta, em milissegundos. */
     static final int TEMPO_LIMITE = 5000;
 
-    private final String endereco;
+    private final Supplier<String> endereco;
     private final Supplier<Net> rede;
     private final Executor naThreadDoJogo;
 
@@ -34,18 +34,28 @@ public final class ServidorHttp implements ServidorDoJogo {
      * @param naThreadDoJogo onde entregar as respostas (no jogo, {@code Gdx.app::postRunnable}; nos testes, na hora)
      */
     public ServidorHttp(String endereco, Supplier<Net> rede, Executor naThreadDoJogo) {
-        this.endereco = endereco.endsWith("/") ? endereco.substring(0, endereco.length() - 1) : endereco;
+        this(() -> endereco, rede, naThreadDoJogo);
+    }
+
+    /** Fase 6: o endereço é lido a cada pedido, então trocá-lo na tela de entrada vale na hora. */
+    public ServidorHttp(Supplier<String> endereco, Supplier<Net> rede, Executor naThreadDoJogo) {
+        this.endereco = endereco;
         this.rede = rede;
         this.naThreadDoJogo = naThreadDoJogo;
     }
 
     /** Versão do jogo: usa o {@code Gdx.net} e entrega as respostas com {@code Gdx.app.postRunnable}. */
     public static ServidorHttp daLibgdx(String endereco) {
+        return daLibgdx(() -> endereco);
+    }
+
+    public static ServidorHttp daLibgdx(Supplier<String> endereco) {
         return new ServidorHttp(endereco, () -> Gdx.net, r -> Gdx.app.postRunnable(r));
     }
 
     public String getEndereco() {
-        return endereco;
+        String e = endereco.get();
+        return e.endsWith("/") ? e.substring(0, e.length() - 1) : e;
     }
 
     // ------------------------------------------------------------------ operações
@@ -99,7 +109,7 @@ public final class ServidorHttp implements ServidorDoJogo {
     private <T> void enviar(String metodo, String rota, Sessao sessao, JsonValue corpo,
                             Function<JsonValue, T> ler, Resposta<T> resposta) {
         Net.HttpRequest pedido = new Net.HttpRequest(metodo);
-        pedido.setUrl(endereco + rota);
+        pedido.setUrl(getEndereco() + rota);
         pedido.setTimeOut(TEMPO_LIMITE);
         pedido.setHeader("Accept", "application/json");
         if (sessao != null) {

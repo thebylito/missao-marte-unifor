@@ -2,7 +2,12 @@ import br.edu.unifor.missaomarte.aplicacao.GeradorDeMissao;
 import br.edu.unifor.missaomarte.aplicacao.Relogio;
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
+import br.edu.unifor.missaomarte.grafico.Plataforma;
 import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
+import br.edu.unifor.missaomarte.grafico.apresentacao.Botao;
+import br.edu.unifor.missaomarte.grafico.apresentacao.LayoutDaPartida;
+import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
+import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.Gdx;
@@ -37,7 +42,9 @@ import java.util.zip.Deflater;
  *   colisao  - ddcsssaaaadada: embarca um passageiro e bate 3 vezes no asteroide em (-2,3) até a nave ser destruída;
  *   online   - (Fase 5, servidor ligado) cria a conta "Ana", vence, envia o resultado e abre o ranking global e o
  *              histórico. Endereço do servidor: -Dmissaomarte.servidor=http://localhost:8080 (o padrão);
- *   offline  - (Fase 5, servidor desligado) tenta entrar, vê o aviso, joga como convidado e abre o ranking global.
+ *   offline  - (Fase 5, servidor desligado) tenta entrar, vê o aviso, joga como convidado e abre o ranking global;
+ *   toque    - (Fase 6) modo toque no desktop: tudo por cliques nos botões (convidado, nova partida, direcional),
+ *              vencendo a mesma partida da semente 3.
  */
 public class PilotoDaJanela extends MissaoMarteGame {
 
@@ -50,7 +57,8 @@ public class PilotoDaJanela extends MissaoMarteGame {
     private int numeroDoPrint;
 
     PilotoDaJanela(ServicosDoJogo servicos, String pasta, String roteiro) {
-        super(servicos);
+        super(servicos, new Plataforma(roteiro.equals("toque"),
+                ConfiguracaoDoServidor.emMemoria(System.getProperty("missaomarte.servidor", "http://localhost:8080"))));
         this.pasta = pasta;
         if (roteiro.equals("colisao")) {
             montarRoteiroDeColisao();
@@ -58,6 +66,8 @@ public class PilotoDaJanela extends MissaoMarteGame {
             montarRoteiroOnline();
         } else if (roteiro.equals("offline")) {
             montarRoteiroOffline();
+        } else if (roteiro.equals("toque")) {
+            montarRoteiroDeToque();
         } else {
             montarRoteiro();
         }
@@ -171,6 +181,49 @@ public class PilotoDaJanela extends MissaoMarteGame {
         print("historico-convidado");
         tecla(Keys.ENTER, '\r');
         tecla(Keys.NUM_4, '4');
+    }
+
+    /** Toque (clique) num ponto do mundo. A janela tem 800x600 e mostra exatamente o mundo 800x600. */
+    private void tocar(float x, float y) {
+        roteiro.add(() -> {
+            Gdx.input.getInputProcessor().touchDown(Math.round(x), Math.round(600 - y), 0, 0);
+            Gdx.app.log("Piloto", "toque em " + Math.round(x) + "," + Math.round(y));
+        });
+    }
+
+    /** Fase 6: os mesmos botões que o celular mostra, clicados na janela (-Dmissaomarte.toque=true). */
+    private void montarRoteiroDeToque() {
+        print("entrada-toque");
+        tocar(440, 325 - 2 * 42 - 13);        // 3. Jogar como convidado
+        print("menu-toque");
+        tocar(470, 385 - 10);                 // 1. Iniciar Nova Missão
+        tocar(595, 334);                      // dificuldade "<": Médio -> Fácil
+        tocar(595, 264);
+        tocar(595, 264);                      // mapa "-" duas vezes: 5 -> 3
+        print("nova-partida-toque");
+        tocar(325, 96);                       // Decolar
+        print("partida-toque");
+        java.util.Map<Botao, Retangulo> botoes =
+                LayoutDaPartida.calcular(new Retangulo(0, 0, 800, 600), true).botoes();
+        String vitoria = "ddcsscdwcaaaaaawwwcdddss";
+        for (int i = 0; i < vitoria.length(); i++) {
+            Botao b = switch (vitoria.charAt(i)) {
+                case 'w' -> Botao.CIMA;
+                case 's' -> Botao.BAIXO;
+                case 'a' -> Botao.ESQUERDA;
+                case 'd' -> Botao.DIREITA;
+                default -> Botao.EMBARCAR;
+            };
+            tocar(botoes.get(b).centroX(), botoes.get(b).centroY());
+            if (i == 9) print("partida-toque-embarques");
+        }
+        aguardar(0.6f);
+        print("fim-vitoria-toque");
+        tocar(400, 300);                      // tocar em qualquer lugar volta ao menu
+        tocar(470, 385 - 36 - 10);            // 2. ranking
+        print("ranking-toque");
+        tocar(400, 68);                       // Voltar ao menu
+        tocar(470, 385 - 3 * 36 - 10);        // 4. Sair
     }
 
     /** Passos vazios: dá tempo para animações e efeitos terminarem. */

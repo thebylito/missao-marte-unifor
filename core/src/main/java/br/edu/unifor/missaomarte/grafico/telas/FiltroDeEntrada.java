@@ -36,4 +36,10 @@ public final class FiltroDeEntrada extends InputAdapter {
     public boolean keyUp(int tecla) {
         return recebeuKeyDown && alvo.keyUp(tecla);
     }
+
+    /** Fase 6: toques (e cliques do mouse) passam direto: não há "toque vazado" de uma tela para a outra. */
+    @Override
+    public boolean touchDown(int x, int y, int dedo, int botao) {
+        return alvo.touchDown(x, y, dedo, botao);
+    }
 }

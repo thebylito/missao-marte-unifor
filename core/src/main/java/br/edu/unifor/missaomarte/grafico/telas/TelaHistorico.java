@@ -7,6 +7,7 @@ import br.edu.unifor.missaomarte.grafico.online.PartidaDoHistorico;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
+import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
 import java.util.List;
 
 /** Histórico do jogador conectado, consultado no servidor (Fase 5). O convidado vê um aviso. Enter volta ao menu. */
@@ -22,6 +23,15 @@ public class TelaHistorico extends TelaBase {
         } else {
             consulta = null;
         }
+    }
+
+    private static final Retangulo BOTAO_VOLTAR =
+            new Retangulo(290, 36, 220, 64);
+
+    /** Fase 6: tocar em qualquer lugar volta ao menu (como o Enter). */
+    @Override
+    protected List<AlvoDeToque> alvosDeToque() {
+        return List.of(tecla(visivel(), Keys.ENTER, (char) 0));
     }
 
     @Override
@@ -62,7 +72,12 @@ public class TelaHistorico extends TelaBase {
             }
             y -= escreverComQuebra(linha, 60, y, 680, Color.WHITE, 0.9f) + 6;
         }
-        escreverCentralizado("Enter: voltar ao menu", 70, Color.SKY, 1.1f);
+        if (!toque()) {
+            escreverCentralizado("Enter: voltar ao menu", 70, Color.SKY, 1.1f);
+        }
         lote().end();
+        if (toque()) {
+            desenharBotoes(List.of(BOTAO_VOLTAR), List.of("Voltar ao menu"), 1.1f);
+        }
     }
 }

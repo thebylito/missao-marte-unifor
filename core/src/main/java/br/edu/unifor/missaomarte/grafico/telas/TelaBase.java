@@ -2,38 +2,60 @@ package br.edu.unifor.missaomarte.grafico.telas;
 
 import br.edu.unifor.missaomarte.grafico.Diario;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
+import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
 import br.edu.unifor.missaomarte.grafico.recursos.Folha;
 import br.edu.unifor.missaomarte.grafico.recursos.Recursos;
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Esqueleto comum das telas (padrão Template Method). O {@link #render(float)} é sempre o mesmo: limpa
  * a tela, aplica a câmera e chama {@link #desenhar()}, que cada tela implementa. A entrada fica no
  * {@link InputAdapter} que cada tela devolve em {@link #entrada()}.
  *
- * <p>Câmera e viewport: as telas desenham num "mundo" fixo de 800x600. O {@link FitViewport} escala esse
- * mundo para o tamanho real da janela, mantendo a proporção (sobram faixas pretas se a proporção mudar).
+ * <p>Câmera e viewport (Fase 6): as telas desenham numa área de 800x600 que fica sempre visível e centralizada. O
+ * {@link ExtendViewport} estende o mundo na direção que sobra (os lados num celular deitado, em cima e embaixo num
+ * celular em pé), em vez de deixar faixas pretas. Numa janela de 800x600 o resultado é idêntico ao das fases
+ * anteriores. {@link #visivel()} diz qual é a área visível de verdade, para quem quiser usá-la (a partida).
+ *
+ * <p>Toque (Fase 6): cada tela pode declarar {@link #alvosDeToque()}. Um toque (ou clique) dentro de um alvo executa
+ * a ação dele, quase sempre "apertar a mesma tecla do teclado": o toque reaproveita todo o caminho do teclado.
  */
 public abstract class TelaBase implements Screen {
 
     protected static final Color FUNDO = new Color(0.05f, 0.04f, 0.10f, 1f);
     protected static final float MARGEM = 20;
+    private static final Color COR_DO_BOTAO = new Color(0.16f, 0.12f, 0.16f, 0.85f);
+    private static final Color BORDA_DO_BOTAO = new Color(0.95f, 0.6f, 0.2f, 0.9f);
+
+    /** Uma área tocável e o que acontece ao tocá-la. */
+    protected record AlvoDeToque(Retangulo area, Runnable acao) {
+    }
 
     protected final MissaoMarteGame jogo;
     private final OrthographicCamera camera = new OrthographicCamera();
-    private final Viewport viewport = new FitViewport(MissaoMarteGame.LARGURA, MissaoMarteGame.ALTURA, camera);
+    private final Viewport viewport = new ExtendViewport(MissaoMarteGame.LARGURA, MissaoMarteGame.ALTURA, camera);
+    private final Vector2 toque = new Vector2();
+    private InputAdapter entradaAtual;
 
     protected TelaBase(MissaoMarteGame jogo) {
         this.jogo = jogo;
@@ -54,10 +76,67 @@ public abstract class TelaBase implements Screen {
         return true;
     }
 
+    /** Áreas tocáveis desta tela (vazio: a tela só usa o teclado). Consultado a cada toque. */
+    protected List<AlvoDeToque> alvosDeToque() {
+        return List.of();
+    }
+
+    /** O botão Voltar do Android funciona como Esc. A partida desliga isso: um toque acidental não aborta a missão. */
+    protected boolean voltarFuncionaComoEsc() {
+        return true;
+    }
+
     @Override
     public void show() {
         Diario.registrar("show: " + getClass().getSimpleName());
-        Gdx.input.setInputProcessor(new FiltroDeEntrada(entrada()));
+        entradaAtual = entrada();
+        Gdx.input.setInputProcessor(new FiltroDeEntrada(new InputAdapter() {
+            @Override
+            public boolean keyDown(int tecla) {
+                if (tecla == Keys.BACK) {
+                    return !voltarFuncionaComoEsc() || entradaAtual.keyDown(Keys.ESCAPE);
+                }
+                return entradaAtual.keyDown(tecla);
+            }
+
+            @Override
+            public boolean keyTyped(char caractere) {
+                return entradaAtual.keyTyped(caractere);
+            }
+
+            @Override
+            public boolean keyUp(int tecla) {
+                return entradaAtual.keyUp(tecla);
+            }
+
+            @Override
+            public boolean touchDown(int x, int y, int dedo, int botao) {
+                return tocar(x, y);
+            }
+        }));
+    }
+
+    /** Converte o toque (pixels da tela) para o mundo e executa o primeiro alvo que o contém. */
+    private boolean tocar(int xNaTela, int yNaTela) {
+        viewport.unproject(toque.set(xNaTela, yNaTela));
+        for (AlvoDeToque alvo : alvosDeToque()) {
+            if (alvo.area().contem(toque.x, toque.y)) {
+                alvo.acao().run();
+                return true;
+            }
+        }
+        return entradaAtual.touchDown(xNaTela, yNaTela, 0, 0);
+    }
+
+    /** Um alvo que "aperta" uma tecla: keyDown, o caractere (se houver) e keyUp, como o teclado faria. */
+    protected AlvoDeToque tecla(Retangulo area, int tecla, char caractere) {
+        return new AlvoDeToque(area, () -> {
+            entradaAtual.keyDown(tecla);
+            if (caractere != 0) {
+                entradaAtual.keyTyped(caractere);
+            }
+            entradaAtual.keyUp(tecla);
+        });
     }
 
     @Override
@@ -71,18 +150,38 @@ public abstract class TelaBase implements Screen {
         formas().setProjectionMatrix(camera.combined);
         lote().setProjectionMatrix(camera.combined);
         if (mostrarFundo() && recursosProntos()) {
-            lote().begin();
-            lote().setColor(0.62f, 0.62f, 0.66f, 1);   // escurece o céu para o texto e os sprites se destacarem
-            lote().draw(recursos().quadro(Folha.FUNDO, 0), 0, 0, MissaoMarteGame.LARGURA, MissaoMarteGame.ALTURA);
-            lote().setColor(Color.WHITE);
-            lote().end();
+            desenharFundo();
         }
         desenhar();
     }
 
+    /** O céu cobre toda a área visível, sem distorcer (corta as bordas que sobrarem). */
+    private void desenharFundo() {
+        Retangulo v = visivel();
+        TextureRegion ceu = recursos().quadro(Folha.FUNDO, 0);
+        float escala = Math.max(v.largura() / ceu.getRegionWidth(), v.altura() / ceu.getRegionHeight());
+        float w = ceu.getRegionWidth() * escala;
+        float h = ceu.getRegionHeight() * escala;
+        lote().begin();
+        lote().setColor(0.62f, 0.62f, 0.66f, 1);   // escurece o céu para o texto e os sprites se destacarem
+        lote().draw(ceu, v.centroX() - w / 2, v.centroY() - h / 2, w, h);
+        lote().setColor(Color.WHITE);
+        lote().end();
+    }
+
     @Override
     public void resize(int largura, int altura) {
-        viewport.update(largura, altura, true);   // true: centraliza a câmera no mundo
+        viewport.update(largura, altura, false);
+        // a área de 800x600 fica sempre no centro: o espaço extra aparece igualmente dos dois lados
+        camera.position.set(MissaoMarteGame.LARGURA / 2, MissaoMarteGame.ALTURA / 2, 0);
+        camera.update();
+    }
+
+    /** A área do mundo que aparece na tela agora (pelo menos 800x600, centrada em 400,300). */
+    protected Retangulo visivel() {
+        float w = viewport.getWorldWidth();
+        float h = viewport.getWorldHeight();
+        return new Retangulo(MissaoMarteGame.LARGURA / 2 - w / 2, MissaoMarteGame.ALTURA / 2 - h / 2, w, h);
     }
 
     @Override
@@ -105,6 +204,70 @@ public abstract class TelaBase implements Screen {
         // As telas não criam recursos próprios: texturas, sons e fontes são do AssetManager (classe Recursos),
         // carregados uma vez e liberados pelo jogo no dispose final. Aqui só fica o registro no log.
         Diario.registrar("dispose: " + getClass().getSimpleName());
+    }
+
+    // ---- Fase 6: toque ----
+
+    /** Modo toque: mostra os botões na tela (Android sempre; desktop com -Dmissaomarte.toque=true). */
+    protected boolean toque() {
+        return jogo.getPlataforma().toque();
+    }
+
+    /**
+     * Pede um texto ao jogador. No Android, abre a caixa de texto do sistema (com o teclado virtual; senha
+     * mascarada); a resposta chega na thread do jogo. No desktop o teclado físico já digita na tela, então não faz
+     * nada aqui (devolve false).
+     */
+    protected boolean pedirTexto(String titulo, String atual, boolean senha, Consumer<String> aoConfirmar) {
+        return pedirTexto(titulo, atual, "", senha, aoConfirmar);
+    }
+
+    /** Com uma dica (o texto cinza que some ao digitar), para mostrar o valor atual sem precisar apagá-lo. */
+    protected boolean pedirTexto(String titulo, String atual, String dica, boolean senha, Consumer<String> aoConfirmar) {
+        if (Gdx.app == null || Gdx.app.getType() != Application.ApplicationType.Android) {
+            return false;
+        }
+        Gdx.input.getTextInput(new Input.TextInputListener() {
+            @Override
+            public void input(String texto) {
+                // sem isto o teclado virtual continua aberto depois do OK e cobre metade do jogo (visto no emulador)
+                Gdx.input.setOnscreenKeyboardVisible(false);
+                aoConfirmar.accept(texto);
+            }
+
+            @Override
+            public void canceled() {
+                Gdx.input.setOnscreenKeyboardVisible(false);
+            }
+        }, titulo, atual, dica, senha ? Input.OnscreenKeyboardType.Password : Input.OnscreenKeyboardType.Default);
+        return true;
+    }
+
+    /** Desenha botões (retângulo + rótulo) fora de begin/end. Usado só no modo toque. */
+    protected void desenharBotoes(List<Retangulo> areas, List<String> rotulos, float escalaDoTexto) {
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        formas().begin(ShapeType.Filled);
+        formas().setColor(COR_DO_BOTAO);
+        for (Retangulo r : areas) {
+            formas().rect(r.x(), r.y(), r.largura(), r.altura());
+        }
+        formas().end();
+        formas().begin(ShapeType.Line);
+        formas().setColor(BORDA_DO_BOTAO);
+        for (Retangulo r : areas) {
+            formas().rect(r.x(), r.y(), r.largura(), r.altura());
+        }
+        formas().end();
+        lote().begin();
+        for (int i = 0; i < areas.size(); i++) {
+            Retangulo r = areas.get(i);
+            BitmapFont fonte = fonte(Recursos.Fonte.TITULO, escalaDoTexto);
+            fonte.setColor(Color.WHITE);
+            fonte.draw(lote(), rotulos.get(i), r.x(), r.centroY() + fonte.getCapHeight() / 2, r.largura(), Align.center,
+                    false);
+        }
+        lote().end();
     }
 
     // ---- atalhos para os recursos compartilhados ----
@@ -174,5 +337,10 @@ public abstract class TelaBase implements Screen {
         TextureRegion r = recursos().quadro(folha, quadro);
         float largura = altura * r.getRegionWidth() / r.getRegionHeight();
         lote().draw(r, cx - largura / 2, cy - altura / 2, largura, altura);
+    }
+
+    /** Faixa horizontal tocável em volta de uma linha de texto (para opções de menu). */
+    protected static Retangulo linha(float x, float yDoTexto, float largura, float altura) {
+        return new Retangulo(x, yDoTexto - altura + 8, largura, altura);
     }
 }

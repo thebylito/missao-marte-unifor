@@ -40,6 +40,10 @@ tasks.named('run') {
     if (System.getProperty('missaomarte.servidor')) {
         systemProperty 'missaomarte.servidor', System.getProperty('missaomarte.servidor')
     }
+    // Fase 6: ./gradlew :lwjgl3:run -Dmissaomarte.toque=true  (controles de toque, usados com o mouse)
+    if (System.getProperty('missaomarte.toque')) {
+        systemProperty 'missaomarte.toque', System.getProperty('missaomarte.toque')
+    }
 }
 
 tasks.named('jar') {
