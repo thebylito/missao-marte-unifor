@@ -11,6 +11,9 @@ Roteiros:
   completo   - entrada (retrato), endereço do servidor, cadastro, menu, nova partida (Fácil, mapa 3), a partida
                vencedora da semente 3 tocando no direcional, paisagem, segundo plano e volta, ranking global, histórico
   convidado  - entra como convidado, embarca um passageiro e aborta pelo botão (resultado só no ranking local)
+  pilotagem  - (Fase 7) Modo Pilotagem no Fácil: segura MOTOR e a nave sobe e pousa de volta; sobe, gira e cai torta
+               (explode); gira a tela e vai ao segundo plano no meio do voo; aborta e abre o ranking da pilotagem.
+               O adb só segura um dedo por vez: girar e acelerar juntos fica para a partida jogada à mão.
 """
 import argparse
 import re
@@ -59,6 +62,12 @@ class Android:
     def tocar(self, x, y, espera=0.6):
         px, py = self.pixel(x, y)
         self.adb('shell', 'input', 'tap', str(px), str(py))
+        time.sleep(espera)
+
+    def segurar(self, x, y, segundos, espera=0.3):
+        """Toque longo (um dedo parado): o jogo recebe o toque, e o soltar no fim."""
+        px, py = self.pixel(x, y)
+        self.adb('shell', 'input', 'swipe', str(px), str(py), str(px), str(py), str(int(segundos * 1000)))
         time.sleep(espera)
 
     def print(self, nome, espera=0.8):
@@ -149,6 +158,72 @@ def botoes_da_partida(android):
     }
 
 
+NOVA_MODO = (635, 477)          # TelaNovaPartida: botão "Trocar" do modo (Fase 7)
+
+
+def botoes_da_pilotagem(android):
+    """Centro dos botões da pilotagem, com a mesma conta do LayoutDaPilotagem."""
+    w, h = android.tela()
+    s = min(w / 800, h / 600)
+    ww, wh = w / s, h / s
+    vx, vy = 400 - ww / 2, 300 - wh / 2
+    b = max(72, min(140, min(ww, wh) * 0.16))
+    m, g = 20, 14
+    motor = b * 1.3
+    topo_do_minimapa = vy + wh - m - 240 * (1440 / 3840)
+    return {
+        'esquerda': (vx + m + b / 2, vy + m + b / 2),
+        'direita': (vx + m + b + g + b / 2, vy + m + b / 2),
+        'motor': (vx + ww - m - motor / 2, vy + m + motor / 2),
+        'abortar': (vx + ww - m - 75, topo_do_minimapa - g - 36),
+    }
+
+
+def pilotagem(a, _endereco, _nome):
+    a.girar(False)
+    a.abrir()
+    a.tocar(*opcao_entrada(2))                          # 3. convidado
+    a.tocar(*opcao_menu(0))                             # nova missão
+    a.tocar(*NOVA_MODO)                                 # modo: pilotagem
+    a.tocar(*NOVA_DIF_ANTERIOR)                         # Médio -> Fácil
+    a.print('nova-partida-pilotagem')
+    a.tocar(*NOVA_DECOLAR, espera=1.5)
+    a.print('pilotagem-retrato-na-base')
+    bt = botoes_da_pilotagem(a)
+    a.segurar(*bt['motor'], 0.6, espera=0.1)            # sobe um pouco...
+    a.print('pilotagem-subindo', espera=0.2)
+    time.sleep(2.0)                                     # ...e pousa de volta na base, devagar
+    a.print('pilotagem-pousou-de-volta')
+    a.girar(True)
+    a.print('pilotagem-paisagem')
+    bt = botoes_da_pilotagem(a)
+    a.segurar(*bt['motor'], 1.2, espera=0.0)            # sobe mais...
+    a.segurar(*bt['esquerda'], 0.35, espera=0.0)        # ...gira no ar e cai torta: explode
+    a.print('pilotagem-girando', espera=0.0)
+    time.sleep(1.6)
+    a.print('pilotagem-explosao', espera=0.0)
+    time.sleep(2.5)                                     # nave nova na base
+    a.segurar(*bt['motor'], 1.0, espera=0.0)            # no meio de um voo...
+    a.adb('shell', 'input', 'keyevent', 'KEYCODE_HOME')   # ...segundo plano
+    time.sleep(2)
+    a.adb('shell', 'am', 'start', '-n', ATIVIDADE)
+    time.sleep(3)
+    a.print('pilotagem-depois-do-segundo-plano')
+    a.adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')   # o Voltar não aborta o voo
+    a.print('pilotagem-voltar-ignorado')
+    bt = botoes_da_pilotagem(a)
+    a.tocar(*bt['abortar'], espera=1.5)
+    a.print('fim-pilotagem-abortada')
+    a.tocar(400, 300, espera=1)
+    a.girar(False)
+    a.tocar(*opcao_menu(1), espera=1)                   # ranking
+    a.tocar(*RANKING_MODO_PILOTAGEM, espera=1)
+    a.print('ranking-pilotagem')
+
+
+RANKING_MODO_PILOTAGEM = (485, 502)   # TelaRanking: botão do modo Pilotagem (Fase 7)
+
+
 def jogar(android, teclas, espera=0.35):
     for t in teclas:
         android.tocar(*botoes_da_partida(android)[t], espera=espera)
@@ -227,12 +302,12 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--dispositivo', required=True)
     p.add_argument('--saida', required=True)
-    p.add_argument('--roteiro', choices=['completo', 'convidado'], default='completo')
+    p.add_argument('--roteiro', choices=['completo', 'convidado', 'pilotagem'], default='completo')
     p.add_argument('--servidor', default='http://10.0.2.2:8080', help='endereço digitado na opção 4 da entrada')
     p.add_argument('--nome', default='Bia', help='piloto cadastrado no roteiro completo (precisa ser novo no servidor)')
     a = p.parse_args()
     android = Android(a.dispositivo, a.saida)
-    {'completo': completo, 'convidado': convidado}[a.roteiro](android, a.servidor, a.nome)
+    {'completo': completo, 'convidado': convidado, 'pilotagem': pilotagem}[a.roteiro](android, a.servidor, a.nome)
     (Path(a.saida) / 'logcat.txt').write_text(android.log())
     (Path(a.saida) / 'logcat-do-app.txt').write_text(android.log_do_app())
     print('fim do roteiro')

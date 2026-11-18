@@ -9,6 +9,11 @@ import br.edu.unifor.missaomarte.grafico.apresentacao.LayoutDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
 import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
+import br.edu.unifor.missaomarte.grafico.telas.TelaPilotagem;
+import br.edu.unifor.missaomarte.pilotagem.Comandos;
+import br.edu.unifor.missaomarte.pilotagem.NaveEmVoo;
+import br.edu.unifor.missaomarte.pilotagem.PartidaDePilotagem;
+import br.edu.unifor.missaomarte.pilotagem.PilotoAutomatico;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -34,7 +39,8 @@ import java.util.zip.Deflater;
  * Uso, a partir da raiz do projeto (o ranking.json é gravado na pasta de onde o java é chamado):
  *   ./gradlew :lwjgl3:installDist
  *   L=lwjgl3/build/install/missao-marte/lib
- *   javac -d /tmp/piloto -cp "$L/*" validacao/janela/PilotoDaJanela.java
+ *   javac -d /tmp/piloto -cp "$L/*" validacao/janela/PilotoDaJanela.java \
+ *       nucleo/src/test/java/br/edu/unifor/missaomarte/pilotagem/PilotoAutomatico.java
  *   mkdir -p /tmp/janela/prints && cd /tmp/janela
  *   java -XstartOnFirstThread -cp "<projeto>/$L/*:/tmp/piloto" PilotoDaJanela /tmp/janela/prints 3 vitoria
  * (-XstartOnFirstThread só no macOS.) Roteiros (semente 3, Fácil, mapa 3):
@@ -44,7 +50,11 @@ import java.util.zip.Deflater;
  *              histórico. Endereço do servidor: -Dmissaomarte.servidor=http://localhost:8080 (o padrão);
  *   offline  - (Fase 5, servidor desligado) tenta entrar, vê o aviso, joga como convidado e abre o ranking global;
  *   toque    - (Fase 6) modo toque no desktop: tudo por cliques nos botões (convidado, nova partida, direcional),
- *              vencendo a mesma partida da semente 3.
+ *              vencendo a mesma partida da semente 3;
+ *   pilotagem - (Fase 7) o Modo Pilotagem no Fácil, voado pelo piloto automático da validação (o mesmo do teste
+ *              PilotoAutomaticoTeste): a cada quadro ele decide e as setas são apertadas e soltas pela tela, como
+ *              num teclado. Prints na decolagem, em cada embarque e entrega, na vitória e no ranking da pilotagem.
+ *              Leva uns 4 minutos (o voo é em tempo real).
  */
 public class PilotoDaJanela extends MissaoMarteGame {
 
@@ -55,6 +65,16 @@ public class PilotoDaJanela extends MissaoMarteGame {
     private final String pasta;
     private int quadros;
     private int numeroDoPrint;
+    /** Fase 7: enquanto voa, o roteiro fica parado e o piloto automático aperta as setas a cada quadro. */
+    private boolean pilotando;
+    private PilotoAutomatico pilotoAutomatico;
+    private boolean esquerda;
+    private boolean direita;
+    private boolean motor;
+    private int aBordoAntes;
+    private int entreguesAntes;
+    private boolean decolou;
+    private boolean passouOVao;
 
     PilotoDaJanela(ServicosDoJogo servicos, String pasta, String roteiro) {
         super(servicos, new Plataforma(roteiro.equals("toque"),
@@ -68,6 +88,8 @@ public class PilotoDaJanela extends MissaoMarteGame {
             montarRoteiroOffline();
         } else if (roteiro.equals("toque")) {
             montarRoteiroDeToque();
+        } else if (roteiro.equals("pilotagem")) {
+            montarRoteiroDePilotagem();
         } else {
             montarRoteiro();
         }
@@ -120,6 +142,79 @@ public class PilotoDaJanela extends MissaoMarteGame {
         print("fim-derrota");
         tecla(Keys.ENTER, '\r');
         tecla(Keys.NUM_4, '4');
+    }
+
+    /** Fase 7: o Modo Pilotagem no Fácil, voado pelo piloto automático; depois o fim e o ranking da pilotagem. */
+    private void montarRoteiroDePilotagem() {
+        tecla(Keys.NUM_3, '3');               // convidado
+        tecla(Keys.NUM_1, '1'); print("nova-partida-classico");
+        tecla(Keys.TAB, '\t');                // modo: pilotagem
+        tecla(Keys.SHIFT_LEFT, (char) 0);
+        tecla(Keys.A, 'A'); tecla(Keys.N, 'n'); tecla(Keys.A, 'a');
+        tecla(Keys.LEFT, (char) 0);           // Médio -> Fácil
+        print("nova-partida-pilotagem");
+        tecla(Keys.ENTER, '\r');
+        aguardar(0.5f);
+        print("pilotagem-na-base");
+        roteiro.add(() -> {
+            pilotoAutomatico = new PilotoAutomatico();
+            pilotando = true;
+            Gdx.app.log("Piloto", "piloto automático assumiu");
+        });
+        // o roteiro só continua quando a tela de fim aparecer
+        aguardar(0.8f);
+        print("fim-vitoria-pilotagem");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_2, '2'); print("ranking-classico");
+        tecla(Keys.DOWN, (char) 0); print("ranking-pilotagem");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_4, '4');
+    }
+
+    /** Um quadro do piloto automático: decide e aperta ou solta as setas que mudaram. Prints nos marcos do voo. */
+    private void pilotar() {
+        if (!(getScreen() instanceof TelaPilotagem)) {
+            apertar(false, false, false);
+            pilotando = false;            // a tela de fim apareceu: o roteiro continua
+            Gdx.app.log("Piloto", "voo terminado");
+            return;
+        }
+        PartidaDePilotagem voo = ((TelaPilotagem) getScreen()).getControlador().getPartida();
+        NaveEmVoo nave = voo.getNave();
+        if (!decolou && nave.getEstado() == NaveEmVoo.Estado.VOANDO && nave.getY() > 400) {
+            decolou = true;
+            salvarPrint("pilotagem-voando");
+        }
+        if (!passouOVao && nave.getX() > 1100 && nave.getY() < 720) {
+            passouOVao = true;
+            salvarPrint("pilotagem-depois-do-vao");
+        }
+        if (nave.getABordo().size() > aBordoAntes) {
+            salvarPrint("pilotagem-embarque-" + (voo.getEntregues() + nave.getABordo().size()));
+        }
+        if (voo.getEntregues() > entreguesAntes) {
+            salvarPrint("pilotagem-entrega-" + voo.getEntregues());
+        }
+        aBordoAntes = nave.getABordo().size();
+        entreguesAntes = voo.getEntregues();
+        Comandos c = pilotoAutomatico.decidir(voo);
+        apertar(c.girarEsquerda(), c.girarDireita(), c.motor());
+    }
+
+    private void apertar(boolean novaEsquerda, boolean novaDireita, boolean novoMotor) {
+        esquerda = trocar(esquerda, novaEsquerda, Keys.LEFT);
+        direita = trocar(direita, novaDireita, Keys.RIGHT);
+        motor = trocar(motor, novoMotor, Keys.UP);
+    }
+
+    private static boolean trocar(boolean antes, boolean agora, int tecla) {
+        InputProcessor p = Gdx.input.getInputProcessor();
+        if (agora && !antes) {
+            p.keyDown(tecla);
+        } else if (!agora && antes) {
+            p.keyUp(tecla);
+        }
+        return agora;
     }
 
     /** Digita um texto, uma tecla por caractere (keyDown, keyTyped, keyUp). */
@@ -246,7 +341,11 @@ public class PilotoDaJanela extends MissaoMarteGame {
     }
 
     private void print(String nome) {
-        roteiro.add(() -> {
+        roteiro.add(() -> salvarPrint(nome));
+    }
+
+    private void salvarPrint(String nome) {
+        {
             int w = Gdx.graphics.getBackBufferWidth(), h = Gdx.graphics.getBackBufferHeight();
             Pixmap imagem = Pixmap.createFromFrameBuffer(0, 0, w, h);
             // O framebuffer guarda também o alfa das partes translúcidas, mas a janela mostra só as cores (RGB).
@@ -259,7 +358,7 @@ public class PilotoDaJanela extends MissaoMarteGame {
             PixmapIO.writePNG(Gdx.files.absolute(arquivo), imagem, Deflater.DEFAULT_COMPRESSION, true);
             imagem.dispose();
             Gdx.app.log("Piloto", "print " + arquivo + " (" + w + "x" + h + ")");
-        });
+        }
     }
 
     @Override
@@ -267,6 +366,10 @@ public class PilotoDaJanela extends MissaoMarteGame {
         super.render();                       // a tela desenha o quadro normalmente
         if (getRecursos() == null || !getRecursos().isCarregado()) {
             return;                           // Fase 4: espera a tela de carregamento terminar
+        }
+        if (pilotando) {
+            pilotar();
+            return;
         }
         if (++quadros % QUADROS_ENTRE_PASSOS == 0 && !roteiro.isEmpty()) {
             roteiro.poll().executar();        // o print lê o quadro recém-desenhado, antes da troca de buffers
@@ -277,7 +380,8 @@ public class PilotoDaJanela extends MissaoMarteGame {
         Relogio relogio = Relogio.DO_SISTEMA;
         ServicosDoJogo servicos = new ServicosDoJogo(new GeradorDeMissao(new Random(Long.parseLong(args[1]))),
                 new ServicoRanking(new RankingArquivoJson(Paths.get("ranking.json")), relogio), relogio,
-                ServidorHttp.daLibgdx(System.getProperty("missaomarte.servidor", "http://localhost:8080")));
+                ServidorHttp.daLibgdx(System.getProperty("missaomarte.servidor", "http://localhost:8080")),
+                new ServicoRanking(new RankingArquivoJson(Paths.get("ranking-pilotagem.json")), relogio));
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle("Missão Marte Unifor (piloto automático)");
         config.setWindowedMode(800, 600);
