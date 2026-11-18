@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "title": "Missão Marte",
+  "imageOrigin": "top-left",
+  "frameOrder": "left-to-right, top-to-bottom",
+  "alphaMode": "straight",
+  "camera": "orthographic XZ",
+  "lighting": "fixed upper-left key + subtle rim",
+  "assets": {
+    "nave": {
+      "file": "nave.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 8,
+      "rows": 8,
+      "frames": 64,
+      "width": 1024,
+      "height": 1024,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false,
+      "frame0": "nose up",
+      "rotationDirection": "counterclockwise",
+      "degreesPerFrame": 5.625
+    },
+    "chama": {
+      "file": "chama.png",
+      "cellW": 64,
+      "cellH": 96,
+      "cols": 4,
+      "rows": 1,
+      "frames": 4,
+      "width": 256,
+      "height": 96,
+      "pivot": {
+        "x": 32.0,
+        "y": 0
+      },
+      "opaque": false
+    },
+    "explosao": {
+      "file": "explosao.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 4,
+      "frames": 16,
+      "width": 512,
+      "height": 512,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "asteroide": {
+      "file": "asteroide.png",
+      "cellW": 96,
+      "cellH": 96,
+      "cols": 8,
+      "rows": 4,
+      "frames": 32,
+      "width": 768,
+      "height": 384,
+      "pivot": {
+        "x": 48.0,
+        "y": 48.0
+      },
+      "opaque": false,
+      "degreesPerFrame": 11.25,
+      "rotationAxis": [
+        0.36,
+        0.84,
+        0.4
+      ],
+      "loop": true
+    },
+    "plataforma_base": {
+      "file": "plataforma_base.png",
+      "cellW": 256,
+      "cellH": 64,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 256,
+      "height": 64,
+      "pivot": {
+        "x": 128.0,
+        "y": 32.0
+      },
+      "opaque": false,
+      "landingY": 16
+    },
+    "plataforma_passageiro": {
+      "file": "plataforma_passageiro.png",
+      "cellW": 160,
+      "cellH": 48,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 160,
+      "height": 48,
+      "pivot": {
+        "x": 80.0,
+        "y": 24.0
+      },
+      "opaque": false,
+      "landingY": 12
+    },
+    "astronauta": {
+      "file": "astronauta.png",
+      "cellW": 48,
+      "cellH": 64,
+      "cols": 8,
+      "rows": 1,
+      "frames": 8,
+      "width": 384,
+      "height": 64,
+      "pivot": {
+        "x": 24.0,
+        "y": 32.0
+      },
+      "opaque": false,
+      "feetY": 64,
+      "loop": true
+    },
+    "engenheiro": {
+      "file": "engenheiro.png",
+      "cellW": 48,
+      "cellH": 64,
+      "cols": 8,
+      "rows": 1,
+      "frames": 8,
+      "width": 384,
+      "height": 64,
+      "pivot": {
+        "x": 24.0,
+        "y": 32.0
+      },
+      "opaque": false,
+      "feetY": 64,
+      "loop": true
+    },
+    "professor": {
+      "file": "professor.png",
+      "cellW": 48,
+      "cellH": 64,
+      "cols": 8,
+      "rows": 1,
+      "frames": 8,
+      "width": 384,
+      "height": 64,
+      "pivot": {
+        "x": 24.0,
+        "y": 32.0
+      },
+      "opaque": false,
+      "feetY": 64,
+      "loop": true
+    },
+    "rocha_tile": {
+      "file": "rocha_tile.png",
+      "cellW": 256,
+      "cellH": 256,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 256,
+      "height": 256,
+      "pivot": {
+        "x": 128.0,
+        "y": 128.0
+      },
+      "opaque": true,
+      "tileable": true
+    },
+    "fundo": {
+      "file": "fundo.png",
+      "cellW": 1200,
+      "cellH": 900,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 1200,
+      "height": 900,
+      "pivot": {
+        "x": 600.0,
+        "y": 450.0
+      },
+      "opaque": true
+    },
+    "icone": {
+      "file": "icone.png",
+      "cellW": 256,
+      "cellH": 256,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 256,
+      "height": 256,
+      "pivot": {
+        "x": 128.0,
+        "y": 128.0
+      },
+      "opaque": false
+    },
+    "inimigo": {
+      "file": "inimigo.png",
+      "cellW": 96,
+      "cellH": 96,
+      "cols": 8,
+      "rows": 1,
+      "frames": 8,
+      "width": 768,
+      "height": 96,
+      "pivot": {
+        "x": 48.0,
+        "y": 48.0
+      },
+      "opaque": false,
+      "loop": true
+    }
+  }
+}

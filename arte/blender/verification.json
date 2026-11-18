@@ -1,0 +1,123 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "asset": "nave",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS"
+    },
+    {
+      "asset": "chama",
+      "size": [
+        256,
+        96
+      ],
+      "frames": 4,
+      "result": "PASS"
+    },
+    {
+      "asset": "explosao",
+      "size": [
+        512,
+        512
+      ],
+      "frames": 16,
+      "result": "PASS"
+    },
+    {
+      "asset": "asteroide",
+      "size": [
+        768,
+        384
+      ],
+      "frames": 32,
+      "result": "PASS"
+    },
+    {
+      "asset": "plataforma_base",
+      "size": [
+        256,
+        64
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "plataforma_passageiro",
+      "size": [
+        160,
+        48
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "astronauta",
+      "size": [
+        384,
+        64
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "engenheiro",
+      "size": [
+        384,
+        64
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "professor",
+      "size": [
+        384,
+        64
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "rocha_tile",
+      "size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "fundo",
+      "size": [
+        1200,
+        900
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "icone",
+      "size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "inimigo",
+      "size": [
+        768,
+        96
+      ],
+      "frames": 8,
+      "result": "PASS"
+    }
+  ],
+  "errors": []
+}
