@@ -1,0 +1,7 @@
+Janela aberta fora do Gradle (macOS arm64, 2026-11-18), numa pasta temporária vazia (sem assets/ por perto):
+o jar traz 28 arquivos de assets (sprites/, sons/, fontes/) e o Gdx.files.internal os acha no classpath.
+
+script: 1 carregamento(s) com 21 assets; 1 menu; 0 exceções
+jar: 1 carregamento(s) com 21 assets; 1 menu; 0 exceções
+
+Nos dois casos o ReinicioNoMacOS reiniciou a JVM com -XstartOnFirstThread; as janelas foram fechadas pelo script depois do menu.

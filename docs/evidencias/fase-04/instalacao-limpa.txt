@@ -1,0 +1,18 @@
+Instalação limpa, executada em 2026-11-18 no macOS (arm64):
+
+1. git clone --branch sprint-2 <repositório> <pasta temporária nova>   (commit 2eff25b)
+2. JAVA_HOME removido do ambiente; o "java" do PATH é o Homebrew OpenJDK 11.0.27
+3. GRADLE_USER_HOME apontando para uma pasta vazia
+
+$ ./gradlew clean build
+BUILD SUCCESSFUL in 14s
+  - o wrapper baixou o Gradle 8.14.3; o Maven Central forneceu a libGDX 1.14.2 com a extensão nova da Fase 4
+    (gdx, gdx-backend-lwjgl3, gdx-platform, gdx-freetype, gdx-freetype-platform e gdx-backend-headless nos testes)
+  - resultado: 148 testes, 0 falhas (nucleo 62, console 3, core 83)
+  - os assets (sprites, sons e fontes) vêm no próprio repositório: nada é baixado nem gerado durante o build
+
+Único aviso do Gradle, o mesmo da Fase 3: "Executing Gradle on JVM versions 16 and lower has been deprecated".
+Ele se refere à JVM que executa o próprio Gradle (o Java 11 do PATH, escolhido de propósito para este teste),
+não aos scripts do projeto, que compilam com o JDK 17 pelo toolchain.
+
+Não verificado: Windows (gradlew.bat) e Linux. Não havia essas máquinas disponíveis.

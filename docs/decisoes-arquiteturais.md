@@ -102,3 +102,46 @@ a fonte própria ficam para a Fase 4.
 detectados. A janela real foi validada de ponta a ponta pelo `validacao/janela/PilotoDaJanela.java`. Limite da
 apresentação: na janela, o mapa vai de 2 a 10. Com tamanho 1, o Médio e o Difícil não cabem no mapa e o sorteio
 nunca termina (problema herdado do console, que continua igual).
+
+## DA-11 — Assets gerados pelo próprio projeto, com a origem registrada e testada (Fase 4)
+
+**Contexto.** A issue #6 pede que os assets tenham origem documentada ou sejam gerados pelo projeto. O referencial
+cria texturas e sons por código (`Pixmap` e PCM). A prova de conceito da equipe já tinha um pipeline Blender (`bpy`)
+com modelos inéditos, aprovado em 04/11.
+**Decisão.** Sprites renderizados por scripts Blender versionados em `arte/blender/`, incluindo o inimigo, criado
+nesta fase. Sons sintetizados por `arte/sons/gerar_sons.py` (Python sem dependências, semente fixa). Fonte Chakra
+Petch com licença OFL, guardada junto com o texto da licença. `assets/ORIGEM.md` registra cada arquivo, e o
+`CatalogoDeAssetsTeste` falha se algum arquivo do catálogo não estiver citado ali, ou se o tamanho de uma folha
+divergir do código ou do `manifest.json`.
+**Consequências.** Qualquer integrante regenera tudo: os sprites em cerca de 11 s, com o Blender 5.2.3, e os sons de
+forma idêntica, byte a byte. São cerca de 2,8 MB de assets no repositório. A chama, a plataforma de passageiro e a
+rocha ficam prontas para a Fase 7. O Blender só é necessário para alterar a arte, não para compilar.
+
+## DA-12 — AssetManager atrás de uma fachada, com tela de carregamento (Fase 4)
+
+**Contexto.** Texturas, sons e fontes ocupam memória de vídeo e de áudio. Precisam ser carregados depois do
+`create()` e liberados exatamente uma vez. Na Fase 3 cada tela só usava os recursos do jogo, e nada era carregado
+de arquivo.
+**Decisão.** A classe `Recursos` (padrão Facade) concentra o `AssetManager`: põe tudo na fila no `create()`, a
+`TelaCarregamento` chama `update()` a cada quadro e mostra o progresso, as folhas são recortadas em `TextureRegion`
+uma vez (padrão Flyweight), e o `dispose()` do jogo libera tudo. As telas não criam recursos. Mipmaps só nas texturas
+com lados potência de 2, porque o OpenGL ES 2 do Android (Fase 6) não gera mipmaps para as outras. As fontes FreeType
+usam páginas próprias com 8 px entre as letras, porque com 1 px os mipmaps faziam a borda de uma letra vazar para a
+vizinha. Essas páginas também são liberadas no `dispose()`.
+**Consequências.** O log mostra `carregamento concluído: 21 assets` e, ao sair, `21 assets liberados; restam 0`. Ganho
+de testabilidade: a geometria das folhas (`Folha`, `FolhaDeSprites`) e o catálogo são Java puro e testados sem
+OpenGL.
+
+## DA-13 — Efeitos e animação só na apresentação, dirigidos pelos eventos do domínio (Fase 4)
+
+**Contexto.** O referencial detecta colisões na tela (`Intersector`), num jogo de tiro em tempo real. Aqui o jogo é
+por turnos, e quem decide colisão, embarque e fim é a `Partida`. A issue #6 pede que "colisões e efeitos visuais não
+dupliquem regras de negócio na tela".
+**Decisão.** `ReacaoAosEventos` traduz os eventos de cada turno em sons e impacto (padrão Observer), sem olhar posições
+nem vidas. `AnimacaoDoTurno` desliza da foto de antes para a de depois do turno, em 0,15 s. `EfeitosDaPartida` cuida
+da explosão e do tremor. `CenaDaPartida` orquestra tudo (Humble Object) e só libera a tela de fim depois que a explosão
+termina. As teclas não esperam a animação: um turno novo começa da foto nova. O som fica atrás da interface `Sons`,
+com o objeto nulo `Sons.NENHUM` e um dublê que anota os sons nos testes.
+**Consequências.** As regras continuam só no `nucleo`, que não mudou nenhuma linha. O console segue idêntico: 200/200
+partidas iguais à Fase 3. A apresentação ganha 44 testes que rodam sem janela, áudio ou relógio real. Divergência
+registrada: não usamos `Intersector`, porque não há colisão contínua para detectar.

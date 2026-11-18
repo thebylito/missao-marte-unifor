@@ -1,0 +1,6 @@
+200/200 partidas idênticas (40 sementes x 5 cenários; finais na referência: {'Missão cumprida!': 109, 'GAME OVER!': 54, 'Missão perdida.': 37})
+
+Obs.: uma primeira execução deu 92/200 porque um "./gradlew clean build" rodado ao mesmo tempo apagou o
+console/build/install usado como candidato (a partir da semente 19 o candidato não chegou a abrir). Esta execução
+usou uma cópia isolada da instalação, e nucleo e console não têm nenhuma diferença em relação à tag fase-3
+(git diff fase-3 -- nucleo console vazio).

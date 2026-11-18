@@ -1,0 +1,16 @@
+Defeitos inseridos de propósito numa cópia descartável do projeto; ./gradlew :core:test precisa falhar.
+Falhas contadas nos relatórios XML do JUnit (core/build/test-results/test).
+
+[colisão sem explosão] -> PEGO: 2 de 83 testes falharam
+[movimento sem som] -> PEGO: 8 de 83 testes falharam
+[vitória com o som da derrota] -> PEGO: 1 de 83 testes falharam
+[animação pula direto para o fim] -> PEGO: 7 de 83 testes falharam
+[nave destruída continua no mapa] -> PEGO: 2 de 83 testes falharam
+[fim não espera a explosão] -> PEGO: 1 de 83 testes falharam
+[tecla M não liga/desliga o som] -> PEGO: 1 de 83 testes falharam
+[nave virada para o lado errado] -> PEGO: 1 de 83 testes falharam
+[explosão roda em laço] -> PEGO: 1 de 83 testes falharam
+[folha da nave com geometria errada] -> PEGO: 2 de 83 testes falharam
+[combustível do HUD sem limite] -> PEGO: 1 de 83 testes falharam
+
+Sem defeitos: 83 testes, 0 falhas.
