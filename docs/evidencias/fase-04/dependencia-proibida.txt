@@ -1,0 +1,11 @@
+Teste da regra "o domínio não depende da libGDX" (2026-11-18), agora também com a extensão FreeType da Fase 4.
+Inserido de propósito em nucleo/.../dominio/Nave.java:  import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+
+$ ./gradlew :nucleo:compileJava
+  nucleo/src/main/java/br/edu/unifor/missaomarte/dominio/Nave.java:3: error: package com.badlogic.gdx.graphics.g2d.freetype does not exist
+BUILD FAILED in 380ms
+nucleo/src/main/java/br/edu/unifor/missaomarte/dominio/Nave.java:3: error: package com.badlogic.gdx.graphics.g2d.freetype does not exist
+
+Arquivo restaurado (git diff vazio):
+$ ./gradlew :nucleo:compileJava
+BUILD SUCCESSFUL in 329ms

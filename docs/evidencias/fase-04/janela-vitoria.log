@@ -1,0 +1,97 @@
+Janela real (macOS arm64, libGDX 1.14.2/LWJGL3, OpenGL), 2026-11-18, roteiro "vitoria" do validacao/janela/PilotoDaJanela.java
+(semente 3, Fácil, mapa 3; ranking numa pasta temporária vazia). Prints em janela-vitoria/.
+
+[Ciclo] create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+[Ciclo] show: TelaCarregamento
+[Ciclo] resize: 800x600
+[Ciclo] carregamento concluído: 21 assets no AssetManager
+[Ciclo] hide: TelaCarregamento
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaCarregamento
+[Piloto] print janela-vitoria/01-menu.jpg (1600x1200)
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 2
+[Piloto] print janela-vitoria/02-ranking-vazio.jpg (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Piloto] tecla Enter
+[Piloto] tecla 3
+[Piloto] print janela-vitoria/03-menu-confirmar-apagar.jpg (1600x1200)
+[Piloto] tecla N
+[Piloto] print janela-vitoria/04-menu-apagar-cancelado.jpg (1600x1200)
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaNovaPartida
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 1
+[Piloto] print janela-vitoria/05-nova-partida-padrao.jpg (1600x1200)
+[Piloto] tecla L-Shift
+[Piloto] tecla A
+[Piloto] tecla N
+[Piloto] tecla A
+[Piloto] tecla Left
+[Piloto] tecla Down
+[Piloto] tecla Down
+[Piloto] print janela-vitoria/06-nova-partida-ana-facil-3.jpg (1600x1200)
+[Ciclo] hide: TelaNovaPartida
+[Ciclo] show: TelaPartida
+[Ciclo] dispose: TelaNovaPartida
+[Piloto] tecla Enter
+[Piloto] print janela-vitoria/07-partida-inicio.jpg (1600x1200)
+[Piloto] tecla D
+[Piloto] tecla D
+[Piloto] tecla C
+[Piloto] tecla S
+[Piloto] tecla S
+[Piloto] tecla C
+[Piloto] print janela-vitoria/08-partida-dois-a-bordo.jpg (1600x1200)
+[Piloto] tecla D
+[Piloto] tecla W
+[Piloto] tecla C
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla W
+[Piloto] tecla W
+[Piloto] tecla W
+[Piloto] tecla C
+[Piloto] print janela-vitoria/09-partida-retorne-a-plataforma.jpg (1600x1200)
+[Piloto] tecla D
+[Piloto] tecla D
+[Piloto] tecla D
+[Piloto] tecla S
+[Piloto] tecla S
+[Ciclo] hide: TelaPartida
+[Ciclo] show: TelaFimDePartida
+[Ciclo] dispose: TelaPartida
+[Piloto] print janela-vitoria/10-fim-vitoria.jpg (1600x1200)
+[Ciclo] hide: TelaFimDePartida
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaFimDePartida
+[Piloto] tecla Enter
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 2
+[Piloto] print janela-vitoria/11-ranking-com-ana.jpg (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Piloto] tecla Enter
+[Ciclo] saindo: Gdx.app.exit() pede à libGDX que encerre o laço e chame dispose()
+[Piloto] tecla 4
+[Ciclo] pause
+[Ciclo] dispose: liberando a tela atual e os recursos compartilhados
+[Ciclo] hide: TelaMenu
+[Ciclo] dispose: TelaMenu
+[Ciclo] AssetManager: 21 assets liberados; restam 0
+
+ranking.json gravado pela janela:
+[{"name":"Ana","score":60,"dificuldade":"FACIL","passageirosColetados":4,"dataHora":"2026-11-18 00:55:23","tempoJogo":5}]
+
+Obs.: os prints foram reduzidos para 800x600 e convertidos para JPEG (qualidade 85) para caber no repositório.

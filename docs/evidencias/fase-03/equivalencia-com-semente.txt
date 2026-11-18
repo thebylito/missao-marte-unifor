@@ -1,0 +1,1 @@
+200/200 partidas idênticas (40 sementes x 5 cenários; finais na referência: {'Missão cumprida!': 109, 'GAME OVER!': 54, 'Missão perdida.': 37})

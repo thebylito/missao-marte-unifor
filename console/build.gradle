@@ -1,0 +1,40 @@
+// Jogo em modo texto (o mesmo das Fases 0 a 2), agora usando o núcleo como dependência.
+plugins {
+    id 'application'   // run, installDist, distZip
+}
+
+dependencies {
+    implementation project(':nucleo')
+}
+
+application {
+    mainClass = 'br.edu.unifor.missaomarte.Main'
+    applicationName = 'missao-marte-console'   // nome do script gerado pelo installDist
+}
+
+tasks.named('run') {
+    // o jogo lê o teclado: sem isto, o Scanner veria a entrada vazia
+    standardInput = System.in
+    // o ranking.json fica na pasta de trabalho do jogo. Padrão: a raiz do projeto (como na Fase 2).
+    // Outra pasta: ./gradlew :console:run -PpastaDoJogo=/caminho
+    workingDir = rootProject.projectDir
+    if (project.hasProperty('pastaDoJogo')) {
+        workingDir = file(project.property('pastaDoJogo'))
+    }
+    // repassa a opção de sorteio reproduzível: ./gradlew :console:run -Dmissaomarte.semente=7
+    if (System.getProperty('missaomarte.semente')) {
+        systemProperty 'missaomarte.semente', System.getProperty('missaomarte.semente')
+    }
+}
+
+tasks.named('jar') {
+    archiveBaseName = 'missao-marte-console'
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+    // O jar precisa do nucleo. O Class-Path aponta para os jars vizinhos, então
+    // java -jar console/build/install/missao-marte-console/lib/missao-marte-console-3.0.0.jar funciona.
+    doFirst {
+        manifest.attributes('Class-Path': configurations.runtimeClasspath.files.collect { it.name }.join(' '))
+    }
+}

@@ -1,0 +1,51 @@
+Geração dos assets do zero, 2026-11-18 (macOS arm64).
+
+1) Sprites: Blender 5.2.3 LTS, headless
+$ rm assets/sprites/*.png assets/sprites/manifest.json
+$ Blender -b --factory-startup -P arte/blender/render_all.py -- --engine cycles --samples 128
+ASSET nave: 1024x1024; 3.41s
+ASSET chama: 256x96; 0.06s
+ASSET explosao: 512x512; 1.52s
+ASSET asteroide: 768x384; 1.01s
+ASSET plataforma_base: 256x64; 0.21s
+ASSET plataforma_passageiro: 160x48; 0.11s
+ASSET astronauta: 384x64; 0.21s
+ASSET engenheiro: 384x64; 0.18s
+ASSET professor: 384x64; 0.20s
+ASSET rocha_tile: 256x256; 1.13s
+ASSET fundo: 1200x900; 2.10s
+ASSET icone: 256x256; 0.20s
+ASSET inimigo: 768x96; 0.24s
+ASSET                       SIZE          FRAMES  RESULT
+nave.png                    1024 x 1024   64    PASS
+chama.png                    256 x 96      4    PASS
+explosao.png                 512 x 512    16    PASS
+asteroide.png                768 x 384    32    PASS
+plataforma_base.png          256 x 64      1    PASS
+plataforma_passageiro.png    160 x 48      1    PASS
+astronauta.png               384 x 64      8    PASS
+engenheiro.png               384 x 64      8    PASS
+professor.png                384 x 64      8    PASS
+rocha_tile.png               256 x 256     1    PASS
+fundo.png                   1200 x 900     1    PASS
+icone.png                    256 x 256     1    PASS
+inimigo.png                  768 x 96      8    PASS
+PASS: dimensions, RGBA, frame contents, corners, clipping, pivots/landing lines, orientation, tile edges (0 difference).
+TOTAL RENDER 10.59s; TOTAL + VERIFY 10.68s
+
+2) Sons: síntese PCM
+$ python3 arte/sons/gerar_sons.py
+mover.wav       0.11 s     9746 bytes
+embarque.wav    0.24 s    21212 bytes
+colisao.wav     0.32 s    28268 bytes
+explosao.wav    0.90 s    79424 bytes
+alerta.wav      0.27 s    23858 bytes
+invalido.wav    0.12 s    10628 bytes
+vitoria.wav     0.52 s    45908 bytes
+derrota.wav     0.60 s    52964 bytes
+MD5 de duas execuções seguidas (iguais = reproduzível):
+5ff96119c1e55ce6168fa32f87b18c87 022a64e823a31f837a9fa978ca289b44 e81534a48a627d8c0849768bd9e825e6 1a51fdf5a07add46857fd3bd0f43cafc 01df11fded988b38f55c1c934c7fb269 1924fa450031ddb4dcc4e173f7e1f6b2 c17a87806cee3426789d93f8e4ed880d 010b72f90badb886a0b7e89a0662a691
+5ff96119c1e55ce6168fa32f87b18c87 022a64e823a31f837a9fa978ca289b44 e81534a48a627d8c0849768bd9e825e6 1a51fdf5a07add46857fd3bd0f43cafc 01df11fded988b38f55c1c934c7fb269 1924fa450031ddb4dcc4e173f7e1f6b2 c17a87806cee3426789d93f8e4ed880d 010b72f90badb886a0b7e89a0662a691
+
+3) git status depois de regerar os sons: nenhum arquivo de som mudou em relação ao commit
+(vazio)

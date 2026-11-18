@@ -1,0 +1,100 @@
+{
+  "blenderVersion": "5.2.3 LTS",
+  "assets": {
+    "nave": {
+      "seconds": 3.413,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 64
+    },
+    "chama": {
+      "seconds": 0.06,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 4
+    },
+    "explosao": {
+      "seconds": 1.525,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 16
+    },
+    "asteroide": {
+      "seconds": 1.007,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 32
+    },
+    "plataforma_base": {
+      "seconds": 0.208,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 1
+    },
+    "plataforma_passageiro": {
+      "seconds": 0.111,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 1
+    },
+    "astronauta": {
+      "seconds": 0.213,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 8
+    },
+    "engenheiro": {
+      "seconds": 0.176,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 8
+    },
+    "professor": {
+      "seconds": 0.197,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 8
+    },
+    "rocha_tile": {
+      "seconds": 1.132,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 1
+    },
+    "fundo": {
+      "seconds": 2.099,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 1
+    },
+    "icone": {
+      "seconds": 0.205,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 1
+    },
+    "inimigo": {
+      "seconds": 0.239,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 8
+    }
+  },
+  "complete": true,
+  "renderSeconds": 10.585,
+  "underTenMinutes": true,
+  "totalSeconds": 10.678
+}

@@ -1,0 +1,50 @@
+// Launcher desktop: abre a janela (LWJGL3 + OpenGL) e entrega o controle ao core.
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':core')
+    // backend desktop da libGDX e as bibliotecas nativas (Windows, Linux e macOS)
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+}
+
+application {
+    mainClass = 'br.edu.unifor.missaomarte.lwjgl3.Lwjgl3Launcher'
+    applicationName = 'missao-marte'   // nome do script gerado pelo installDist
+}
+
+// Fase 4: assets/ (sprites, sons e fontes) entra no classpath, e portanto no jar. No desktop, o
+// Gdx.files.internal("sprites/nave.png") procura primeiro na pasta de trabalho e depois no classpath.
+sourceSets.main.resources.srcDirs += [rootProject.file('assets')]
+
+def macOS = System.getProperty('os.name').toLowerCase().contains('mac')
+
+tasks.named('run') {
+    // ranking.json na raiz do projeto, o mesmo arquivo do console
+    workingDir = rootProject.projectDir
+    if (project.hasProperty('pastaDoJogo')) {
+        workingDir = file(project.property('pastaDoJogo'))
+    }
+    // No macOS a janela (GLFW) precisa rodar na primeira thread do processo.
+    // Fora do Gradle, o próprio launcher reinicia a JVM com essa opção (ReinicioNoMacOS).
+    if (macOS) {
+        jvmArgs '-XstartOnFirstThread'
+    }
+    if (System.getProperty('missaomarte.semente')) {
+        systemProperty 'missaomarte.semente', System.getProperty('missaomarte.semente')
+    }
+}
+
+tasks.named('jar') {
+    archiveBaseName = 'missao-marte'
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+    // java -jar lwjgl3/build/install/missao-marte/lib/missao-marte-3.0.0.jar (encontra os jars vizinhos)
+    doFirst {
+        manifest.attributes('Class-Path': configurations.runtimeClasspath.files.collect { it.name }.join(' '))
+    }
+}

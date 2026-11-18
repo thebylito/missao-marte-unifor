@@ -1,0 +1,26 @@
+Janela real (macOS arm64, libGDX 1.14.2/LWJGL3), 2026-11-18. Teclas digitadas à mão na janela, sem automação.
+$ ./gradlew :lwjgl3:run -PpastaDoJogo=<pasta temporária> -Dmissaomarte.semente=3
+Caminho: menu -> nova partida -> partida -> fim de partida -> menu -> janela fechada pela própria janela (botão fechar ou Cmd+Q), não pela opção 4.
+Cada troca de tela esconde (hide) a anterior, mostra (show) a nova e só então libera (dispose) a anterior.
+Ao fechar: pause -> dispose do jogo -> hide e dispose da tela atual (TelaMenu).
+
+[Ciclo] create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+[Ciclo] show: TelaMenu
+[Ciclo] resize: 800x600
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaNovaPartida
+[Ciclo] dispose: TelaMenu
+[Ciclo] hide: TelaNovaPartida
+[Ciclo] show: TelaPartida
+[Ciclo] dispose: TelaNovaPartida
+[Ciclo] hide: TelaPartida
+[Ciclo] show: TelaFimDePartida
+[Ciclo] dispose: TelaPartida
+[Ciclo] hide: TelaFimDePartida
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaFimDePartida
+[Ciclo] pause
+[Ciclo] dispose: liberando a tela atual e os recursos compartilhados
+[Ciclo] hide: TelaMenu
+[Ciclo] dispose: TelaMenu
+BUILD SUCCESSFUL in 2m 46s

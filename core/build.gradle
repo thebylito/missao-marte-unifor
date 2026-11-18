@@ -1,0 +1,21 @@
+// Cliente libGDX compartilhado: Game, telas e a lógica de apresentação.
+// Não conhece nenhuma plataforma (desktop, Android): só a API "gdx". Os launchers dependem dele.
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // "api": quem depende do core (os launchers) também enxerga o núcleo e a API da libGDX
+    api project(':nucleo')
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    // Fase 4: fontes TrueType geradas em tempo de execução (as bibliotecas nativas ficam com cada launcher)
+    api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+
+    // só nos testes: implementações "falsas" de Graphics etc., sem janela nem OpenGL
+    testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+}
+
+// Os testes do catálogo conferem os arquivos de assets/ na raiz do projeto (imagens, sons e fontes).
+tasks.named('test') {
+    systemProperty 'missaomarte.assets', rootProject.file('assets').absolutePath
+}

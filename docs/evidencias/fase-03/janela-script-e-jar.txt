@@ -1,0 +1,7 @@
+Janela aberta fora do Gradle (macOS arm64, 2026-11-18), numa pasta temporária vazia:
+
+$ lwjgl3/build/install/missao-marte/bin/missao-marte      -> [Ciclo] show: TelaMenu, 0 exceções
+$ java -jar lwjgl3/build/install/missao-marte/lib/missao-marte-3.0.0.jar   -> [Ciclo] show: TelaMenu, 0 exceções
+
+Nos dois casos o ReinicioNoMacOS reiniciou a JVM com -XstartOnFirstThread (sem ele a GLFW não abre a janela).
+As janelas foram fechadas pelo script de verificação depois que o menu apareceu.

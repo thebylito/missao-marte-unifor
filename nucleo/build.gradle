@@ -1,0 +1,7 @@
+// Núcleo do jogo: domínio, aplicação e o ranking em arquivo.
+// Não tem nenhuma dependência além do JDK. Como a libGDX nem está no classpath deste módulo,
+// um "import com.badlogic..." aqui não compila: a regra "o domínio não depende da libGDX"
+// é garantida pelo build, não só por convenção.
+plugins {
+    id 'java-library'
+}

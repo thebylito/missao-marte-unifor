@@ -1,0 +1,18 @@
+Teste da regra "o domínio não depende da libGDX" (2026-11-18).
+Inserido de propósito em nucleo/.../dominio/Nave.java:  import com.badlogic.gdx.Gdx;
+
+$ ./gradlew :nucleo:compileJava
+nucleo/src/main/java/br/edu/unifor/missaomarte/dominio/Nave.java:3: error: package com.badlogic.gdx does not exist
+import com.badlogic.gdx.Gdx; // DEFEITO DE PROPÓSITO
+                       ^
+  nucleo/src/main/java/br/edu/unifor/missaomarte/dominio/Nave.java:3: error: package com.badlogic.gdx does not exist
+  import com.badlogic.gdx.Gdx; // DEFEITO DE PROPÓSITO
+                         ^
+BUILD FAILED in 381ms
+
+Arquivo restaurado (git diff vazio) e o build volta a passar:
+$ ./gradlew :nucleo:compileJava
+BUILD SUCCESSFUL in 321ms
+
+Conclusão: a libGDX não está no classpath do nucleo (só core e lwjgl3 a declaram), então um import
+da libGDX no domínio é erro de compilação, não só uma convenção.
