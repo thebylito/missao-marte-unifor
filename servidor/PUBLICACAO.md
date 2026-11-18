@@ -80,6 +80,10 @@ Nginx.
 - Destino: o contêiner, na porta `8080`.
 - `MISSAOMARTE_URL_PUBLICA=https://ranking.exemplo.com`, para o Swagger usar o endereço certo.
 - O jogo não usa cookies nem é uma página web: não é preciso configurar CORS.
+- **WebSocket (modo shadow, Fase 7):** o proxy precisa repassar o `Upgrade: websocket` de `/ws/sombras`. O Traefik
+  (Dokploy, Coolify) e o Caddy fazem isso sozinhos; no Nginx, a `location` precisa de `proxy_http_version 1.1`,
+  `proxy_set_header Upgrade $http_upgrade` e `proxy_set_header Connection "upgrade"`. Com HTTPS no proxy, o jogo
+  usa `wss://` sozinho (vem do `https://` da opção 4). Teste: sem token, o aperto de mão responde `401`.
 
 Por que HTTPS: o login manda a senha, e cada pedido manda o token. Em HTTP simples, qualquer um na mesma rede
 (um Wi-Fi público, por exemplo) consegue ler os dois. Na rede de casa ou do laboratório, durante as aulas, HTTP é
@@ -113,6 +117,8 @@ aceitável. É por isso que o APK aceita `http://` (`usesCleartextTraffic`, DA-2
 - O banco H2 em arquivo serve uma instância. Para várias, troque por PostgreSQL (só configuração:
   `spring.datasource.*` e o driver; exercício 5 do tutorial da Fase 5).
 - A imagem é grande (cerca de 577 MB, quase tudo do JRE em Ubuntu). Uma base menor fica como melhoria.
+- As conexões do modo shadow ficam na memória da instância: com mais de uma réplica, cada piloto só veria os que
+  caíram na mesma. Mais um motivo para uma réplica só (ou um repasse entre instâncias, como Redis).
 
 ## 9. O que foi testado (Fase 6, 2026-11-18)
 

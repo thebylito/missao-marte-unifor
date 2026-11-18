@@ -20,6 +20,10 @@ O **modo clássico continua sendo o padrão e não muda**:
 - com a mesma semente, as 200 partidas de teste são idênticas;
 - as telas da partida clássica são iguais pixel a pixel.
 
+Por cima da pilotagem veio o **modo shadow** (o "bloco B" do plano): com login, cada piloto vê em tempo real as naves
+dos outros pilotos conectados, translúcidas e com o nome em cima. O servidor Spring Boot ganhou um canal WebSocket
+que só repassa as posições; ninguém interfere na partida de ninguém.
+
 Ponto de partida: a tag `fase-6`. Resultado: a tag `fase-7`.
 
 ## 2. Objetivos de aprendizagem
@@ -32,6 +36,8 @@ Ponto de partida: a tag `fase-6`. Resultado: a tag `fase-7`.
 - Escrever a análise (critérios de aceite e casos de teste) antes da implementação, e corrigi-la quando a medição
   mostra que uma premissa estava errada.
 - Usar um piloto automático como instrumento de validação.
+- Comunicar em tempo real com WebSocket: autenticar o aperto de mão, limitar o que o cliente pode mandar e
+  suavizar no cliente o movimento que chega aos saltos pela rede.
 
 ## 3. Conceitos teóricos
 
@@ -44,6 +50,9 @@ Ponto de partida: a tag `fase-6`. Resultado: a tag `fase-7`.
 | Textura repetida | `TextureWrap.Repeat` desenha a rocha como um ladrilho; no OpenGL ES 2, repetir exige lados em potência de 2 (256 × 256) | [libGDX wiki — SpriteBatch, TextureRegions and Sprites](https://libgdx.com/wiki/graphics/2d/spritebatch-textureregions-and-sprites) |
 | Evolução de esquema (JPA) | Uma coluna nova com valor padrão (`@ColumnDefault`, do Hibernate) preenche as linhas que já existiam quando o `ddl-auto=update` cria a coluna | [Hibernate ORM](https://hibernate.org/orm/documentation/) |
 | Compatibilidade de API | Campo novo opcional e parâmetro com valor padrão: o cliente antigo continua igual | — |
+| WebSocket | Uma conexão que fica aberta e leva mensagens nos dois sentidos. Começa como um GET HTTP com `Upgrade: websocket` (o "aperto de mão"), respondido com `101`; por isso passa pela mesma segurança da API | [RFC 6455](https://www.rfc-editor.org/rfc/rfc6455) · [Spring — WebSocket API](https://docs.spring.io/spring-framework/reference/web/websocket/server.html) |
+| Servidor que só repassa | O servidor não simula o jogo: confere cada posição e a repassa aos outros. Simples e barato, mas não dá para ter colisão entre os jogadores | — |
+| Suavização de entidades remotas | As posições chegam 10 vezes por segundo, e a tela desenha 60. A cada quadro, a sombra anda uma fração do caminho até a última posição recebida (`1 - e^(-12·dt)`), em vez de pular | [Gabriel Gambetta — Entity Interpolation](https://www.gabrielgambetta.com/entity-interpolation.html) |
 
 ## 4. O que precisou mudar na base (e por quê)
 
@@ -121,6 +130,20 @@ flowchart LR
 13. `PilotoAutomatico` (nos testes do `nucleo`): uma rota de 3 viagens e um controle por realimentação. É usado pelo
     `PilotoAutomaticoTeste` e pelo roteiro `pilotagem` do `PilotoDaJanela`.
 14. Roteiro `pilotagem` do `validacao/android/pilotar_android.py`: toques longos, rotação, segundo plano e Abortar.
+
+**Modo shadow (bloco B):**
+
+15. Servidor: `CanalDeSombras` (um `TextWebSocketHandler`) e `ConfiguracaoDasSombras` (`/ws/sombras`). O aperto de
+    mão passa pela segurança da API (DA-32), e o nome vem do token. Cada `posicao` válida vira uma `sombra` para os
+    outros pilotos; quem desconecta vira `saiu`.
+16. Cliente, porta e adaptador: `ConexaoDeSombras` e `ConexaoWebSocket` (Java-WebSocket). O `ServidorDoJogo` ganhou
+    `conexaoDeSombras()` (vazio por padrão; o `ServidorHttp` monta o endereço `ws://`/`wss://` a partir do seu).
+17. `SombrasDaPilotagem` (Java puro): conecta no primeiro quadro (só com login), manda a posição a cada 0,1 s, guarda
+    e suaviza as sombras, esquece quem some por 3 s e reconecta a cada 3 s.
+18. `TelaPilotagem`: desenha as sombras (a nave em azul translúcido, a chama quando o motor está ligado, o nome em
+    cima), um ponto azul no minimapa e a linha "Sombras: ..." no painel; fecha a conexão no `hide`.
+19. `validacao/sombras/piloto_fantasma.py`: um segundo piloto só pela rede (Python, sem bibliotecas), que voa em
+    círculos perto da base e registra as sombras que recebe.
 
 ## 7. Código antes e depois
 
@@ -208,6 +231,11 @@ flowchart LR
     Fim --> RankingLocal[(ranking-pilotagem.json)]
     Fim --> API[POST /api/partidas modo=PILOTAGEM]
     API --> Servidor[(servidor: coluna modo,<br/>ranking ?modo=)]
+    Voo --> Sombras[SombrasDaPilotagem<br/>10 posições/s, suavização]
+    Sombras --> Porta[ConexaoDeSombras]
+    Porta --> WS[ConexaoWebSocket<br/>Java-WebSocket]
+    WS <-- "ws://.../ws/sombras<br/>Bearer token" --> Canal[CanalDeSombras<br/>confere e repassa]
+    Canal <--> Outros[outros pilotos<br/>celular, desktop, fantasma]
 ```
 
 ```text
@@ -222,6 +250,10 @@ core/.../recursos/Folha.java                    + CHAMA, ROCHA, PLATAFORMA_PASSA
 servidor/.../partida/Modo.java                  + coluna modo (padrão CLASSICO), ranking por modo
 validacao/janela/PilotoDaJanela.java            + roteiro pilotagem (o piloto automático na janela real)
 validacao/android/pilotar_android.py            + roteiro pilotagem (toques longos pelo adb)
+servidor/.../sombras/                           CanalDeSombras, ConfiguracaoDasSombras (/ws/sombras)
+core/.../online/                                + ConexaoDeSombras (porta), ConexaoWebSocket (adaptador)
+core/.../apresentacao/SombrasDaPilotagem.java   envio, suavização, esquecimento e reconexão
+validacao/sombras/piloto_fantasma.py            um segundo piloto só pela rede
 ```
 
 ## 10. Como executar e testar
@@ -236,6 +268,14 @@ validacao/android/pilotar_android.py            + roteiro pilotagem (toques long
 - **Toque:** ◄ ► à esquerda e MOTOR à direita, que valem enquanto apertados (dá para girar e acelerar ao mesmo
   tempo); Abortar no alto. O Voltar do Android não aborta.
 
+**Modo shadow (ver os outros pilotos):**
+1. Suba o servidor (`cd servidor && docker compose up -d --build`) e, em cada aparelho, aponte para ele (opção 4 da
+   entrada; no celular, o IP do computador na rede, por exemplo `http://192.168.0.10:8080`).
+2. Entre com uma conta em cada aparelho (o convidado vê "Sombras: entre com uma conta").
+3. Pilotagem nos dois: cada um vê a nave do outro, translúcida e com o nome.
+4. Com um aparelho só: `python3 validacao/sombras/piloto_fantasma.py --segundos 60` põe um piloto de teste voando em
+   círculos perto da base.
+
 **Como jogar:**
 - Pouse devagar e reto em cima da plataforma de um passageiro e espere o embarque (0,6 s). Cabem 2 a bordo.
 - Leve-os à base, onde a nave também reabastece.
@@ -245,7 +285,7 @@ validacao/android/pilotar_android.py            + roteiro pilotagem (toques long
 
 | Verificação | Resultado |
 |---|---|
-| Build e testes (`build-e-testes.txt`) | **291 testes, 0 falhas**: `nucleo` 92 (30 novos), `console` 3, `core` 168 (24 novos), servidor 28 (5 novos); o build completo gera o APK |
+| Build e testes (`build-e-testes.txt`) | **316 testes, 0 falhas**: `nucleo` 92 (30 novos), `console` 3, `core` 186 (42 novos, 18 deles do shadow), servidor 35 (12 novos, 7 do shadow); o build completo gera o APK |
 | Regras do voo, sem janela (CT-01 a CT-17) | 27 testes de unidade: queda, motor, combustível, giro, os três limites exatos (75/50/14 inclusivos), beirada, colisões, embarque aos 0,6 s, nave cheia, entrega com 20/15/10, explosão devolvendo os passageiros, renascer, derrota, vitória com bônus, abortar, 30 × 144 quadros por segundo, a tabela da dificuldade, decolagem girando |
 | Piloto automático (CT-18) | vence a caverna inteira no Fácil, determinístico (as mesmas execuções dão os mesmos eventos), sem nenhuma explosão; no Médio e no Difícil faz as viagens do Astronauta e do Engenheiro |
 | Controlador e telas (CT-19 a CT-25) | teclas e dois dedos, arrastar e soltar, Abortar, uma vitória completa pilotada só pelo teclado e gravada no ranking da pilotagem (e não no clássico), derrota, resumo com `modo=PILOTAGEM`, layout em 6 tamanhos de tela, câmera, formulário e ranking por modo, cliente HTTP mandando e lendo o modo |
@@ -255,16 +295,32 @@ validacao/android/pilotar_android.py            + roteiro pilotagem (toques long
 | Regressão do clássico (CT-30) | console: **200/200 partidas idênticas** à Fase 6 e roteiros 11/11 nas três formas; janela: telas da partida idênticas, e só a nova missão e o ranking mudaram (de propósito) |
 | Emulador e celular (CT-31) | modo escolhido no toque; MOTOR segurado (sobe e pousa de volta); girar no ar e cair torta (explode, perde uma vida); paisagem; segundo plano no meio do voo (a partida continua); Voltar ignorado; Abortar; ranking da pilotagem |
 | Defeitos inseridos de propósito (CT-34, `testes-detectam-defeitos.txt`) | **27/27 pegos**: 14 no domínio (por exemplo, limite de queda exclusivo, motor sem combustível empurrando, pontos fixos em vez dos do passageiro, um passo por quadro, girar logo na decolagem), 10 na apresentação (botões sem tamanho mínimo, câmera fora da caverna, soltar o dedo sem soltar o botão, vitória fora do ranking, ranking global sem o modo) e 3 no servidor (ranking misturando os modos, sem modo virando pilotagem, histórico sem o modo) |
-| APK (CT-35) | 0 chamadas do jogo acima da API 26 |
+| APK (CT-35) | 0 chamadas do jogo acima da API 26; a Java-WebSocket (76 classes) e o slf4j (55) também, 0 |
+| Shadow: servidor (CT-36 a CT-40) | 7 testes de ponta a ponta (porta aleatória, clientes WebSocket de verdade): sem token ou com token inválido dá 401; a posição chega aos outros com o nome do token, e não ao próprio piloto; 9 mensagens inválidas são ignoradas sem derrubar a conexão; posições a menos de 40 ms são descartadas; quem sai é anunciado; mensagem grande demais fecha a conexão (1009). No contêiner: 401 sem token, `101` com token (`sombras-servidor.txt`) |
+| Shadow: cliente (CT-41 a CT-44) | 12 testes da `SombrasDaPilotagem` (desligadas sem servidor, convidado não conecta, conecta no primeiro quadro com o token, 10 posições por segundo com ponto decimal, aparece e desliza, ângulo pelo lado curto, `saiu` e 3 s sem notícia, mensagens inválidas, nome cortado, reconexão, fechar) e 6 do `ConexaoWebSocket` contra um servidor WebSocket local (token no aperto de mão, mensagens nos dois sentidos pela thread do jogo, servidor caindo, fechar sem aviso, sem servidor) |
+| Shadow: aparelhos de verdade (CT-45, `sombras-pilotos.txt`) | dois pilotos fantasma se veem; no celular do usuário, a sombra do fantasma aparece perto da base, com o nome, o ponto no minimapa e "Sombras: 1 piloto" (`android-celular-sombras/`); o fantasma recebeu ao mesmo tempo as posições do celular e do desktop do usuário |
+| Shadow: defeitos inseridos (`testes-detectam-defeitos-sombras.txt`) | **20/20 pegos**: 7 no servidor (sem token entra, nome que não vem do token, sem limite de frequência, posição fora da caverna, motor que não é booleano, sombra devolvida ao próprio piloto, saída sem aviso) e 13 no cliente (convidado conectando, posição antes de abrir ou a cada quadro, sombra pulando, ângulo pelo lado longo, sombra que não some, sem reconexão, tela que não fecha a conexão, aperto de mão sem token, avisos fora da thread do jogo, aviso de conexão velha, `https` virando `ws`). A rodada achou um teste instável, corrigido (seção 11) |
 
 ## 11. Achados e limitações
 
-- **Combustível no Médio (achado para o usuário decidir).** O piloto automático é conservador: para e espera o
+- **Combustível no Médio: decidido, fica 100 (DA-34).** O piloto automático é conservador: para e espera o
   asteroide em cada passagem estreita. Do jeito que ele voa (`piloto-automatico.txt`), a viagem do Professor gasta
   60 só na ida, e na volta o tanque acaba a uns 700 da base: cerca de 120 no total, mais que os 100 do Médio. A do
-  Engenheiro chega à base com 4,8 de sobra (1,6 no Difícil). A POC registra que os 100 cobrem essa viagem para um piloto humano.
-  A partida completa jogada à mão no celular é o que diz se o Médio está bom ou se precisa de mais tanque, por
-  exemplo 120. Esse valor fica para o usuário decidir; não foi alterado.
+  Engenheiro chega à base com 4,8 de sobra (1,6 no Difícil). A POC registra que os 100 cobrem essa viagem para um
+  piloto humano. Depois de jogar no celular e no desktop, o usuário decidiu manter os 100.
+- **A sombra fica de 100 a 200 ms atrás** da nave de verdade (intervalo entre as mensagens mais a suavização). Para
+  ver o outro voar, basta; uma corrida disputada pediria prever o movimento (extrapolação).
+- **Sem salas:** todos os conectados estão na mesma caverna. A mesma conta em dois aparelhos aparece como duas
+  sombras (cada conexão é um piloto).
+- **`ws://` não é criptografado,** como o `http://` da API: na internet, o servidor fica atrás de um proxy com HTTPS e
+  o jogo usa `https://`, que vira `wss://` (`servidor/PUBLICACAO.md`).
+- **O servidor não confere a física das sombras:** um cliente modificado poderia "teleportar" a própria sombra. Como
+  ela não interfere no jogo de ninguém, o risco é só visual.
+- **Um teste instável, achado e corrigido.** O `CanalDeSombrasTeste` contava os pilotos a partir de "quantos já estavam
+  conectados". Às vezes, o fechamento do teste anterior ainda não tinha chegado ao servidor, e a conta errava por um
+  (falhou 1 vez em 5). Agora cada teste espera o servidor voltar a 0 conexões e conta a partir de 0: 10 de 10
+  rodadas sem falha. É o tipo de defeito que aparece em testes com rede e várias threads: o cliente fica sabendo de
+  um evento antes de o servidor terminar de processá-lo.
 - **Dois dedos ao mesmo tempo** estão testados no controlador, mas o `adb` só segura um dedo por vez. No Android,
   girar e acelerar juntos foi verificado só jogando à mão.
 - **Em retrato,** a caverna inteira cabe na altura da tela e a nave fica pequena. É jogável, mas a paisagem é melhor.
@@ -286,6 +342,11 @@ validacao/android/pilotar_android.py            + roteiro pilotagem (toques long
    ligado. Onde fica a decisão de tocar e parar?
 6. Proponha uma regra no servidor para recusar pontuações impossíveis na pilotagem (no máximo 45 + 30). O que o
    cliente precisaria mandar a mais?
+7. Mande também a velocidade na mensagem `posicao` e, no cliente, desenhe a sombra onde ela **estaria agora**
+   (posição recebida + velocidade × tempo desde a mensagem). A sombra fica mais perto da nave de verdade? O que
+   acontece quando o outro piloto bate numa parede?
+8. Crie "salas": o piloto escolhe um código na nova missão, e o servidor só repassa as posições para quem está na
+   mesma sala. Onde fica o código na URL do WebSocket? Que teste do `CanalDeSombrasTeste` você escreveria primeiro?
 
 ## 13. Conclusão
 
@@ -300,3 +361,7 @@ O que precisou mudar na base (o toque com dedos, o fim de partida com modo e o r
 compatível, e os testes e roteiros das fases anteriores provam que o clássico continua igual. A análise escrita antes
 do código serviu de roteiro e foi corrigida onde a medição mostrou outra coisa: os pontos por passageiro e o tanque do
 Difícil. O piloto automático virou ao mesmo tempo prova, demonstração e régua para o equilíbrio do jogo.
+
+O modo shadow seguiu o mesmo caminho: uma porta nova (`ConexaoDeSombras`) ao lado da que já existia para o servidor,
+um adaptador trocável e a lógica em Java puro, testada sem rede. No servidor, a segurança da API protegeu o canal
+novo sem nenhuma regra a mais.

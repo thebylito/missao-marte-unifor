@@ -439,3 +439,76 @@ passagem estreita com um asteroide que sobe e desce, pousos com limites e combus
 - Esse número levou a duas decisões: o tanque do Difícil voltou para 100 (com 80, a caverna seria impossível) e
   o achado sobre o Médio foi levado ao usuário, junto com a partida jogada à mão no celular.
 
+
+## DA-31 — Modo shadow: o servidor só repassa posições, por WebSocket puro (Fase 7)
+
+**Contexto.** O bloco B da Fase 7 pede ver, em tempo real, as naves de outros pilotos. Cada um continua jogando a
+própria partida: as sombras não batem, não pousam e não pegam passageiros. O HTTP da API não serve para isso:
+seriam 10 pedidos por segundo por piloto, só para perguntar "mudou alguma coisa?".
+**Decisão.**
+- Um canal WebSocket no mesmo servidor Spring Boot (`spring-boot-starter-websocket`), em `/ws/sombras`, com um
+  `TextWebSocketHandler` (o `CanalDeSombras`). É WebSocket puro, sem STOMP: só há três mensagens (`posicao`,
+  `sombra` e `saiu`), e um protocolo de tópicos seria peso sem uso.
+- O servidor não simula nada: confere a mensagem e repassa a posição a todos os outros conectados. Quem sai é
+  anunciado (`saiu`) para a sombra sumir na hora.
+- Não há salas: todos estão na mesma caverna, que é a única do jogo.
+
+**Consequências.**
+- O servidor continua sem estado de jogo (só a lista de conexões abertas, na memória). Reiniciá-lo derruba as
+  sombras, e os clientes reconectam sozinhos.
+- Se um dia houver colisão entre naves ou disputa por passageiros, o servidor precisará simular a partida (ou
+  arbitrar), e isso muda bastante a arquitetura. Ficou fora do escopo.
+
+## DA-32 — O canal das sombras usa o mesmo token da API e tem limites (Fase 7)
+
+**Contexto.** Um canal aberto na internet aceitaria qualquer um, com qualquer nome, mandando mensagens de qualquer
+tamanho na velocidade que quisesse.
+**Decisão.**
+- O aperto de mão do WebSocket é um GET comum, então passa pela mesma segurança da API: sem
+  `Authorization: Bearer <token>` válido, a resposta é 401 e a conexão não abre. O convidado não participa.
+- O nome mostrado vem do token (`nome`), nunca da mensagem: ninguém se passa por outro piloto.
+- Limites: até 512 bytes por mensagem (acima disso, a conexão é fechada); posição dentro da caverna e ângulo entre
+  -180 e 180 (senão, a mensagem é ignorada); no máximo uma posição a cada 40 ms por piloto (as outras são
+  descartadas); até 50 pilotos ao mesmo tempo. O envio a cada piloto é protegido por um
+  `ConcurrentWebSocketSessionDecorator` (1 s e 16 KB de fila), para um cliente lento não travar os outros.
+
+**Consequências.**
+- Os testes de ponta a ponta (`CanalDeSombrasTeste`, servidor numa porta aleatória e clientes WebSocket de verdade)
+  conferem cada regra. Um deles achou um estouro: o "último envio" começava em `Long.MIN_VALUE`, e
+  `agora - Long.MIN_VALUE` dá negativo, então a primeira posição de cada piloto era sempre descartada.
+- Como na API, o servidor não confere se a posição é possível pela física (um cliente modificado poderia
+  "teleportar" a própria sombra). Como as sombras não interferem no jogo dos outros, o risco é só visual.
+
+## DA-33 — No cliente, uma porta para as sombras e a biblioteca Java-WebSocket (Fase 7)
+
+**Contexto.** A libGDX não tem WebSocket, e o Android não tem o `java.net.http` do Java 11. O mesmo código do
+`core` precisa funcionar no desktop e no Android.
+**Decisão.**
+- A porta `ConexaoDeSombras` (abrir com o token, enviar, fechar e um ouvinte), e o adaptador `ConexaoWebSocket` com
+  a Java-WebSocket 1.6.0 (MIT, Java puro). O endereço vem do endereço HTTP do servidor (`http` vira `ws`, `https`
+  vira `wss`), então a opção 4 da entrada vale para as duas coisas.
+- A biblioteca avisa numa thread própria; o adaptador repassa cada aviso à thread do jogo
+  (`Gdx.app.postRunnable`), como o cliente HTTP faz. Avisos de uma conexão já fechada são descartados.
+- A lógica fica na `SombrasDaPilotagem`, em Java puro e testada com uma conexão falsa. Ela manda a posição 10 vezes
+  por segundo. Entre uma mensagem e outra, a sombra desliza até a última posição recebida (suavização
+  exponencial; o ângulo gira pelo lado mais curto), em vez de pular. Sombra sem notícia por 3 s some, e, se a
+  conexão cair, o jogo tenta de novo a cada 3 s.
+- A `TelaPilotagem` só desenha (nave translúcida e azulada com o nome, ponto no minimapa e uma linha no painel) e
+  fecha a conexão ao sair da tela.
+
+**Consequências.**
+- A sombra fica de 100 a 200 ms atrás da nave de verdade (o intervalo entre as mensagens mais a suavização). Para
+  ver outro piloto voar, isso basta; para uma corrida disputada, seria preciso prever o movimento (extrapolação).
+- `conferir_api_minima.py` conferiu as classes da biblioteca e do slf4j que ela usa: nada acima da API 26. A
+  biblioteca escreve um aviso do slf4j ("No SLF4J providers") no log, sem efeito.
+
+## DA-34 — O tanque do Médio continua 100 (Fase 7)
+
+**Contexto.** O piloto automático, que voa de forma conservadora, precisa de cerca de 120 de combustível na viagem
+do Professor (DA-30). A POC dizia que um humano consegue com 100. A decisão ficou com o usuário, depois de jogar à
+mão.
+**Decisão.** Depois de jogar a pilotagem no celular e no desktop, o usuário decidiu manter o tanque do Médio em 100
+(2026-11-18).
+**Consequências.** O Médio continua sendo a POC sem mudanças, e o Fácil (130) fica como a opção para quem ainda
+está aprendendo a pousar. O piloto automático continua sem vencer o Médio: isso mostra que ele é conservador, não
+que o nível seja impossível.

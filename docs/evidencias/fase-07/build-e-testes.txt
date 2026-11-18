@@ -1,60 +1,63 @@
 $ ./gradlew clean build        (cliente: nucleo, console, core, lwjgl3 e android)
-BUILD SUCCESSFUL in 13s
+BUILD SUCCESSFUL in 19m 22s
 123 actionable tasks: 122 executed, 1 up-to-date
 
-$ cd servidor && ./gradlew clean build        (servidor: + modo de jogo)
-BUILD SUCCESSFUL in 13s
+$ cd servidor && ./gradlew clean build        (servidor: + modo de jogo e canal das sombras)
+BUILD SUCCESSFUL in 10m 26s
 7 actionable tasks: 7 executed
 
 Resultado JUnit por classe (build/test-results/test/*.xml):
-  nucleo   ComandoTeste                        2 testes  falhas=0 erros=0
-  nucleo   GeradorDeMissaoTeste                4 testes  falhas=0 erros=0
-  nucleo   PartidaTeste                       14 testes  falhas=0 erros=0
-  nucleo   ServicoRankingTeste                 5 testes  falhas=0 erros=0
-  nucleo   DificuldadeTeste                    3 testes  falhas=0 erros=0
-  nucleo   MapaTeste                           3 testes  falhas=0 erros=0
-  nucleo   MissaoTeste                         6 testes  falhas=0 erros=0
-  nucleo   MovimentoAleatorioTeste             3 testes  falhas=0 erros=0
-  nucleo   NaveTeste                           6 testes  falhas=0 erros=0
-  nucleo   PassageiroTeste                     2 testes  falhas=0 erros=0
-  nucleo   RankingTeste                        6 testes  falhas=0 erros=0
-  nucleo   RankingArquivoJsonTeste             8 testes  falhas=0 erros=0
-  nucleo   PartidaDePilotagemTeste            27 testes  falhas=0 erros=0
-  nucleo   PilotoAutomaticoTeste               3 testes  falhas=0 erros=0
+  nucleo   DificuldadeTeste                     3 testes  falhas=0 erros=0
+  nucleo   PilotoAutomaticoTeste                3 testes  falhas=0 erros=0
+  nucleo   PassageiroTeste                      2 testes  falhas=0 erros=0
+  nucleo   RankingTeste                         6 testes  falhas=0 erros=0
+  nucleo   GeradorDeMissaoTeste                 4 testes  falhas=0 erros=0
+  nucleo   ServicoRankingTeste                  5 testes  falhas=0 erros=0
+  nucleo   NaveTeste                            6 testes  falhas=0 erros=0
+  nucleo   PartidaTeste                        14 testes  falhas=0 erros=0
+  nucleo   PartidaDePilotagemTeste             27 testes  falhas=0 erros=0
+  nucleo   MissaoTeste                          6 testes  falhas=0 erros=0
+  nucleo   MapaTeste                            3 testes  falhas=0 erros=0
+  nucleo   MovimentoAleatorioTeste              3 testes  falhas=0 erros=0
+  nucleo   ComandoTeste                         2 testes  falhas=0 erros=0
+  nucleo   RankingArquivoJsonTeste              8 testes  falhas=0 erros=0
   nucleo   subtotal: 92
-  console  JogoConsoleTeste                    3 testes  falhas=0 erros=0
+  console  JogoConsoleTeste                     3 testes  falhas=0 erros=0
   console  subtotal: 3
-  core     MissaoMarteGameTeste                3 testes  falhas=0 erros=0
-  core     AnimacaoDoTurnoTeste                7 testes  falhas=0 erros=0
-  core     CameraDaPilotagemTeste              4 testes  falhas=0 erros=0
-  core     CenaDaPartidaTeste                  9 testes  falhas=0 erros=0
-  core     ControladorDaEntradaTeste          18 testes  falhas=0 erros=0
-  core     ControladorDaPartidaTeste          11 testes  falhas=0 erros=0
-  core     ControladorDaPilotagemTeste         9 testes  falhas=0 erros=0
-  core     ControladorDoMenuTeste              6 testes  falhas=0 erros=0
-  core     ControladorDoRankingTeste           7 testes  falhas=0 erros=0
-  core     EfeitosDaPartidaTeste               4 testes  falhas=0 erros=0
-  core     EnvioDoResultadoTeste               3 testes  falhas=0 erros=0
-  core     FormularioNovaPartidaTeste          9 testes  falhas=0 erros=0
-  core     GeometriaDoMapaTeste                6 testes  falhas=0 erros=0
-  core     HudTeste                            4 testes  falhas=0 erros=0
-  core     LayoutDaPartidaTeste                8 testes  falhas=0 erros=0
-  core     LayoutDaPilotagemTeste              5 testes  falhas=0 erros=0
-  core     MapaDeTeclasTeste                   4 testes  falhas=0 erros=0
-  core     QuadroDaPartidaTeste                5 testes  falhas=0 erros=0
-  core     ReacaoAosEventosTeste               8 testes  falhas=0 erros=0
-  core     RetanguloTeste                      3 testes  falhas=0 erros=0
-  core     ConfiguracaoDoServidorTeste         6 testes  falhas=0 erros=0
-  core     ServidorHttpTeste                  18 testes  falhas=0 erros=0
-  core     CatalogoDeAssetsTeste               6 testes  falhas=0 erros=0
-  core     FolhaDeSpritesTeste                 5 testes  falhas=0 erros=0
-  core     subtotal: 168
-  servidor DocumentacaoDaApiTeste              2 testes  falhas=0 erros=0
-  servidor ApiDeJogadoresTeste                 9 testes  falhas=0 erros=0
-  servidor ApiDeModosTeste                     5 testes  falhas=0 erros=0
-  servidor ApiDePartidasTeste                  7 testes  falhas=0 erros=0
-  servidor ApiDeRankingTeste                   5 testes  falhas=0 erros=0
-  servidor subtotal: 28
-  total: 291 (cliente 263, servidor 28)
+  core     ReacaoAosEventosTeste                8 testes  falhas=0 erros=0
+  core     SombrasDaPilotagemTeste             12 testes  falhas=0 erros=0
+  core     LayoutDaPartidaTeste                 8 testes  falhas=0 erros=0
+  core     GeometriaDoMapaTeste                 6 testes  falhas=0 erros=0
+  core     CatalogoDeAssetsTeste                6 testes  falhas=0 erros=0
+  core     ConexaoWebSocketTeste                6 testes  falhas=0 erros=0
+  core     MapaDeTeclasTeste                    4 testes  falhas=0 erros=0
+  core     ControladorDaPilotagemTeste          9 testes  falhas=0 erros=0
+  core     EnvioDoResultadoTeste                3 testes  falhas=0 erros=0
+  core     ServidorHttpTeste                   18 testes  falhas=0 erros=0
+  core     AnimacaoDoTurnoTeste                 7 testes  falhas=0 erros=0
+  core     ConfiguracaoDoServidorTeste          6 testes  falhas=0 erros=0
+  core     RetanguloTeste                       3 testes  falhas=0 erros=0
+  core     ControladorDoMenuTeste               6 testes  falhas=0 erros=0
+  core     FormularioNovaPartidaTeste           9 testes  falhas=0 erros=0
+  core     HudTeste                             4 testes  falhas=0 erros=0
+  core     QuadroDaPartidaTeste                 5 testes  falhas=0 erros=0
+  core     ControladorDaEntradaTeste           18 testes  falhas=0 erros=0
+  core     ControladorDaPartidaTeste           11 testes  falhas=0 erros=0
+  core     FolhaDeSpritesTeste                  5 testes  falhas=0 erros=0
+  core     CenaDaPartidaTeste                   9 testes  falhas=0 erros=0
+  core     LayoutDaPilotagemTeste               5 testes  falhas=0 erros=0
+  core     CameraDaPilotagemTeste               4 testes  falhas=0 erros=0
+  core     EfeitosDaPartidaTeste                4 testes  falhas=0 erros=0
+  core     ControladorDoRankingTeste            7 testes  falhas=0 erros=0
+  core     MissaoMarteGameTeste                 3 testes  falhas=0 erros=0
+  core     subtotal: 186
+  servidor ApiDeModosTeste                      5 testes  falhas=0 erros=0
+  servidor DocumentacaoDaApiTeste               2 testes  falhas=0 erros=0
+  servidor ApiDeJogadoresTeste                  9 testes  falhas=0 erros=0
+  servidor ApiDePartidasTeste                   7 testes  falhas=0 erros=0
+  servidor ApiDeRankingTeste                    5 testes  falhas=0 erros=0
+  servidor CanalDeSombrasTeste                  7 testes  falhas=0 erros=0
+  servidor subtotal: 35
 
-APK de depuração: android/build/outputs/apk/debug/android-debug.apk (10557863 bytes)
+Total: 316 testes
+(build feito com o Mac entrando em repouso: os tempos incluem o repouso)

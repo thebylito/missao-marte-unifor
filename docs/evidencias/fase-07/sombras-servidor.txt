@@ -1,0 +1,37 @@
+Servidor no contêiner (cd servidor && docker compose up -d --build), 2026-11-18 04:38, canal /ws/sombras.
+O token não é mostrado.
+
+$ curl -i (aperto de mão WebSocket) http://localhost:8080/ws/sombras            # sem token
+HTTP/1.1 401 
+
+$ curl -i (aperto de mão WebSocket) -H "Authorization: Bearer nao-e-um-token" ...  # token inválido
+HTTP/1.1 401 
+
+$ curl -i (aperto de mão WebSocket) -H "Authorization: Bearer <token do Fantasma>" ...
+HTTP/1.1 101 
+Upgrade: websocket
+Connection: upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+
+$ docker compose logs servidor | grep sombras   (as conexões desta sessão de testes)
+2026-11-18T07:18:31.553Z  sombras: Ana entrou (piloto 1); 1 conectado(s)
+2026-11-18T07:18:33.532Z  sombras: Ana saiu (piloto 1); 0 conectado(s)
+2026-11-18T07:19:49.868Z  sombras: the entrou (piloto 2); 1 conectado(s)
+2026-11-18T07:20:35.407Z  sombras: Fantasma entrou (piloto 3); 2 conectado(s)
+2026-11-18T07:20:35.716Z  sombras: Fantasma2 entrou (piloto 4); 3 conectado(s)
+2026-11-18T07:20:37.797Z  sombras: Fantasma2 saiu (piloto 4); 2 conectado(s)
+2026-11-18T07:20:38.508Z  sombras: Fantasma saiu (piloto 3); 1 conectado(s)
+2026-11-18T07:20:50.735Z  sombras: Fantasma entrou (piloto 5); 2 conectado(s)
+2026-11-18T07:21:16.878Z  sombras: thebylito entrou (piloto 6); 3 conectado(s)
+2026-11-18T07:21:30.821Z  sombras: Fantasma saiu (piloto 5); 2 conectado(s)
+2026-11-18T07:23:08.194Z  sombras: the saiu (piloto 2); 1 conectado(s)
+2026-11-18T07:26:38.672Z  sombras: the entrou (piloto 7); 2 conectado(s)
+2026-11-18T07:27:04.115Z  sombras: thebylito saiu (piloto 6); 1 conectado(s)
+2026-11-18T07:27:10.685Z  sombras: thebylito entrou (piloto 8); 2 conectado(s)
+2026-11-18T07:27:48.447Z  sombras: thebylito saiu (piloto 8); 1 conectado(s)
+2026-11-18T07:27:49.334Z  sombras: the saiu (piloto 7); 0 conectado(s)
+2026-11-18T07:33:07.568Z  sombras: the entrou (piloto 9); 1 conectado(s)
+2026-11-18T07:36:27.784Z  sombras: the saiu (piloto 9); 0 conectado(s)
+2026-11-18T07:38:03.283Z  sombras: the entrou (piloto 10); 1 conectado(s)
+2026-11-18T07:38:16.048Z  sombras: Fantasma entrou (piloto 11); 2 conectado(s)
+2026-11-18T07:38:18.049Z  sombras: Fantasma saiu (piloto 11); 1 conectado(s)

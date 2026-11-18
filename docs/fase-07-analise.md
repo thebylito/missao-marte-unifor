@@ -99,7 +99,7 @@ da velocidade dos asteroides.
 | O `adb` não simula dois dedos | no Android, a validação automática segura um botão por vez; a partida completa é jogada à mão no celular |
 | Migração do banco (coluna nova com partidas antigas) | coluna `modo` com padrão `CLASSICO`; validada no banco de desenvolvimento, que já tem partidas das Fases 5 e 6 |
 | Textura repetida no OpenGL ES 2 | o tile de rocha tem 256 × 256 (potência de 2), exigência do ES 2 para repetir a textura |
-| Prazo | o bloco B (shadow) só começa depois da tag `fase-7`, e é o primeiro corte |
+| Prazo | o bloco B (shadow) só começaria depois da tag `fase-7` e seria o primeiro corte; o usuário pediu para adiantá-lo (seção 9) |
 
 ## 6. Critérios de aceite
 
@@ -182,7 +182,35 @@ da velocidade dos asteroides.
 
 ## 8. Fora do escopo desta melhoria
 
-- **Modo shadow** (bloco B, aprovado como extensão): ver em tempo real as naves de outros pilotos, via WebSocket
-  no Spring Boot. Só começa depois da tag `fase-7` e é o primeiro corte se o prazo apertar.
 - Outros níveis, um editor de níveis e som de motor contínuo.
 - O servidor não confere se a pontuação da pilotagem é legítima, a mesma limitação do clássico (Fase 5).
+
+## 9. Extensão: modo shadow (bloco B)
+
+Planejado como extensão "depois da tag `fase-7`". O usuário pediu para adiantá-lo ao testar a pilotagem, então ele
+entrou antes da tag, com esta seção escrita junto da implementação (e não antes, como as seções 1 a 8). Decisões:
+DA-31 a DA-33.
+
+**O que é:** com login, cada piloto vê em tempo real as naves dos outros pilotos conectados, translúcidas e com o
+nome. Não há interação: as sombras não batem, não pousam e não pegam passageiros.
+
+| Id | Critério |
+|---|---|
+| CA-18 | Só quem tem token conecta (sem token ou com token inválido: 401); o nome mostrado vem do token |
+| CA-19 | A posição de um piloto chega a todos os outros, e não a ele mesmo; quem sai some na hora para os outros |
+| CA-20 | O servidor ignora posições inválidas (fora da caverna, ângulo fora de -180 a 180, campos faltando), descarta as que chegam a menos de 40 ms da anterior e fecha a conexão com mensagens acima de 512 bytes |
+| CA-21 | O jogo manda 10 posições por segundo; a sombra desliza entre as mensagens; some depois de 3 s sem notícia; a conexão é refeita a cada 3 s se cair; o convidado vê "Sombras: entre com uma conta" |
+| CA-22 | Funciona no desktop e no Android com o mesmo código; o APK continua sem chamadas acima da API 26 |
+
+| Id | Caso de teste | Critério |
+|---|---|---|
+| CT-36 | Aperto de mão sem token e com token inválido: 401 | CA-18 |
+| CT-37 | Dois pilotos: a posição de A chega a B com o nome do token de A (mesmo se a mensagem trouxer outro nome); A não recebe a própria | CA-18, CA-19 |
+| CT-38 | Nove mensagens inválidas são ignoradas, e a conexão continua valendo | CA-20 |
+| CT-39 | Duas posições no mesmo instante: só a primeira passa; 40 ms depois, passa de novo | CA-20 |
+| CT-40 | A fecha: B recebe `saiu` com o número de A; mensagem acima de 512 bytes fecha com 1009 | CA-19, CA-20 |
+| CT-41 | Sem servidor: desligadas e fora do painel; convidado: não conecta e o painel explica | CA-21 |
+| CT-42 | Conecta no primeiro quadro com o token; nada sai antes de abrir; 10 posições por segundo, com ponto decimal | CA-21 |
+| CT-43 | Sombra nova aparece no lugar; depois desliza; o ângulo gira pelo lado curto; `saiu` e 3 s sem notícia a removem; mensagens inválidas e nome comprido | CA-19, CA-21 |
+| CT-44 | Conexão caída: esquece as sombras e reconecta em 3 s; fechar a tela fecha a conexão e ignora o que chegar depois; o adaptador manda o token, entrega os avisos na thread do jogo e avisa quando o servidor cai | CA-21 |
+| CT-45 | Aparelhos de verdade: o celular mostra a sombra de outro piloto; o celular e o desktop chegam a outro piloto ao mesmo tempo | CA-22 |

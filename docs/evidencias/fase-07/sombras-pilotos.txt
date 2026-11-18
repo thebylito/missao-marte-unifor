@@ -1,0 +1,32 @@
+Modo shadow com pilotos de verdade, 2026-11-18, servidor no contêiner (localhost:8080).
+"the" é a conta do usuário no celular (Samsung, APK 7.0.0) e "thebylito" a dele no desktop (./gradlew :lwjgl3:run).
+Fantasma e Fantasma2 são validacao/sombras/piloto_fantasma.py, que voa em círculos perto da base.
+
+1) Dois fantasmas ao mesmo tempo (o celular do usuário já estava na pilotagem, parado na base):
+
+$ python3 validacao/sombras/piloto_fantasma.py --nome Fantasma --segundos 3 &
+$ python3 validacao/sombras/piloto_fantasma.py --nome Fantasma2 --segundos 2
+Fantasma: conectado a ws://localhost:8080/ws/sombras; voando por 3 s
+  vê a sombra de the (piloto 2) em x=388 y=168
+Fantasma2: conectado a ws://localhost:8080/ws/sombras; voando por 2 s
+  vê a sombra de Fantasma2 (piloto 4) em x=760 y=360
+  vê a sombra de Fantasma (piloto 3) em x=756 y=394
+  vê a sombra de the (piloto 2) em x=388 y=168
+  piloto 4 saiu
+Fantasma2: 20 posições enviadas; recebidas: Fantasma (21x, última em x=579 y=494), the (20x, última em x=388 y=168)
+Fantasma: 30 posições enviadas; recebidas: the (29x, última em x=388 y=168), Fantasma2 (20x, última em x=623 y=500); saíram: [4]
+
+(as linhas de cada processo se misturam na saída; cada um vê o outro e o celular, e o Fantasma vê o Fantasma2 sair)
+
+2) Um fantasma por 40 s enquanto o usuário jogava no celular e no desktop:
+
+$ python3 validacao/sombras/piloto_fantasma.py --nome Fantasma --segundos 40
+Fantasma: conectado a ws://localhost:8080/ws/sombras; voando por 40 s
+  vê a sombra de the (piloto 2) em x=388 y=168
+  vê a sombra de thebylito (piloto 6) em x=388 y=168
+Fantasma: 388 posições enviadas; recebidas: the (377x, última em x=388 y=410), thebylito (128x, última em x=396 y=168)
+
+O fantasma recebeu as posições dos dois aparelhos do usuário na mesma conexão. O celular mostrou a sombra do
+fantasma (android-celular-sombras/01-celular-ve-o-fantasma.png): a nave azulada e translúcida com o nome
+"Fantasma" perto da base, o ponto azul no minimapa e "Sombras: 1 piloto" no painel. O log do servidor
+(sombras-servidor.txt) tem o celular ("the") e o desktop ("thebylito") conectados ao mesmo tempo.

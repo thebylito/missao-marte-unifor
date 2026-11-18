@@ -65,6 +65,9 @@ Na nova missão, `Tab` (ou o botão "Trocar") escolhe o modo: **Clássico** (o p
 - **Pontos:** os do clássico por passageiro (20, 15 e 10) mais um bônus pelo combustível que sobrou (até 30).
 - **Ranking:** cada modo tem o seu Top 5 local (`ranking.json` e `ranking-pilotagem.json`) e o seu Top 10 global. Na
   tela de ranking, `↑`/`↓` trocam o modo.
+- **Modo shadow:** com login e o servidor no ar, você vê em tempo real as naves dos outros pilotos conectados,
+  translúcidas e com o nome (sem colisão: cada um joga a sua partida). Para ver uma sombra com um aparelho só:
+  `python3 validacao/sombras/piloto_fantasma.py --segundos 60`.
 
 O console continua só com o modo clássico.
 
@@ -119,6 +122,8 @@ cd servidor; .\gradlew.bat bootRun
 Fase 7: a API ganhou o modo de jogo. O campo `modo` (`CLASSICO` ou `PILOTAGEM`) é opcional em `POST /api/partidas`
 (sem ele, clássico) e vem no histórico; o ranking aceita `GET /api/ranking?modo=PILOTAGEM` (sem o parâmetro, o
 clássico). Os clientes das Fases 5 e 6 continuam funcionando, e as partidas já gravadas contam como clássicas.
+O modo shadow usa o WebSocket `ws://<servidor>/ws/sombras` (com `https://`, `wss://`), com o mesmo token no cabeçalho
+`Authorization`.
 
 **Em contêiner** (Docker; não precisa de Java na máquina):
 
@@ -166,4 +171,6 @@ Cada fase só é encerrada depois de provada (as evidências ficam em `docs/evid
 - `android/pilotar_android.py` (Fase 6): joga no emulador ou num celular pelo `adb` (toques, caixas de texto,
   rotação, segundo plano) e salva prints e o log; o roteiro `pilotagem` (Fase 7) usa toques longos;
 - `android/conferir_api_minima.py` (Fase 6): confere no APK pronto se o código do jogo só chama APIs que existem
-  no `minSdk` (o lint do Android não analisa `core` nem `nucleo`).
+  no `minSdk` (o lint do Android não analisa `core` nem `nucleo`);
+- `sombras/piloto_fantasma.py` (Fase 7): um segundo piloto do modo shadow só pela rede, que voa perto da base e
+  registra as sombras que recebe.
