@@ -7,8 +7,12 @@ import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida;
 import br.edu.unifor.missaomarte.grafico.audio.Sons;
 import br.edu.unifor.missaomarte.grafico.audio.SonsLibgdx;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking;
+import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import br.edu.unifor.missaomarte.grafico.recursos.Recursos;
 import br.edu.unifor.missaomarte.grafico.telas.TelaCarregamento;
+import br.edu.unifor.missaomarte.grafico.telas.TelaEntrada;
+import br.edu.unifor.missaomarte.grafico.telas.TelaHistorico;
 import br.edu.unifor.missaomarte.grafico.telas.TelaFimDePartida;
 import br.edu.unifor.missaomarte.grafico.telas.TelaMenu;
 import br.edu.unifor.missaomarte.grafico.telas.TelaNovaPartida;
@@ -20,6 +24,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import java.util.Optional;
 
 /**
  * Classe principal do cliente libGDX. A libGDX chama os métodos do ciclo de vida
@@ -45,6 +50,8 @@ public class MissaoMarteGame extends Game {
     private BitmapFont fonte;
     private Recursos recursos;
     private Sons sons = Sons.NENHUM;
+    /** Jogador conectado ao servidor (Fase 5); vazio no modo convidado. Só na memória. */
+    private Sessao sessao;
 
     public MissaoMarteGame(ServicosDoJogo servicos) {
         this.servicos = servicos;
@@ -117,6 +124,28 @@ public class MissaoMarteGame extends Game {
         trocarTela(new TelaMenu(this));
     }
 
+    /** Fase 5: a primeira tela depois do carregamento. Entrar, cadastrar ou jogar como convidado. */
+    public void irParaEntrada() {
+        sessao = null;
+        trocarTela(new TelaEntrada(this));
+    }
+
+    public void entrarComo(Sessao novaSessao) {
+        Diario.registrar("conectado ao servidor como " + novaSessao.nome());   // o nome, nunca o token
+        sessao = novaSessao;
+        irParaMenu();
+    }
+
+    public void jogarComoConvidado() {
+        Diario.registrar("modo convidado: só o ranking local");
+        sessao = null;
+        irParaMenu();
+    }
+
+    public void irParaHistorico() {
+        trocarTela(new TelaHistorico(this));
+    }
+
     public void irParaNovaPartida() {
         trocarTela(new TelaNovaPartida(this));
     }
@@ -133,7 +162,7 @@ public class MissaoMarteGame extends Game {
     }
 
     public void irParaRanking() {
-        trocarTela(new TelaRanking(this, servicos.ranking().carregar()));
+        trocarTela(new TelaRanking(this, new ControladorDoRanking(servicos.ranking().carregar(), servicos.servidor())));
     }
 
     public void sair() {
@@ -150,4 +179,5 @@ public class MissaoMarteGame extends Game {
     public BitmapFont getFonte() { return fonte; }
     public Recursos getRecursos() { return recursos; }
     public Sons getSons() { return sons; }
+    public Optional<Sessao> getSessao() { return Optional.ofNullable(sessao); }
 }

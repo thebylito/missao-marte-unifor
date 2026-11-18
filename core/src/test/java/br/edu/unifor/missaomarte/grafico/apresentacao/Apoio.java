@@ -4,6 +4,12 @@ import br.edu.unifor.missaomarte.aplicacao.Relogio;
 import br.edu.unifor.missaomarte.aplicacao.RepositorioRanking;
 import br.edu.unifor.missaomarte.grafico.audio.Som;
 import br.edu.unifor.missaomarte.grafico.audio.Sons;
+import br.edu.unifor.missaomarte.grafico.online.PartidaDoHistorico;
+import br.edu.unifor.missaomarte.grafico.online.PartidaParaEnviar;
+import br.edu.unifor.missaomarte.grafico.online.PosicaoGlobal;
+import br.edu.unifor.missaomarte.grafico.online.Resposta;
+import br.edu.unifor.missaomarte.grafico.online.ServidorDoJogo;
+import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import br.edu.unifor.missaomarte.dominio.Ranking;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
 import java.io.IOException;
@@ -77,6 +83,53 @@ final class Apoio {
         @Override
         public boolean isMudo() {
             return mudo;
+        }
+    }
+
+    /**
+     * Servidor falso: anota cada pedido e guarda a resposta pendente, que o teste completa quando quiser (assim dá
+     * para ver a tela no estado "aguardando").
+     */
+    static final class ServidorFalso implements ServidorDoJogo {
+        final List<String> pedidos = new ArrayList<>();
+        Resposta<Void> cadastro;
+        Resposta<Sessao> login;
+        Resposta<Void> registro;
+        Resposta<List<PosicaoGlobal>> ranking;
+        Resposta<List<PartidaDoHistorico>> historico;
+        PartidaParaEnviar partidaEnviada;
+        Sessao sessaoUsada;
+
+        @Override
+        public void cadastrar(String nome, String senha, Resposta<Void> r) {
+            pedidos.add("cadastrar " + nome + " " + senha);
+            cadastro = r;
+        }
+
+        @Override
+        public void entrar(String nome, String senha, Resposta<Sessao> r) {
+            pedidos.add("entrar " + nome + " " + senha);
+            login = r;
+        }
+
+        @Override
+        public void registrarPartida(Sessao sessao, PartidaParaEnviar partida, Resposta<Void> r) {
+            pedidos.add("registrar " + sessao.nome());
+            sessaoUsada = sessao;
+            partidaEnviada = partida;
+            registro = r;
+        }
+
+        @Override
+        public void ranking(Resposta<List<PosicaoGlobal>> r) {
+            pedidos.add("ranking");
+            ranking = r;
+        }
+
+        @Override
+        public void historico(Sessao sessao, Resposta<List<PartidaDoHistorico>> r) {
+            pedidos.add("historico " + sessao.nome());
+            historico = r;
         }
     }
 }

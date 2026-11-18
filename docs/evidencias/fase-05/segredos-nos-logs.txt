@@ -1,0 +1,12 @@
+Busca de segredos nos logs, 2026-11-18, depois da validação ponta a ponta (janela online, roteiro da API e reinício).
+Arquivos: os dois logs do servidor (antes e depois do reinício) e o log do cliente (roteiro online).
+
+senha da Ana (segredo1): 0 ocorrência(s)
+senha da Bia: 0 ocorrência(s)
+senha errada tentada: 0 ocorrência(s)
+senha do cadastro recusado: 0 ocorrência(s)
+token JWT da Bia: 0 ocorrência(s)
+segredo JWT do servidor: 0 ocorrência(s)
+qualquer JWT (prefixo eyJ) no log do cliente: 0 ocorrência(s)
+
+Aviso esperado do servidor quando MISSAOMARTE_JWT_SEGREDO não está definido (não ocorreu: a variável estava definida): 0

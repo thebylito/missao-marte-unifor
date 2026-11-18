@@ -6,6 +6,7 @@ import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.aplicacao.ResultadoPartida;
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
 import br.edu.unifor.missaomarte.dominio.Ranking;
+import br.edu.unifor.missaomarte.grafico.online.PartidaParaEnviar;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,12 +56,25 @@ public final class ControladorDaPartida {
     private FimDePartida concluir() {
         if (partida.getEstado() != Partida.Estado.VITORIA) {
             return new FimDePartida(partida.getEstado(), ultimosEventos, Optional.empty(),
-                    rankingAntes.getLider(), false, Optional.empty());
+                    rankingAntes.getLider(), false, Optional.empty(), resumo(Optional.empty()));
         }
         ResultadoPartida resultado = partida.getResultado();
         ServicoRanking.Registro registro = servicoRanking.registrarVitoria(rankingAntes, resultado);
         return new FimDePartida(Partida.Estado.VITORIA, ultimosEventos, Optional.of(resultado),
-                rankingAntes.getLider(), registro.entrou(), Optional.ofNullable(registro.erroAoSalvar()));
+                rankingAntes.getLider(), registro.entrou(), Optional.ofNullable(registro.erroAoSalvar()),
+                resumo(Optional.of(resultado)));
+    }
+
+    /**
+     * O que vai para o servidor (Fase 5). Só lê a Partida. Na derrota e no abandono o domínio não mede o tempo
+     * (ele só existe no resultado da vitória), então vai zero; os passageiros são os que estavam a bordo.
+     */
+    private PartidaParaEnviar resumo(Optional<ResultadoPartida> vitoria) {
+        int passageiros = vitoria.map(ResultadoPartida::passageirosResgatados)
+                .orElse(partida.getMissao().getNave().getPassageiros().size());
+        return new PartidaParaEnviar(partida.getEstado().name(), partida.getDificuldade().name(),
+                Math.max(0, partida.getPontos()), passageiros, partida.getMovimentos(),
+                vitoria.map(ResultadoPartida::tempoSegundos).orElse(0L));
     }
 
     public Partida getPartida() {

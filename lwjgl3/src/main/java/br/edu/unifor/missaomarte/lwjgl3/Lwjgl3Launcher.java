@@ -5,6 +5,7 @@ import br.edu.unifor.missaomarte.aplicacao.Relogio;
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
 import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
+import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
 import br.edu.unifor.missaomarte.grafico.recursos.CatalogoDeAssets;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
@@ -21,6 +22,9 @@ public final class Lwjgl3Launcher {
 
     /** Opcional: -Dmissaomarte.semente=N repete o mesmo sorteio (o mesmo parâmetro do console). */
     static final String PROPRIEDADE_SEMENTE = "missaomarte.semente";
+    /** Fase 5: endereço do servidor de ranking. Ex.: -Dmissaomarte.servidor=http://192.168.0.10:8080 */
+    static final String PROPRIEDADE_SERVIDOR = "missaomarte.servidor";
+    static final String SERVIDOR_PADRAO = "http://localhost:8080";
 
     private Lwjgl3Launcher() {
     }
@@ -38,7 +42,8 @@ public final class Lwjgl3Launcher {
         return new ServicosDoJogo(
                 new GeradorDeMissao(semente == null ? new Random() : new Random(semente)),
                 new ServicoRanking(new RankingArquivoJson(Paths.get("ranking.json")), relogio),
-                relogio);
+                relogio,
+                ServidorHttp.daLibgdx(System.getProperty(PROPRIEDADE_SERVIDOR, SERVIDOR_PADRAO)));
     }
 
     static Lwjgl3ApplicationConfiguration configuracao() {

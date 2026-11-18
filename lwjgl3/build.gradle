@@ -36,6 +36,10 @@ tasks.named('run') {
     if (System.getProperty('missaomarte.semente')) {
         systemProperty 'missaomarte.semente', System.getProperty('missaomarte.semente')
     }
+    // Fase 5: ./gradlew :lwjgl3:run -Dmissaomarte.servidor=http://outra-maquina:8080
+    if (System.getProperty('missaomarte.servidor')) {
+        systemProperty 'missaomarte.servidor', System.getProperty('missaomarte.servidor')
+    }
 }
 
 tasks.named('jar') {

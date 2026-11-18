@@ -1,0 +1,53 @@
+$ ./gradlew clean build        (cliente)
+BUILD SUCCESSFUL in 2s
+25 actionable tasks: 25 executed
+
+$ cd servidor && ./gradlew clean build        (servidor)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+BUILD SUCCESSFUL in 9s
+8 actionable tasks: 8 executed
+
+Resultado JUnit por classe (build/test-results/test/*.xml):
+  nucleo   ComandoTeste                     2 testes  falhas=0 erros=0
+  nucleo   GeradorDeMissaoTeste             4 testes  falhas=0 erros=0
+  nucleo   PartidaTeste                    14 testes  falhas=0 erros=0
+  nucleo   ServicoRankingTeste              5 testes  falhas=0 erros=0
+  nucleo   DificuldadeTeste                 3 testes  falhas=0 erros=0
+  nucleo   MapaTeste                        3 testes  falhas=0 erros=0
+  nucleo   MissaoTeste                      6 testes  falhas=0 erros=0
+  nucleo   MovimentoAleatorioTeste          3 testes  falhas=0 erros=0
+  nucleo   NaveTeste                        6 testes  falhas=0 erros=0
+  nucleo   PassageiroTeste                  2 testes  falhas=0 erros=0
+  nucleo   RankingTeste                     6 testes  falhas=0 erros=0
+  nucleo   RankingArquivoJsonTeste          8 testes  falhas=0 erros=0
+  nucleo   subtotal: 62
+  console  JogoConsoleTeste                 3 testes  falhas=0 erros=0
+  console  subtotal: 3
+  core     MissaoMarteGameTeste             3 testes  falhas=0 erros=0
+  core     AnimacaoDoTurnoTeste             7 testes  falhas=0 erros=0
+  core     CenaDaPartidaTeste               9 testes  falhas=0 erros=0
+  core     ControladorDaEntradaTeste       13 testes  falhas=0 erros=0
+  core     ControladorDaPartidaTeste       11 testes  falhas=0 erros=0
+  core     ControladorDoMenuTeste           6 testes  falhas=0 erros=0
+  core     ControladorDoRankingTeste        5 testes  falhas=0 erros=0
+  core     EfeitosDaPartidaTeste            4 testes  falhas=0 erros=0
+  core     EnvioDoResultadoTeste            3 testes  falhas=0 erros=0
+  core     FormularioNovaPartidaTeste       8 testes  falhas=0 erros=0
+  core     GeometriaDoMapaTeste             6 testes  falhas=0 erros=0
+  core     HudTeste                         4 testes  falhas=0 erros=0
+  core     MapaDeTeclasTeste                4 testes  falhas=0 erros=0
+  core     QuadroDaPartidaTeste             5 testes  falhas=0 erros=0
+  core     ReacaoAosEventosTeste            8 testes  falhas=0 erros=0
+  core     ServidorHttpTeste               14 testes  falhas=0 erros=0
+  core     CatalogoDeAssetsTeste            6 testes  falhas=0 erros=0
+  core     FolhaDeSpritesTeste              5 testes  falhas=0 erros=0
+  core     subtotal: 121
+  servidor ApiDeJogadoresTeste              9 testes  falhas=0 erros=0
+  servidor ApiDePartidasTeste               7 testes  falhas=0 erros=0
+  servidor ApiDeRankingTeste                5 testes  falhas=0 erros=0
+  servidor subtotal: 21
+  total: 207 testes (cliente 186, servidor 21)
+
+Obs.: o "OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes" sai da JVM durante
+os testes do servidor (o Mockito do spring-boot-starter-test se acopla à JVM e desliga o compartilhamento de
+classes). Não é aviso de compilação: o -Xlint:all não mostrou nenhum aviso nos dois builds.

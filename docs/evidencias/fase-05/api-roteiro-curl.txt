@@ -1,0 +1,76 @@
+Roteiro da API contra o servidor real (./gradlew bootRun, porta 18085, H2 numa pasta temporária vazia), 2026-11-18.
+A Ana foi cadastrada e venceu pela janela (roteiro "online"); a Bia, por este roteiro. Senhas e tokens aparecem como ***.
+
+### saúde
+$ GET /actuator/health
+<- 200 application/vnd.spring-boot.actuator.v3+json
+{"groups": ["liveness", "readiness"], "status": "UP"}
+
+### cadastro
+$ POST /api/jogadores  {"nome": "Bia", "senha": "***"}
+<- 201 application/json
+{"id": 2, "nome": "Bia", "criadoEm": "2026-11-18T04:30:36.064744Z"}
+
+### nome repetido (sem diferenciar maiúsculas)
+$ POST /api/jogadores  {"nome": "BIA", "senha": "***"}
+<- 409 application/problem+json
+{"detail": "o nome \"BIA\" já está em uso", "instance": "/api/jogadores", "status": 409, "title": "Conflict"}
+
+### dados inválidos
+$ POST /api/jogadores  {"nome": "x", "senha": "***"}
+<- 400 application/problem+json
+{"detail": "dados inválidos", "instance": "/api/jogadores", "status": 400, "title": "Bad Request", "campos": {"nome": "o nome deve ter de 3 a 20 caracteres", "senha": "a senha deve ter de 6 a 72 caracteres"}}
+
+### login com senha errada
+$ POST /api/sessoes  {"nome": "Bia", "senha": "***"}
+<- 401 application/problem+json
+{"detail": "nome ou senha incorretos", "instance": "/api/sessoes", "status": 401, "title": "Unauthorized"}
+
+### login
+$ POST /api/sessoes  {"nome": "Bia", "senha": "***"}
+<- 200 application/json
+{"token": "*** (171 caracteres)", "tipo": "Bearer", "expiraEm": "2026-11-18T06:30:36.243683Z", "jogador": {"id": 2, "nome": "Bia", "criadoEm": "2026-11-18T04:30:36.064744Z"}}
+
+### registrar partida sem token
+$ POST /api/partidas  {"resultado": "VITORIA", "dificuldade": "DIFICIL", "pontos": 75, "passageiros": 5, "movimentos": 31, "tempoSegundos": 48}
+<- 401 application/problem+json;charset=UTF-8
+{"type": "about:blank", "title": "Unauthorized", "status": 401, "detail": "Token ausente, inválido ou expirado. Entre novamente."}
+
+### registrar vitória
+$ POST /api/partidas (Authorization: Bearer ***)  {"resultado": "VITORIA", "dificuldade": "DIFICIL", "pontos": 75, "passageiros": 5, "movimentos": 31, "tempoSegundos": 48}
+<- 201 application/json
+{"id": 2, "resultado": "VITORIA", "dificuldade": "DIFICIL", "pontos": 75, "passageiros": 5, "movimentos": 31, "tempoSegundos": 48, "registradaEm": "2026-11-18T04:30:36.252092Z"}
+
+### registrar derrota (não entra no ranking)
+$ POST /api/partidas (Authorization: Bearer ***)  {"resultado": "DERROTA", "dificuldade": "MEDIO", "pontos": 0, "passageiros": 2, "movimentos": 20, "tempoSegundos": 0}
+<- 201 application/json
+{"id": 3, "resultado": "DERROTA", "dificuldade": "MEDIO", "pontos": 0, "passageiros": 2, "movimentos": 20, "tempoSegundos": 0, "registradaEm": "2026-11-18T04:30:36.255787Z"}
+
+### partida com pontos negativos
+$ POST /api/partidas (Authorization: Bearer ***)  {"resultado": "VITORIA", "dificuldade": "FACIL", "pontos": -5, "passageiros": 1, "movimentos": 1, "tempoSegundos": 1}
+<- 400 application/problem+json
+{"detail": "dados inválidos", "instance": "/api/partidas", "status": 400, "title": "Bad Request", "campos": {"pontos": "pontos não podem ser negativos"}}
+
+### ranking (Ana veio da janela; Bia daqui)
+$ GET /api/ranking
+<- 200 application/json
+[{"posicao": 1, "nome": "Bia", "pontos": 75, "dificuldade": "DIFICIL", "passageiros": 5, "tempoSegundos": 48, "registradaEm": "2026-11-18T04:30:36.252092Z"}, {"posicao": 2, "nome": "Ana", "pontos": 60, "dificuldade": "FACIL", "passageiros": 4, "tempoSegundos": 4, "registradaEm": "2026-11-18T04:30:28.920084Z"}]
+
+### histórico da Bia (não mostra as partidas da Ana)
+$ GET /api/partidas/minhas (Authorization: Bearer ***)
+<- 200 application/json
+[{"id": 3, "resultado": "DERROTA", "dificuldade": "MEDIO", "pontos": 0, "passageiros": 2, "movimentos": 20, "tempoSegundos": 0, "registradaEm": "2026-11-18T04:30:36.255787Z"}, {"id": 2, "resultado": "VITORIA", "dificuldade": "DIFICIL", "pontos": 75, "passageiros": 5, "movimentos": 31, "tempoSegundos": 48, "registradaEm": "2026-11-18T04:30:36.252092Z"}]
+
+
+======== servidor reiniciado (mesmo MISSAOMARTE_DADOS e MISSAOMARTE_JWT_SEGREDO) ========
+
+### ranking depois de reiniciar o servidor (dados no H2 em arquivo)
+$ GET /api/ranking
+<- 200 application/json
+[{"posicao": 1, "nome": "Bia", "pontos": 75, "dificuldade": "DIFICIL", "passageiros": 5, "tempoSegundos": 48, "registradaEm": "2026-11-18T04:30:36.252092Z"}, {"posicao": 2, "nome": "Ana", "pontos": 60, "dificuldade": "FACIL", "passageiros": 4, "tempoSegundos": 4, "registradaEm": "2026-11-18T04:30:28.920084Z"}]
+
+### histórico com o token emitido antes do reinício (mesmo MISSAOMARTE_JWT_SEGREDO)
+$ GET /api/partidas/minhas (Authorization: Bearer ***)
+<- 200 application/json
+[{"id": 3, "resultado": "DERROTA", "dificuldade": "MEDIO", "pontos": 0, "passageiros": 2, "movimentos": 20, "tempoSegundos": 0, "registradaEm": "2026-11-18T04:30:36.255787Z"}, {"id": 2, "resultado": "VITORIA", "dificuldade": "DIFICIL", "pontos": 75, "passageiros": 5, "movimentos": 31, "tempoSegundos": 48, "registradaEm": "2026-11-18T04:30:36.252092Z"}]
+

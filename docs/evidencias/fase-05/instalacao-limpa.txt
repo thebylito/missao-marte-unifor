@@ -1,0 +1,23 @@
+Instalação limpa dos dois builds, executada em 2026-11-18 no macOS (arm64):
+
+1. git clone --branch sprint-3 <repositório> <pasta temporária nova>
+2. JAVA_HOME removido do ambiente; o "java" do PATH é o Homebrew OpenJDK 11.0.27
+3. GRADLE_USER_HOME apontando para uma pasta vazia
+
+Cliente (raiz):  ./gradlew clean build  -> BUILD SUCCESSFUL in 14s; 186 testes, 0 falhas
+                 (nucleo 62, console 3, core 121; o Gradle roda no Java 11 e compila com o JDK 17 pelo toolchain)
+
+Servidor, PRIMEIRA tentativa (commit d62acc6):  cd servidor && ./gradlew clean build  -> BUILD FAILED
+   "Could not resolve org.springframework.boot:spring-boot-gradle-plugin:4.1.2.
+    Dependency requires at least JVM runtime version 17. This build uses a Java 11 JVM."
+   O plugin do Spring Boot 4 exige que o PRÓPRIO Gradle rode em Java 17+ (o toolchain só escolhe o JDK que compila).
+
+Correção: servidor/gradle/gradle-daemon-jvm.properties com toolchainVersion=17 (critério de JVM do daemon do
+Gradle). O wrapper procura um JDK 17 instalado e roda o daemon nele, mesmo com outro "java" padrão.
+
+Servidor, SEGUNDA tentativa (com o arquivo):  cd servidor && ./gradlew clean build
+   "Daemon JVM discovery is an incubating feature."  (aviso do próprio Gradle sobre o recurso)
+   BUILD SUCCESSFUL in 51s; 21 testes, 0 falhas (inclui baixar Spring Boot 4.1.2, H2 e springdoc no cache vazio)
+
+Requisito que vale para os dois: um JDK 17 instalado em qualquer lugar que o Gradle detecte.
+Não verificado: Windows (gradlew.bat) e Linux.

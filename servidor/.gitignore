@@ -1,0 +1,6 @@
+build/
+.gradle/
+# banco H2 local (bootRun)
+dados/
+# segredos locais do docker compose (use .env.exemplo como modelo)
+.env

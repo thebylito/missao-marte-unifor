@@ -16,6 +16,8 @@ public class TelaNovaPartida extends TelaBase {
 
     public TelaNovaPartida(MissaoMarteGame jogo) {
         super(jogo);
+        // Fase 5: com uma conta conectada, o nome do piloto já vem preenchido (pode ser trocado)
+        jogo.getSessao().ifPresent(s -> s.nome().chars().forEach(c -> formulario.digitar((char) c)));
     }
 
     @Override

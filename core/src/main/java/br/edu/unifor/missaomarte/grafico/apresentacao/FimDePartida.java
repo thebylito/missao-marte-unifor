@@ -4,6 +4,7 @@ import br.edu.unifor.missaomarte.aplicacao.Evento;
 import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.aplicacao.ResultadoPartida;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
+import br.edu.unifor.missaomarte.grafico.online.PartidaParaEnviar;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,7 @@ import java.util.Optional;
  * @param liderAnterior  o primeiro do ranking antes desta partida (para o "recorde a ser batido")
  * @param entrouNoTop    a vitória entrou no Top 5
  * @param erroAoSalvar   motivo, se o ranking não pôde ser gravado
+ * @param paraOServidor  resumo da partida no formato da API (Fase 5), enviado se houver um jogador conectado
  */
 public record FimDePartida(
         Partida.Estado estado,
@@ -23,7 +25,8 @@ public record FimDePartida(
         Optional<ResultadoPartida> resultado,
         Optional<RegistroRanking> liderAnterior,
         boolean entrouNoTop,
-        Optional<String> erroAoSalvar) {
+        Optional<String> erroAoSalvar,
+        PartidaParaEnviar paraOServidor) {
 
     public FimDePartida {
         eventosFinais = List.copyOf(eventosFinais);

@@ -1,0 +1,24 @@
+Defeitos inseridos de propósito numa cópia descartável; os testes do servidor (./gradlew test em servidor/)
+ou do cliente (./gradlew :core:test) precisam falhar. Falhas contadas nos relatórios XML do JUnit.
+
+[servidor] [login sem conferir a senha] -> PEGO: 1 de 21 testes falharam
+[servidor] [senha gravada em texto puro] -> PEGO: 15 de 21 testes falharam
+[servidor] [nome repetido aceito] -> PEGO: 1 de 21 testes falharam
+[servidor] [histórico mostra partidas de todos] -> PEGO: 4 de 21 testes falharam
+[servidor] [ranking repete o jogador] -> PEGO: 1 de 21 testes falharam
+[servidor] [ranking conta derrotas] -> PEGO: 1 de 21 testes falharam
+[servidor] [empate favorece o mais recente] -> PEGO: 1 de 21 testes falharam
+[servidor] [ranking sem limite de 10] -> PEGO: 1 de 21 testes falharam
+[servidor] [partidas sem exigir token] -> PEGO: 1 de 21 testes falharam
+[servidor] [token sem prazo de validade] -> PEGO: 1 de 21 testes falharam
+[servidor] [pontos negativos aceitos] -> PEGO: 1 de 21 testes falharam
+[cliente] [401 tratado como erro do servidor] -> PEGO: 1 de 121 testes falharam
+[cliente] [token não vai no cabeçalho] -> PEGO: 2 de 121 testes falharam
+[cliente] [tecla que abre o formulário vira nome] -> PEGO: 6 de 121 testes falharam
+[cliente] [convidado envia ao servidor] -> PEGO: 1 de 121 testes falharam
+[cliente] [ranking global consulta toda vez] -> PEGO: 1 de 121 testes falharam
+[cliente] [senha fica guardada depois de uma falha] -> PEGO: 1 de 121 testes falharam
+
+Sem defeitos (servidor): 21 testes, 0 falhas.
+
+Sem defeitos (cliente): 121 testes, 0 falhas.
