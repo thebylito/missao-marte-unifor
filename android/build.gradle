@@ -1,0 +1,72 @@
+// Fase 6 — launcher Android: abre o mesmo core (Game, telas, regras) num celular. APK de depuração:
+//   ./gradlew :android:assembleDebug   ->  android/build/outputs/apk/debug/android-debug.apk
+plugins {
+    id 'com.android.application' version '8.13.2'
+}
+
+android {
+    namespace = 'br.edu.unifor.missaomarte.android'
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = 'br.edu.unifor.missaomarte'
+        minSdk = 26          // java.nio.file (ranking em arquivo) e java.time (datas do servidor) sem adaptações
+        targetSdk = 36
+        versionCode = 6
+        versionName = '6.0.0'
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs = [rootProject.file('assets')]   // os mesmos sprites, sons e fontes do desktop
+            jniLibs.srcDirs = ['libs']                      // bibliotecas nativas copiadas abaixo
+        }
+    }
+
+    // O lint analisa só este módulo: core e nucleo são bibliotecas Java puras, e para ele são dependências externas.
+    // As APIs que o Android 8 (minSdk 26) não tem são conferidas no APK pronto por
+    // validacao/android/conferir_api_minima.py.
+    lint {
+        abortOnError = false
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+// Bibliotecas nativas (C/C++) da libGDX e do FreeType para cada processador de celular.
+configurations { nativas }
+
+dependencies {
+    implementation project(':core')
+    implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+    ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'].each { abi ->
+        nativas "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-$abi"
+        nativas "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-$abi"
+    }
+}
+
+// Extrai os .so de cada jar de nativas para android/libs/<abi>/ antes do build (o jniLibs acima os empacota no APK).
+tasks.register('copiarNativas') {
+    doFirst {
+        file('libs').deleteDir()
+        configurations.nativas.files.each { jar ->
+            def abi = (jar.name =~ /natives-(.+)\.jar/)[0][1]
+            copy {
+                from zipTree(jar)
+                into file("libs/$abi")
+                include '*.so'
+            }
+        }
+    }
+}
+tasks.matching { it.name.contains('merge') && it.name.contains('JniLibFolders') }.configureEach {
+    dependsOn 'copiarNativas'
+}
