@@ -1,0 +1,4 @@
+build/
+.gradle/
+# banco H2 local (bootRun)
+dados/
