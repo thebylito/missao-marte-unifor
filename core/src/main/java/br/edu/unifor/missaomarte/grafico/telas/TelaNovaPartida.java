@@ -87,8 +87,10 @@ public class TelaNovaPartida extends TelaBase {
         // Fase 7: o modo de jogo (clássico, o padrão, ou pilotagem)
         boolean pilotagem = formulario.getModo() == Modo.PILOTAGEM;
         escrever("Modo:", 150, 480, Color.LIGHT_GRAY, 1.3f);
-        escrever(toque() ? formulario.getModo().getNome() : "[Tab] " + formulario.getModo().getNome(), 340, 480,
-                pilotagem ? Color.ORANGE : Color.WHITE, 1.3f);
+        escrever(formulario.getModo().getNome(), 340, 480, pilotagem ? Color.ORANGE : Color.WHITE, 1.3f);
+        if (!toque()) {   // o botão do toque já diz para onde troca; no teclado, a dica
+            escrever("(Tab: trocar para " + formulario.getModo().outro().getNome() + ")", 470, 478, Color.SKY, 1f);
+        }
         escrever("Nome do piloto:", 150, 430, Color.LIGHT_GRAY, 1.3f);
         String nome = formulario.getNomeDigitado();
         escrever((nome.isEmpty() ? "" : nome) + "_", 340, 430, Color.WHITE, 1.3f);
@@ -119,10 +121,10 @@ public class TelaNovaPartida extends TelaBase {
         if (toque()) {
             if (pilotagem) {   // a caverna não tem tamanho: sem os botões do mapa
                 desenharBotoes(List.of(MODO, DIFICULDADE_ANTERIOR, DIFICULDADE_PROXIMA, DECOLAR, VOLTAR),
-                        List.of("Trocar", "<", ">", "Decolar", "Voltar"), 1.2f);
+                        List.of("Clássico", "<", ">", "Decolar", "Voltar"), 1.2f);
             } else {
                 desenharBotoes(List.of(MODO, DIFICULDADE_ANTERIOR, DIFICULDADE_PROXIMA, MAPA_MENOR, MAPA_MAIOR, DECOLAR,
-                        VOLTAR), List.of("Trocar", "<", ">", "-", "+", "Decolar", "Voltar"), 1.2f);
+                        VOLTAR), List.of("Pilotagem", "<", ">", "-", "+", "Decolar", "Voltar"), 1.2f);
             }
         }
     }
