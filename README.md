@@ -12,12 +12,12 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 | 4 — Interface gráfica (sprites, sons, HUD) | validada | `fase-4` | [tutorial](docs/fase-04-tutorial.md) |
 | 5 — Servidor e ranking global (Spring Boot) | validada | `fase-5` | [tutorial](docs/fase-05-tutorial.md) · [API (OpenAPI)](docs/api/openapi.json) |
 | 6 — Android e toque | validada | `fase-6` | [tutorial](docs/fase-06-tutorial.md) · [publicação do servidor](servidor/PUBLICACAO.md) |
-| 7 — Evolução livre | planejada | | |
+| 7 — Evolução livre: Modo Pilotagem | validada | `fase-7` | [análise](docs/fase-07-analise.md) · [tutorial](docs/fase-07-tutorial.md) |
 
 Decisões de arquitetura: [docs/decisoes-arquiteturais.md](docs/decisoes-arquiteturais.md).
 Kanban: [GitHub Project](https://github.com/users/thebylito/projects/2).
 
-## Executar (estado atual: Fase 6)
+## Executar (estado atual: Fase 7)
 
 Requisito: **um JDK 17 instalado**. O Gradle o encontra sozinho (toolchain), mesmo que o `java` padrão seja outro.
 Não é preciso instalar o Gradle: o wrapper (`gradlew`) baixa a versão certa (8.14.3).
@@ -52,6 +52,21 @@ Controles na janela: na entrada, `1` entrar, `2` criar conta, `3` convidado, `4`
 `↑`/`↓` o tamanho do mapa e `Enter` decola; na partida, `WASD` ou setas movem, `C` ou espaço embarcam, `Q` ou
 `Esc` abortam, `M` liga e desliga o som. No terminal: `w/a/s/d` movem a nave, `c` embarca o passageiro da célula, `q` aborta a missão.
 Para testar os controles de toque com o mouse: `./gradlew :lwjgl3:run -Dmissaomarte.toque=true`.
+
+### Modo Pilotagem (Fase 7)
+
+Na nova missão, `Tab` (ou o botão "Trocar") escolhe o modo: **Clássico** (o padrão, a grade por turnos de sempre) ou
+**Pilotagem**:
+- **Como se joga:** você pilota a nave numa caverna marciana, com gravidade, combustível e pouso. Pouse devagar e reto
+  na plataforma de um passageiro, espere o embarque (cabem 2) e leve-os à base, que também reabastece.
+- **Teclado:** `←`/`→` (ou `A`/`D`) giram, `↑` (ou `W`, Espaço) liga o motor, `Esc` aborta.
+- **Toque:** ◄ ► à esquerda e MOTOR à direita, que valem enquanto apertados (dá para usar dois dedos), e Abortar no
+  alto.
+- **Pontos:** os do clássico por passageiro (20, 15 e 10) mais um bônus pelo combustível que sobrou (até 30).
+- **Ranking:** cada modo tem o seu Top 5 local (`ranking.json` e `ranking-pilotagem.json`) e o seu Top 10 global. Na
+  tela de ranking, `↑`/`↓` trocam o modo.
+
+O console continua só com o modo clássico.
 
 O ranking fica em `ranking.json`, na pasta de trabalho do jogo, e é o mesmo para a janela e o terminal: com
 `./gradlew`, a pasta do projeto (outra pasta: `-PpastaDoJogo=/caminho`); com o script ou o jar, a pasta de onde
@@ -101,6 +116,10 @@ cd servidor; .\gradlew.bat bootRun
 | `PORT` | porta HTTP | `8080` |
 | `MISSAOMARTE_URL_PUBLICA` | endereço público (Swagger), só na publicação | `http://localhost:8080` |
 
+Fase 7: a API ganhou o modo de jogo. O campo `modo` (`CLASSICO` ou `PILOTAGEM`) é opcional em `POST /api/partidas`
+(sem ele, clássico) e vem no histórico; o ranking aceita `GET /api/ranking?modo=PILOTAGEM` (sem o parâmetro, o
+clássico). Os clientes das Fases 5 e 6 continuam funcionando, e as partidas já gravadas contam como clássicas.
+
 **Em contêiner** (Docker; não precisa de Java na máquina):
 
 ```bash
@@ -129,7 +148,8 @@ servidor desligado, o jogo avisa e continua.
 Para ver uma versão anterior: `git checkout fase-0` (`javac -encoding UTF-8 -d out src/*.java` e `java -cp out Main`),
 `git checkout fase-1` (`./build.sh run`), `git checkout fase-2` (`./gradlew run -q --console=plain`),
 `git checkout fase-3` (a janela só com formas: `./gradlew :lwjgl3:run`), `git checkout fase-4` (sprites e sons, sem
-servidor) ou `git checkout fase-5` (servidor e ranking global, só desktop).
+servidor), `git checkout fase-5` (servidor e ranking global, só desktop) ou `git checkout fase-6` (Android e toque, só
+o modo clássico).
 
 ## Validação
 
@@ -141,8 +161,9 @@ Cada fase só é encerrada depois de provada (as evidências ficam em `docs/evid
 - `comparar_com_semente.py`: joga as mesmas partidas, com a mesma semente, em duas versões e compara tudo;
 - `janela/PilotoDaJanela.java`: joga na janela real sem teclado (as teclas entram pelo `InputProcessor`) e salva um
   print de cada tela a partir do OpenGL. Tem os roteiros `vitoria`, `colisao`, `online` e `offline` (Fase 5) e
-  `toque` (Fase 6, cliques nos botões de toque) e serve quando o sistema não deixa enviar teclas nem capturar a tela;
+  `toque` (Fase 6, cliques nos botões de toque) e `pilotagem` (Fase 7, o piloto automático voando a caverna) e serve
+  quando o sistema não deixa enviar teclas nem capturar a tela;
 - `android/pilotar_android.py` (Fase 6): joga no emulador ou num celular pelo `adb` (toques, caixas de texto,
-  rotação, segundo plano) e salva prints e o log;
+  rotação, segundo plano) e salva prints e o log; o roteiro `pilotagem` (Fase 7) usa toques longos;
 - `android/conferir_api_minima.py` (Fase 6): confere no APK pronto se o código do jogo só chama APIs que existem
   no `minSdk` (o lint do Android não analisa `core` nem `nucleo`).

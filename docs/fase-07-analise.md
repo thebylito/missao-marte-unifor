@@ -51,9 +51,15 @@ a mesma sensação.
 
 | | Fácil | Médio | Difícil |
 |---|---|---|---|
-| Tanque | 130 | 100 | 80 |
+| Tanque | 130 | 100 | 100 |
 | Pouso: queda, lateral e inclinação | 90 / 60 / 18° | 75 / 50 / 14° | 65 / 40 / 12° |
 | Velocidade dos asteroides | × 0,75 | × 1 | × 1,3 |
+
+**Correção registrada durante a implementação (tanque do Difícil):** a análise previa um tanque de 80 no Difícil.
+Medido com o piloto automático, a viagem mais longa (o Professor, ida e volta) gasta perto de 100 ou mais, mesmo
+voando com cuidado. A própria POC registra que os 33 s de motor do tanque de 100 "cobrem a viagem mais longa, ida e
+volta". Com 80, o Difícil seria impossível. Por isso ele fica com 100, e a dificuldade vem dos limites de pouso e
+da velocidade dos asteroides.
 
 **Nível:** a caverna da POC (3840 × 1440):
 - a base à esquerda;
@@ -140,7 +146,7 @@ a mesma sensação.
 | CT-15 | Abortar termina como abortada, e o tempo e os comandos seguintes não mudam mais nada | CA-08 |
 | CT-16 | Os mesmos comandos a 30 e a 144 quadros por segundo dão o mesmo estado final | CA-09 |
 | CT-17 | Fácil, Médio e Difícil têm os valores da tabela, e a velocidade dos asteroides muda | CA-10 |
-| CT-18 | **O piloto automático vence a caverna** nas três dificuldades, de forma determinística | CA-02 a CA-07 |
+| CT-18 | **O piloto automático vence a caverna** de forma determinística. Escopo ajustado durante a implementação: ele vence a missão inteira no Fácil e, no Médio e no Difícil, completa as viagens do Astronauta e do Engenheiro. Ele é conservador (para e espera o asteroide em cada passagem estreita) e, do jeito que voa, a viagem do Professor passa dos 100 de combustível. Ver a seção 5 do tutorial da Fase 7 | CA-02 a CA-07 |
 
 **Unidade, no `core`:**
 

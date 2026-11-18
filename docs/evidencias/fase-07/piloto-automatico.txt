@@ -1,0 +1,42 @@
+Piloto automático (validação, nucleo/src/test/.../PilotoAutomatico.java) voando a caverna marciana, sem janela.
+Rota: três viagens (base -> passageiro -> base), reabastecendo na base entre elas. Tanques: Fácil 130, Médio e Difícil 100.
+As linhas mostram cada embarque, entrega e explosão, com o combustível que restava no tanque naquele instante.
+
+== FACIL
+t= 22.42 EMBARCOU          Ast. Maria a bordo! (1551,556) comb=99.9
+t= 48.42 ENTREGOU          1 passageiro(s) resgatado(s)! +20 pontos (386,168) comb=67.4
+t= 89.38 EMBARCOU          Eng. Rosa a bordo! (2416,1036) comb=76.4
+t=128.43 ENTREGOU          1 passageiro(s) resgatado(s)! +15 pontos (386,168) comb=24.6
+t=176.89 EMBARCOU          Dr. Silva a bordo! (3436,156) comb=68.3
+t=224.38 ENTREGOU          1 passageiro(s) resgatado(s)! +10 pontos (386,168) comb=4.8
+t=224.38 VITORIA           Missão cumprida! (386,168) comb=4.8
+FIM Fácil estado=VITORIA pontos=46 (resgates 45 + bônus 1) tempo=224.4 pousos=6 vidas=3
+
+== MEDIO
+t= 26.07 EMBARCOU          Ast. Maria a bordo! (1550,556) comb=65.3
+t= 51.76 ENTREGOU          1 passageiro(s) resgatado(s)! +20 pontos (386,168) comb=33.1
+t= 90.68 EMBARCOU          Eng. Rosa a bordo! (2416,1036) comb=48.9
+t=123.64 ENTREGOU          1 passageiro(s) resgatado(s)! +15 pontos (386,168) comb=4.8
+t=170.23 EMBARCOU          Dr. Silva a bordo! (3436,156) comb=40.2
+t=202.74 EXPLODIU          A nave bateu na rocha! (1103,121) comb=0.0
+t=248.33 EMBARCOU          Dr. Silva a bordo! (3436,156) comb=40.4
+t=281.00 EXPLODIU          A nave bateu na rocha! (1146,119) comb=0.0
+FIM Médio estado=EM_ANDAMENTO pontos=35 (resgates 35 + bônus 0) tempo=300.0 pousos=6 vidas=1
+
+== DIFICIL
+t= 22.42 EMBARCOU          Ast. Maria a bordo! (1551,556) comb=69.9
+t= 43.20 ENTREGOU          1 passageiro(s) resgatado(s)! +20 pontos (386,168) comb=44.1
+t= 80.19 EMBARCOU          Eng. Rosa a bordo! (2416,1036) comb=50.7
+t=116.86 ENTREGOU          1 passageiro(s) resgatado(s)! +15 pontos (386,168) comb=1.6
+t=160.27 EMBARCOU          Dr. Silva a bordo! (3436,156) comb=44.4
+t=196.07 EXPLODIU          A nave bateu na rocha! (1111,120) comb=0.0
+t=238.75 EMBARCOU          Dr. Silva a bordo! (3436,156) comb=44.2
+t=274.46 EXPLODIU          A nave bateu na rocha! (1135,118) comb=0.0
+FIM Difícil estado=EM_ANDAMENTO pontos=35 (resgates 35 + bônus 0) tempo=300.0 pousos=6 vidas=1
+
+Leitura: no Fácil, vitória sem nenhuma explosão. No Médio e no Difícil, as viagens do Astronauta e do Engenheiro
+terminam na base (a do Engenheiro com pouca sobra: 4,8 e 1,6); na do Professor (a mais longa: 60 só na ida, ~120 no
+total), o tanque de 100 acaba a uns 700 da base, na volta, do
+jeito conservador como este piloto voa (ele para e espera o asteroide em cada passagem estreita). A POC registra
+que os 100 cobrem essa viagem para um piloto humano; a decisão sobre o tanque do Médio fica com o usuário, depois de
+jogar a partida completa à mão (seção 11 do tutorial da Fase 7).

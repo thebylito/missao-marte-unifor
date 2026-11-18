@@ -333,3 +333,109 @@ um teste automático. `servidor/PUBLICACAO.md` documenta:
 **Consequências.** Publicar é configurar a plataforma com esse guia, sem mudar código. Testado localmente com
 Docker: a variável, a documentação desligada, a cópia de segurança e os dados mantidos ao recriar o contêiner.
 Não testados: um proxy HTTPS de verdade e um domínio público. Publicar é uma ação externa e só acontece a pedido.
+
+## DA-25 — A melhoria da Fase 7 é um modo novo, ao lado do clássico (Fase 7)
+
+**Contexto.** A Fase 7 pede uma melhoria pequena e demonstrável, que não altere comportamentos anteriores sem
+teste nem explicação. A mecânica de pilotagem da POC (girar, motor, gravidade, pouso) foi validada pelo usuário em
+2026-11-04 e reservada para esta fase (decisão de 2026-11-04, reconfirmada em 2026-11-17).
+**Decisão.**
+- A pilotagem é um **modo de jogo novo**, escolhido na tela de nova missão ("Modo", tecla Tab ou botão).
+- O clássico continua o padrão e não muda.
+- O console não ganha a pilotagem: física em tempo real não cabe num terminal por turnos.
+- As regras ficam num pacote próprio do `nucleo` (`pilotagem`).
+- A análise, com os critérios de aceite e os casos de teste, foi escrita e commitada antes do código
+  (`docs/fase-07-analise.md`).
+
+**Consequências.** O modo clássico é provado igual ao da Fase 6: 200/200 partidas pela semente no console, os
+roteiros do gabarito e os testes antigos. Só as telas de nova missão e de ranking ganharam a escolha do modo, uma
+mudança intencional. O jogo agora tem dois modos para manter.
+
+## DA-26 — Física em passo fixo de 1/120 s e tempo simulado (Fase 7)
+
+**Contexto.** A física com o tempo do quadro muda conforme a taxa de quadros (30 no celular fraco, 144 num monitor
+rápido), e testes que dependem do relógio são lentos e instáveis. A issue #14 pede regras sem relógio, janela ou
+rede nos testes.
+**Decisão.**
+- `PartidaDePilotagem.atualizar(segundos, comandos)` acumula o tempo do quadro e executa quantos passos de 1/120 s
+  couberem. Um quadro longo (a volta do segundo plano) vale no máximo 0,25 s.
+- O tempo da partida é a soma dos passos, e nenhuma regra lê o relógio.
+- Os asteroides são funções do tempo (seno), sem sorteio.
+
+**Consequências.** O mesmo voo dá o mesmo resultado a 30 e a 144 quadros por segundo (teste). O piloto automático é
+determinístico, e a vitória no Fácil é um teste de unidade (0,1 s) e também um roteiro na janela real. O tempo
+mostrado no fim é o tempo de jogo simulado, que pode diferir alguns décimos do relógio de parede.
+
+## DA-27 — A pilotagem reaproveita o domínio e os serviços do clássico (Fase 7)
+
+**Contexto.** O enunciado pede usar os pontos de extensão existentes. Duplicar regras (pontos por passageiro,
+dificuldade, ranking) criaria duas fontes de verdade.
+**Decisão.** A pilotagem usa as peças do clássico:
+- **passageiros:** os mesmos `Astronauta`, `Engenheiro` e `Professor`, com os mesmos nomes; os pontos vêm do
+  polimorfismo de `Passageiro` (20/15/10, desde a Fase 1);
+- **dificuldade e estado:** a `Dificuldade` (cada uma mapeada para uma `ConfigDeVoo`) e o `Partida.Estado` (em
+  andamento, vitória, derrota, abortada);
+- **resultado e ranking:** o `ResultadoPartida` (na pilotagem, os "movimentos" são os pousos) e o `ServicoRanking`
+  com outro `RepositorioRanking` (`ranking-pilotagem.json`), que é o padrão Repository da Fase 1 pagando dividendo;
+- **fim e envio:** o `FimDePartida` e a `TelaFimDePartida`, com o modo e um resumo do voo (o construtor antigo
+  continua valendo para o clássico), e o `EnvioDoResultado` e a `TelaHistorico`, sem mudança de fluxo.
+
+**Consequências.** As regras novas são só as do voo. A correção do plano ("10 por passageiro", um número da POC)
+virou "os pontos do clássico", que é a regra de verdade da versão-base. Os pontos dos dois modos não são
+comparáveis, e por isso cada modo tem o seu ranking.
+
+## DA-28 — Entrada contínua: o controlador acompanha teclas e dedos (Fase 7)
+
+**Contexto.** Até a Fase 6, um toque equivalia a "apertar uma tecla", o que bastava para um jogo por turnos. Na
+pilotagem, os comandos valem enquanto estão apertados, e é preciso girar e acelerar ao mesmo tempo (dois polegares).
+**Decisão.**
+- A `TelaBase` e o `FiltroDeEntrada` passam a repassar o número do dedo, o soltar e o arrastar.
+- O `ControladorDaPilotagem` (Humble Object) guarda as teclas apertadas e a posição de cada dedo e, a cada quadro,
+  calcula os `Comandos`. Um dedo que escorrega para fora do botão o solta, e o Abortar age na hora.
+- O layout dos botões (`LayoutDaPilotagem`) é Java puro e testado: ◄ ► à esquerda, MOTOR maior à direita e Abortar
+  no alto.
+
+**Consequências.**
+- Dois dedos ao mesmo tempo funcionam, e isso está testado. O `adb` não simula dois dedos, então isso foi visto
+  só à mão.
+- O teste do controlador, pilotando só pelo teclado, achou um defeito real: girar junto com o motor na decolagem
+  fazia a nave "pousar" de novo no mesmo instante. Agora a nave sobe reta até os pés saírem da plataforma
+  (`SUBIDA_ANTES_DE_GIRAR`).
+
+## DA-29 — O modo entra na API sem quebrar os clientes antigos (Fase 7)
+
+**Contexto.** Os clientes das Fases 5 e 6 não mandam modo, e o banco de desenvolvimento e o de quem já publicou
+têm partidas gravadas. Cada modo precisa do seu ranking global.
+**Decisão.**
+- `modo` é um campo **opcional** no `POST /api/partidas` (sem ele, `CLASSICO`) e aparece no histórico.
+- `GET /api/ranking` aceita `?modo=` (padrão `CLASSICO`).
+- A coluna `modo` tem `@ColumnDefault("'CLASSICO'")`: ao ser criada num banco com dados, as partidas antigas viram
+  clássicas.
+- O servidor tem o seu enum `Modo`, como já tinha a `Dificuldade` (DA-14).
+- O cliente pede o ranking pelo modo (`ServidorDoJogo.ranking(Modo, ...)`) e manda o modo no resumo.
+
+**Consequências.**
+- Um cliente antigo continua recebendo o mesmo ranking (o clássico).
+- A migração foi conferida no banco de desenvolvimento, com partidas das Fases 5 e 6: o ranking ficou igual, e a
+  partida antiga aparece como `CLASSICO`.
+- Um servidor antigo ignora o campo novo (o Jackson aceita campos desconhecidos), mas devolve o ranking clássico
+  também para a pilotagem.
+
+## DA-30 — Um piloto automático como instrumento de validação (Fase 7)
+
+**Contexto.** Provar que a caverna pode ser vencida com as regras de verdade, sem mãos, é difícil: há paredes, uma
+passagem estreita com um asteroide que sobe e desce, pousos com limites e combustível finito.
+**Decisão.**
+- `PilotoAutomatico` (nos testes do `nucleo`): uma rota por pontos de passagem e um controle por realimentação.
+  Ele calcula a velocidade desejada e o empuxo necessário, gira para o ângulo certo e modula o motor
+  (sigma-delta). Antes da passagem estreita, espera o asteroide começar a descer.
+- O mesmo piloto voa a janela real (roteiro `pilotagem` do `PilotoDaJanela`), apertando e soltando as setas a cada
+  quadro.
+
+**Consequências.**
+- A vitória no Fácil é um teste determinístico.
+- No Médio e no Difícil, o piloto faz as viagens do Astronauta e do Engenheiro. A do Professor, a mais longa, passa
+  dos 100 de combustível do jeito conservador como ele voa.
+- Esse número levou a duas decisões: o tanque do Difícil voltou para 100 (com 80, a caverna seria impossível) e
+  o achado sobre o Médio foi levado ao usuário, junto com a partida jogada à mão no celular.
+

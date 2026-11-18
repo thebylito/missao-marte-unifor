@@ -1,0 +1,17 @@
+Migração do banco de verdade (CT-33), em 2026-11-18, com o servidor em contêiner (docker compose, volume "dados")
+
+O banco de desenvolvimento já tinha jogadores e partidas gravados nas Fases 5 e 6 (pelo jogo na janela, no emulador e
+no celular). A imagem foi reconstruída com a Fase 7 (coluna "modo" com @ColumnDefault("'CLASSICO'"), ranking por modo)
+e o contêiner recriado sobre o mesmo volume; o Hibernate (ddl-auto=update) criou a coluna na subida.
+
+Antes (imagem da Fase 6):
+  GET /api/ranking                 -> ['Ana', 'Bia', 'Caio', 'Duda', 'Fabi', 'Edu']
+
+Depois (imagem da Fase 7, mesmo volume):
+  GET /api/ranking                 -> ['Ana', 'Bia', 'Caio', 'Duda', 'Fabi', 'Edu']   (sem o parâmetro: o clássico)
+  GET /api/ranking?modo=PILOTAGEM  -> []                                               (nenhuma partida de pilotagem ainda)
+  GET /api/partidas/minhas (Ana, conta criada na Fase 5, token não registrado aqui)
+                                   -> 1 partida; modos = ['CLASSICO']
+
+Conclusão: as partidas antigas viraram clássicas, o ranking clássico não mudou e o da pilotagem começou vazio. Um
+cliente das Fases 5 e 6 (sem o campo modo e sem o parâmetro) continua recebendo exatamente o mesmo ranking.
