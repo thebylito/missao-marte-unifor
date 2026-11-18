@@ -126,6 +126,12 @@ public class PilotoDaJanela extends MissaoMarteGame {
         roteiro.add(() -> {
             int w = Gdx.graphics.getBackBufferWidth(), h = Gdx.graphics.getBackBufferHeight();
             Pixmap imagem = Pixmap.createFromFrameBuffer(0, 0, w, h);
+            // O framebuffer guarda também o alfa das partes translúcidas, mas a janela mostra só as cores (RGB).
+            // Sem forçar o alfa a 255, um visualizador compõe o print sobre branco e as cores ficam diferentes.
+            java.nio.ByteBuffer pixels = imagem.getPixels();
+            for (int i = 3; i < pixels.limit(); i += 4) {
+                pixels.put(i, (byte) 255);
+            }
             String arquivo = String.format("%s/%02d-%s.png", pasta, ++numeroDoPrint, nome);
             PixmapIO.writePNG(Gdx.files.absolute(arquivo), imagem, Deflater.DEFAULT_COMPRESSION, true);
             imagem.dispose();
