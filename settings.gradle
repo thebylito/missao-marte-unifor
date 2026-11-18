@@ -3,3 +3,5 @@ rootProject.name = 'missao-marte-unifor'
 // Fase 3: projeto multi-módulo.
 include 'nucleo'    // regras do jogo (domínio, aplicação, ranking em arquivo); Java puro, sem libGDX
 include 'console'   // o jogo em modo texto, que continua funcionando
+include 'core'      // cliente libGDX compartilhado entre as plataformas (Game e telas)
+include 'lwjgl3'    // launcher desktop (janela com LWJGL3/OpenGL)
