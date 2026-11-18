@@ -50,7 +50,7 @@ public class TelaNovaPartida extends TelaBase {
     @Override
     protected void desenhar() {
         lote().begin();
-        escreverCentralizado("NOVA MISSÃO", 530, Color.ORANGE, 2f);
+        escreverTitulo("NOVA MISSÃO", 530, Color.ORANGE, 2f);
         escrever("Nome do piloto:", 150, 430, Color.LIGHT_GRAY, 1.3f);
         String nome = formulario.getNomeDigitado();
         escrever((nome.isEmpty() ? "" : nome) + "_", 340, 430, Color.WHITE, 1.3f);

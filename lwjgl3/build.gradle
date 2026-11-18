@@ -8,12 +8,17 @@ dependencies {
     // backend desktop da libGDX e as bibliotecas nativas (Windows, Linux e macOS)
     implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
     implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
 }
 
 application {
     mainClass = 'br.edu.unifor.missaomarte.lwjgl3.Lwjgl3Launcher'
     applicationName = 'missao-marte'   // nome do script gerado pelo installDist
 }
+
+// Fase 4: assets/ (sprites, sons e fontes) entra no classpath, e portanto no jar. No desktop, o
+// Gdx.files.internal("sprites/nave.png") procura primeiro na pasta de trabalho e depois no classpath.
+sourceSets.main.resources.srcDirs += [rootProject.file('assets')]
 
 def macOS = System.getProperty('os.name').toLowerCase().contains('mac')
 

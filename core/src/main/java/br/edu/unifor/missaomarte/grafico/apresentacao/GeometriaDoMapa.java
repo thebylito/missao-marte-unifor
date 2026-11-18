@@ -39,8 +39,13 @@ public final class GeometriaDoMapa {
     }
 
     public Quadrado celula(Posicao p) {
-        int coluna = p.x() - mapa.getMin();
-        int linha = p.y() - mapa.getMin();            // linha 0 = menor y = topo da área
+        return celula(p.x(), p.y());
+    }
+
+    /** Mesma conta para posições fracionárias, usadas enquanto a nave e os inimigos deslizam entre células. */
+    public Quadrado celula(float xNoMapa, float yNoMapa) {
+        float coluna = xNoMapa - mapa.getMin();
+        float linha = yNoMapa - mapa.getMin();        // linha 0 = menor y = topo da área
         float x = esquerda + coluna * ladoDaCelula;
         float y = topo - (linha + 1) * ladoDaCelula;
         return new Quadrado(x, y, ladoDaCelula);

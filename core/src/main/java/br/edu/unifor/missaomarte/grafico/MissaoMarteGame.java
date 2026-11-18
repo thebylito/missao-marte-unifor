@@ -1,9 +1,14 @@
 package br.edu.unifor.missaomarte.grafico;
 
 import br.edu.unifor.missaomarte.aplicacao.Partida;
+import br.edu.unifor.missaomarte.grafico.apresentacao.CenaDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida;
+import br.edu.unifor.missaomarte.grafico.audio.Sons;
+import br.edu.unifor.missaomarte.grafico.audio.SonsLibgdx;
+import br.edu.unifor.missaomarte.grafico.recursos.Recursos;
+import br.edu.unifor.missaomarte.grafico.telas.TelaCarregamento;
 import br.edu.unifor.missaomarte.grafico.telas.TelaFimDePartida;
 import br.edu.unifor.missaomarte.grafico.telas.TelaMenu;
 import br.edu.unifor.missaomarte.grafico.telas.TelaNovaPartida;
@@ -21,9 +26,12 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
  * ({@code create}, {@code render}, {@code resize}, {@code pause}, {@code resume}, {@code dispose});
  * {@link Game} repassa cada um à tela atual.
  *
- * <p>Esta classe cuida de duas coisas: dos recursos de desenho compartilhados por todas as telas (criados no
+ * <p>Esta classe cuida de duas coisas: dos recursos compartilhados por todas as telas (criados no
  * {@code create}, quando já existe contexto OpenGL, e liberados no {@code dispose}) e da navegação entre
  * telas. As regras do jogo ficam no núcleo, acessado por {@link ServicosDoJogo}.
+ *
+ * <p>Fase 4: os assets (sprites, sons e fontes) são carregados pelo {@link Recursos} na {@link TelaCarregamento},
+ * a primeira tela, e liberados todos juntos no {@code dispose}.
  */
 public class MissaoMarteGame extends Game {
 
@@ -35,6 +43,8 @@ public class MissaoMarteGame extends Game {
     private ShapeRenderer formas;
     private SpriteBatch lote;
     private BitmapFont fonte;
+    private Recursos recursos;
+    private Sons sons = Sons.NENHUM;
 
     public MissaoMarteGame(ServicosDoJogo servicos) {
         this.servicos = servicos;
@@ -45,8 +55,11 @@ public class MissaoMarteGame extends Game {
         Diario.registrar("create: janela e contexto OpenGL prontos; criando os recursos compartilhados");
         formas = new ShapeRenderer();
         lote = new SpriteBatch();
-        fonte = new BitmapFont();   // fonte padrão embutida na libGDX (Latin-1, sem emojis)
-        irParaMenu();
+        fonte = new BitmapFont();   // fonte padrão da libGDX: só a tela de carregamento a usa
+        recursos = new Recursos();
+        recursos.enfileirarTudo();
+        sons = new SonsLibgdx(recursos);
+        trocarTela(new TelaCarregamento(this));
     }
 
     @Override
@@ -74,6 +87,11 @@ public class MissaoMarteGame extends Game {
         Screen atual = getScreen();
         if (atual != null) {
             atual.dispose();         // ...então a tela é liberada aqui
+        }
+        if (recursos != null) {
+            int antes = recursos.quantidadeCarregada();
+            recursos.dispose();
+            Diario.registrar("AssetManager: " + antes + " assets liberados; restam " + recursos.quantidadeCarregada());
         }
         if (formas != null) formas.dispose();
         if (lote != null) lote.dispose();
@@ -106,7 +124,8 @@ public class MissaoMarteGame extends Game {
     public void iniciarPartida(FormularioNovaPartida formulario) {
         Partida partida = servicos.novaPartida(formulario.getPiloto(), formulario.getDificuldade(),
                 formulario.getTamanho());
-        trocarTela(new TelaPartida(this, new ControladorDaPartida(partida, servicos.ranking())));
+        ControladorDaPartida controlador = new ControladorDaPartida(partida, servicos.ranking());
+        trocarTela(new TelaPartida(this, new CenaDaPartida(controlador, sons)));
     }
 
     public void irParaFimDePartida(FimDePartida fim) {
@@ -127,5 +146,8 @@ public class MissaoMarteGame extends Game {
     public ServicosDoJogo getServicos() { return servicos; }
     public ShapeRenderer getFormas() { return formas; }
     public SpriteBatch getLote() { return lote; }
+    /** Fonte padrão da libGDX, usada antes de as fontes do jogo carregarem. */
     public BitmapFont getFonte() { return fonte; }
+    public Recursos getRecursos() { return recursos; }
+    public Sons getSons() { return sons; }
 }

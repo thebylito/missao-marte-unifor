@@ -33,7 +33,7 @@ public class TelaRanking extends TelaBase {
     @Override
     protected void desenhar() {
         lote().begin();
-        escreverCentralizado("RANKING TOP 5 PILOTOS", 500, Color.ORANGE, 2f);
+        escreverTitulo("RANKING TOP 5 PILOTOS", 500, Color.ORANGE, 2f);
         float y = 410;
         for (String linha : TextosDaInterface.ranking(ranking)) {
             y -= escreverComQuebra(linha, 60, y, 680, Color.WHITE, 1.1f) + 14;

@@ -5,6 +5,7 @@ import br.edu.unifor.missaomarte.aplicacao.Relogio;
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
 import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
+import br.edu.unifor.missaomarte.grafico.recursos.CatalogoDeAssets;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
@@ -48,6 +49,8 @@ public final class Lwjgl3Launcher {
         config.useVsync(true);
         config.setForegroundFPS(60);
         config.setIdleFPS(10);              // janela minimizada ou sem foco: menos trabalho para a GPU
+        // ícone da janela, renderizado no Blender (o macOS ignora ícone de janela; Windows e Linux mostram)
+        config.setWindowIcon(CatalogoDeAssets.ICONE);
         return config;
     }
 }
