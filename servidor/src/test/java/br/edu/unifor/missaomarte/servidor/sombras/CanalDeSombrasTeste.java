@@ -122,6 +122,8 @@ class CanalDeSombrasTeste {
         for (Cliente c : abertos) {
             c.fechou.await(ESPERA_MS, TimeUnit.MILLISECONDS);
         }
+        // o cliente vê o fechamento antes de o servidor tirar o piloto da lista: o próximo teste começa do zero
+        esperarConectados(0);
     }
 
     /** Cadastra e entra com um nome novo (o banco não é desfeito entre os testes); devolve o token. */
@@ -152,13 +154,16 @@ class CanalDeSombrasTeste {
         return c;
     }
 
-    /** Espera o servidor registrar as conexões (o aperto de mão termina antes do registro). */
+    /**
+     * Espera o servidor chegar a este número de pilotos: o aperto de mão termina antes do registro, e o fechamento
+     * chega ao cliente antes de o servidor tirar o piloto da lista.
+     */
     private void esperarConectados(int quantos) throws InterruptedException {
         long limite = System.currentTimeMillis() + ESPERA_MS;
-        while (canal.conectados() < quantos && System.currentTimeMillis() < limite) {
+        while (canal.conectados() != quantos && System.currentTimeMillis() < limite) {
             Thread.sleep(10);
         }
-        assertThat(canal.conectados()).isGreaterThanOrEqualTo(quantos);
+        assertThat(canal.conectados()).isEqualTo(quantos);
     }
 
     private static String posicao(double x, double y, double angulo, boolean motor) {
@@ -183,10 +188,9 @@ class CanalDeSombrasTeste {
     @Test
     void aPosicaoDeUmPilotoChegaAosOutrosComONomeDoToken() throws Exception {
         String ana = nomeUnico("Ana");
-        int antes = canal.conectados();
         Cliente a = conectar(token(ana));
         Cliente b = conectar(token(nomeUnico("Bia")));
-        esperarConectados(antes + 2);
+        esperarConectados(2);
 
         a.enviar("{\"tipo\":\"posicao\",\"x\":1940.5,\"y\":300,\"angulo\":-12.5,\"motor\":true,\"nome\":\"Falso\"}");
 
@@ -203,10 +207,9 @@ class CanalDeSombrasTeste {
 
     @Test
     void mensagensInvalidasSaoIgnoradasSemDerrubarAConexao() throws Exception {
-        int antes = canal.conectados();
         Cliente a = conectar(token(nomeUnico("Caio")));
         Cliente b = conectar(token(nomeUnico("Davi")));
-        esperarConectados(antes + 2);
+        esperarConectados(2);
 
         for (String ruim : List.of("não é json", "[]", "{\"tipo\":\"outro\"}",
                 posicao(-1, 100, 0, false), posicao(3841, 100, 0, false), posicao(100, 1441, 0, false),
@@ -223,10 +226,9 @@ class CanalDeSombrasTeste {
 
     @Test
     void posicoesRapidasDemaisSaoDescartadas() throws Exception {
-        int antes = canal.conectados();
         Cliente a = conectar(token(nomeUnico("Eva")));
         Cliente b = conectar(token(nomeUnico("Fabio")));
-        esperarConectados(antes + 2);
+        esperarConectados(2);
 
         a.enviar(posicao(100, 100, 0, false));
         a.enviar(posicao(200, 100, 0, false));   // mesmo instante: descartada
@@ -240,10 +242,9 @@ class CanalDeSombrasTeste {
 
     @Test
     void quemSaiEAvisadoAosOutros() throws Exception {
-        int antes = canal.conectados();
         Cliente a = conectar(token(nomeUnico("Gil")));
         Cliente b = conectar(token(nomeUnico("Hugo")));
-        esperarConectados(antes + 2);
+        esperarConectados(2);
         a.enviar(posicao(100, 100, 0, false));
         int piloto = JsonPath.read(b.proxima(), "$.piloto");
 
@@ -256,9 +257,8 @@ class CanalDeSombrasTeste {
 
     @Test
     void mensagemGrandeDemaisFechaAConexao() throws Exception {
-        int antes = canal.conectados();
         Cliente a = conectar(token(nomeUnico("Iara")));
-        esperarConectados(antes + 1);
+        esperarConectados(1);
 
         a.enviar("{\"tipo\":\"posicao\",\"lixo\":\"" + "x".repeat(CanalDeSombras.TAMANHO_MAXIMO) + "\"}");
 
