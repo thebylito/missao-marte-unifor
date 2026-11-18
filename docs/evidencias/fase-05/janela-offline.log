@@ -1,0 +1,37 @@
+Janela real (macOS arm64), 2026-11-18, roteiro "offline" do validacao/janela/PilotoDaJanela.java, semente 3.
+Servidor DESLIGADO (nada ouvindo em localhost:18085): o cliente precisa seguir funcionando.
+Prints em janela-offline/ (800x600, JPEG).
+
+[Ciclo] create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+[Ciclo] show: TelaCarregamento
+[Ciclo] resize: 800x600
+[Ciclo] carregamento concluído: 21 assets no AssetManager
+[Ciclo] hide: TelaCarregamento
+[Ciclo] show: TelaEntrada
+[Ciclo] dispose: TelaCarregamento
+[Piloto] print janela-offline/01-entrada-servidor-indisponivel.jpg (1600x1200)
+[Ciclo] modo convidado: só o ranking local
+[Ciclo] hide: TelaEntrada
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaEntrada
+[Piloto] print janela-offline/02-menu-convidado.jpg (1600x1200)
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] print janela-offline/03-ranking-global-indisponivel.jpg (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaHistorico
+[Ciclo] dispose: TelaMenu
+[Piloto] print janela-offline/04-historico-convidado.jpg (1600x1200)
+[Ciclo] hide: TelaHistorico
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaHistorico
+[Ciclo] saindo: Gdx.app.exit() pede à libGDX que encerre o laço e chame dispose()
+[Ciclo] pause
+[Ciclo] dispose: liberando a tela atual e os recursos compartilhados
+[Ciclo] hide: TelaMenu
+[Ciclo] dispose: TelaMenu
+[Ciclo] AssetManager: 21 assets liberados; restam 0

@@ -145,3 +145,74 @@ com o objeto nulo `Sons.NENHUM` e um dublê que anota os sons nos testes.
 **Consequências.** As regras continuam só no `nucleo`, que não mudou nenhuma linha. O console segue idêntico: 200/200
 partidas iguais à Fase 3. A apresentação ganha 44 testes que rodam sem janela, áudio ou relógio real. Divergência
 registrada: não usamos `Intersector`, porque não há colisão contínua para detectar.
+
+## DA-14 — Servidor como build Gradle independente, com Spring Boot 4.1.2 (Fase 5)
+
+**Contexto.** O enunciado pede um servidor independente, que não dependa do código do cliente. A issue #7 pede um
+"subprojeto independente que inicia conforme o README". O README do curso trata cliente e servidor como projetos
+separados.
+**Decisão.** A pasta `servidor/` tem `settings.gradle`, wrapper e `build.gradle` próprios: Spring Boot 4.1.2, a
+versão estável mais nova (a 4.2 está em RC), springdoc 3.2.0 (feito sobre o Boot 4.1.2), JPA com H2 em arquivo,
+Java 17 e Gradle 8.14.3, os mesmos do cliente. O build do jogo não inclui o servidor, e o servidor não inclui nenhum
+módulo do jogo. O contrato entre os dois é só a API, exportada em `docs/api/openapi.json`. Os nomes de resultado e de
+dificuldade são repetidos de propósito nos dois lados.
+O plugin do Spring Boot 4 exige que o próprio Gradle rode em Java 17 ou mais novo (descoberto na instalação limpa,
+com Java 11 como padrão). Por isso o servidor tem `gradle/gradle-daemon-jvm.properties` (`toolchainVersion=17`): o
+wrapper roda o daemon num JDK 17 instalado.
+**Consequências.** Dois comandos e dois terminais (`./gradlew :lwjgl3:run` e `cd servidor && ./gradlew bootRun`). O
+servidor pode ser publicado sozinho (Sprint 4) e reimplementado em outra linguagem com o mesmo contrato (a versão
+Node planejada). Custo: o enum de dificuldade existe nos dois lados.
+
+## DA-15 — Senha com BCrypt, token JWT sem estado e erros no formato RFC 9457 (Fase 5)
+
+**Contexto.** O enunciado exige hash de senha, token nas operações autenticadas, validação, erros padronizados, DTOs
+e nenhum segredo versionado ou em log.
+**Decisão.**
+- Senha guardada com `BCryptPasswordEncoder`.
+- Login em `POST /api/sessoes`, que devolve um JWT HS256 com o id do jogador no `sub` e validade de 2 h. É validado
+  pelo resource server do Spring Security (`spring-boot-starter-oauth2-resource-server`), sem sessão no servidor e
+  sem biblioteca extra.
+- O segredo vem só de `MISSAOMARTE_JWT_SEGREDO`. Sem a variável, o servidor gera um segredo temporário e avisa no
+  log; com menos de 32 bytes, recusa iniciar.
+- Nome inexistente e senha errada dão a mesma resposta 401, para não revelar quem está cadastrado.
+- Erros como `ProblemDetail`, com `campos` na validação. O 401 do filtro de segurança sai no mesmo formato.
+- Entidades JPA ficam internas, e a API só fala com `record`s. O `toString` dos pedidos e da sessão esconde a senha
+  e o token.
+
+**Consequências.** Os testes cobrem hash, login certo e errado, e token ausente, inválido, adulterado e expirado (o
+relógio é injetado). Nenhuma senha, token ou segredo apareceu nos logs do servidor nem do cliente durante a
+validação ponta a ponta.
+
+## DA-16 — Regras do ranking global e limites do servidor (Fase 5)
+
+**Contexto.** A issue #8 pede o Top 10 com a maior pontuação de cada jogador e testes de ordenação, empate, limite e
+isolamento. O ranking local (Top 5) só guarda vitórias.
+**Decisão.** Cada partida concluída (vitória, derrota ou abandono) vai para o histórico do dono do token, que nunca é
+escolhido pelo corpo do pedido. O histórico devolve as 50 mais recentes. O ranking considera só vitórias e mostra a
+melhor de cada jogador, da maior para a menor. No empate, fica na frente quem fez a pontuação primeiro. O limite é 10.
+A consulta traz as vitórias já ordenadas (com `join fetch`), e o serviço pega a primeira de cada jogador.
+**Consequências.** Mesma regra do ranking local, então o jogador entende os dois. **Limitação, como o enunciado pede
+registrar:** o servidor não executa o jogo e não tem como conferir se a pontuação enviada é legítima; um cliente
+modificado pode mandar qualquer número dentro dos limites da validação (até 10.000 pontos). Com muitos dados, a regra
+do ranking caberia numa consulta com função de janela, em vez de ler todas as vitórias.
+
+## DA-17 — Cliente: porta para o servidor, adaptador assíncrono e modo convidado (Fase 5)
+
+**Contexto.** O plano de aulas fala em login obrigatório. O enunciado manda preservar o modo convidado e o ranking
+local, e integrar a API sem bloquear a interface. A issue #9 pede que erros de rede não encerrem a partida e que os
+testes do domínio não precisem do servidor.
+**Decisão.**
+- A primeira tela depois do carregamento oferece entrar, criar conta ou jogar como convidado, que joga exatamente
+  como na Fase 4.
+- As telas dependem da interface `ServidorDoJogo` (porta). `ServidorHttp` é o adaptador: usa o `Gdx.net`, que é
+  assíncrono e também funciona no Android, e entrega as respostas na thread do jogo.
+- Falhas viram `Falha`, com uma mensagem para o jogador.
+- O fim da partida envia o resultado em segundo plano, e a tela só mostra o andamento.
+- O ranking ganhou as abas local e global, e o menu ganhou as opções histórico e trocar de piloto.
+- A sessão (nome e token) fica só na memória.
+- O endereço vem de `-Dmissaomarte.servidor`, com padrão `http://localhost:8080`.
+- Escolha registrada com o usuário em 2026-11-18: convidado em vez de login obrigatório.
+
+**Consequências.** Com o servidor desligado, a entrada mostra "Servidor indisponível. Você pode jogar como
+convidado.", e o resto do jogo segue normal. Os 186 testes do cliente rodam sem servidor. O adaptador é testado
+contra um servidor HTTP falso do JDK em localhost. `nucleo` e `console` não mudaram.

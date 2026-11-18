@@ -1,0 +1,54 @@
+Janela real (macOS arm64), 2026-11-18, roteiro "online" do validacao/janela/PilotoDaJanela.java, semente 3.
+Servidor Spring Boot rodando de verdade (./gradlew bootRun em servidor/, porta 18085, H2 numa pasta temporária vazia),
+cliente com -Dmissaomarte.servidor=http://localhost:18085.
+Prints em janela-online/ (800x600, JPEG).
+
+[Ciclo] create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+[Ciclo] show: TelaCarregamento
+[Ciclo] resize: 800x600
+[Ciclo] carregamento concluído: 21 assets no AssetManager
+[Ciclo] hide: TelaCarregamento
+[Ciclo] show: TelaEntrada
+[Ciclo] dispose: TelaCarregamento
+[Piloto] print janela-online/01-entrada.jpg (1600x1200)
+[Piloto] print janela-online/02-entrada-cadastro-preenchido.jpg (1600x1200)
+[Ciclo] conectado ao servidor como Ana
+[Ciclo] hide: TelaEntrada
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaEntrada
+[Piloto] print janela-online/03-menu-conectado.jpg (1600x1200)
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaNovaPartida
+[Ciclo] dispose: TelaMenu
+[Piloto] print janela-online/04-nova-partida-conectado.jpg (1600x1200)
+[Ciclo] hide: TelaNovaPartida
+[Ciclo] show: TelaPartida
+[Ciclo] dispose: TelaNovaPartida
+[Ciclo] hide: TelaPartida
+[Ciclo] show: TelaFimDePartida
+[Ciclo] dispose: TelaPartida
+[Piloto] print janela-online/05-fim-vitoria-enviada.jpg (1600x1200)
+[Ciclo] hide: TelaFimDePartida
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaFimDePartida
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] print janela-online/06-ranking-local.jpg (1600x1200)
+[Piloto] print janela-online/07-ranking-global.jpg (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaHistorico
+[Ciclo] dispose: TelaMenu
+[Piloto] print janela-online/08-historico.jpg (1600x1200)
+[Ciclo] hide: TelaHistorico
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaHistorico
+[Ciclo] saindo: Gdx.app.exit() pede à libGDX que encerre o laço e chame dispose()
+[Ciclo] pause
+[Ciclo] dispose: liberando a tela atual e os recursos compartilhados
+[Ciclo] hide: TelaMenu
+[Ciclo] dispose: TelaMenu
+[Ciclo] AssetManager: 21 assets liberados; restam 0
