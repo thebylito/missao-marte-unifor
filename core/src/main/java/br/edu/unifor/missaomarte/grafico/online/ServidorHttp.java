@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.JsonWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -104,6 +105,17 @@ public final class ServidorHttp implements ServidorDoJogo {
                 item.getString("resultado"), item.getString("dificuldade"), item.getInt("pontos"),
                 item.getInt("passageiros"), item.getInt("movimentos"), item.getLong("tempoSegundos"),
                 item.getString("registradaEm"), item.getString("modo", "CLASSICO"))), resposta);
+    }
+
+    /** O canal das sombras no mesmo servidor ({@code http} vira {@code ws}, {@code https} vira {@code wss}). */
+    @Override
+    public Optional<ConexaoDeSombras> conexaoDeSombras() {
+        try {
+            return Optional.of(new ConexaoWebSocket(ConexaoWebSocket.enderecoDasSombras(getEndereco()),
+                    naThreadDoJogo));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     // ------------------------------------------------------------------ HTTP

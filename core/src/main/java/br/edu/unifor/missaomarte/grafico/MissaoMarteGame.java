@@ -5,6 +5,7 @@ import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.CenaDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPilotagem;
+import br.edu.unifor.missaomarte.grafico.apresentacao.SombrasDaPilotagem;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida;
@@ -167,7 +168,9 @@ public class MissaoMarteGame extends Game {
         if (formulario.getModo() == Modo.PILOTAGEM) {   // Fase 7
             Diario.registrar("pilotagem: " + formulario.getDificuldade());
             PartidaDePilotagem voo = PartidaDePilotagem.nova(formulario.getPiloto(), formulario.getDificuldade());
-            trocarTela(new TelaPilotagem(this, new ControladorDaPilotagem(voo, servicos.rankingDaPilotagem())));
+            SombrasDaPilotagem sombras = new SombrasDaPilotagem(getSessao(), servicos.servidor().conexaoDeSombras());
+            trocarTela(new TelaPilotagem(this, new ControladorDaPilotagem(voo, servicos.rankingDaPilotagem()),
+                    sombras));
             return;
         }
         Partida partida = servicos.novaPartida(formulario.getPiloto(), formulario.getDificuldade(),

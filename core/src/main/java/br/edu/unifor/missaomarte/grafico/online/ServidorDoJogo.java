@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.grafico.online;
 
 import br.edu.unifor.missaomarte.aplicacao.Modo;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * O que o jogo precisa do servidor de ranking (porta, no sentido de "ports and adapters"). As telas dependem desta
@@ -25,6 +26,14 @@ public interface ServidorDoJogo {
     }
 
     void historico(Sessao sessao, Resposta<List<PartidaDoHistorico>> resposta);
+
+    /**
+     * Fase 7 (modo shadow): uma conexão nova com o canal das sombras do mesmo servidor, ou vazio se não houver
+     * servidor (as sombras ficam desligadas).
+     */
+    default Optional<ConexaoDeSombras> conexaoDeSombras() {
+        return Optional.empty();
+    }
 
     /** Sem servidor configurado (e nos testes antigos): todo pedido falha como "sem conexão". */
     ServidorDoJogo DESLIGADO = new ServidorDoJogo() {

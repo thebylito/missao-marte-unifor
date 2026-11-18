@@ -8,6 +8,8 @@ import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPilotagem;
 import br.edu.unifor.missaomarte.grafico.apresentacao.LayoutDaPilotagem;
 import br.edu.unifor.missaomarte.grafico.apresentacao.LayoutDaPilotagem.Botao;
 import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
+import br.edu.unifor.missaomarte.grafico.apresentacao.SombrasDaPilotagem;
+import br.edu.unifor.missaomarte.grafico.apresentacao.SombrasDaPilotagem.Sombra;
 import br.edu.unifor.missaomarte.grafico.recursos.Folha;
 import br.edu.unifor.missaomarte.pilotagem.AsteroideEmOrbita;
 import br.edu.unifor.missaomarte.pilotagem.Caverna;
@@ -28,6 +30,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A pilotagem (Fase 7). Só desenha e repassa a entrada: as regras estão na {@link PartidaDePilotagem} e as decisões
@@ -35,6 +38,9 @@ import java.util.Map;
  *
  * <p>Duas câmeras: a do mundo, que segue a nave pela caverna (pelo menos 1280 x 720 da caverna na tela, estendido
  * no lado que sobra, como as outras telas), e a das telas (800 x 600), para o painel, o minimapa e os botões.
+ *
+ * <p>Modo shadow: as naves dos outros pilotos conectados aparecem translúcidas, com o nome em cima
+ * ({@link SombrasDaPilotagem}).
  */
 public class TelaPilotagem extends TelaBase {
 
@@ -51,8 +57,12 @@ public class TelaPilotagem extends TelaBase {
     private static final Color PERIGO = new Color(1f, 0.38f, 0.3f, 1);
     private static final Color ALERTA = new Color(1f, 0.85f, 0.3f, 1);
     private static final Color APERTADO = new Color(0.95f, 0.6f, 0.2f, 0.45f);
+    /** As sombras: azuladas e translúcidas, para não confundir com a própria nave. */
+    private static final Color SOMBRA = new Color(0.55f, 0.8f, 1f, 0.5f);
+    private static final Color NOME_DA_SOMBRA = new Color(0.65f, 0.85f, 1f, 0.85f);
 
     private final ControladorDaPilotagem controlador;
+    private final SombrasDaPilotagem sombras;
     private final OrthographicCamera cameraDoMundo = new OrthographicCamera();
     private final ExtendViewport mundo = new ExtendViewport(LARGURA_DO_MUNDO, ALTURA_DO_MUNDO, cameraDoMundo);
     private final CameraDaPilotagem seguir;
@@ -66,8 +76,13 @@ public class TelaPilotagem extends TelaBase {
     private float tremor;
 
     public TelaPilotagem(MissaoMarteGame jogo, ControladorDaPilotagem controlador) {
+        this(jogo, controlador, SombrasDaPilotagem.desligadas());
+    }
+
+    public TelaPilotagem(MissaoMarteGame jogo, ControladorDaPilotagem controlador, SombrasDaPilotagem sombras) {
         super(jogo);
         this.controlador = controlador;
+        this.sombras = sombras;
         Caverna c = controlador.getPartida().getCaverna();
         this.seguir = new CameraDaPilotagem(c.getLargura(), c.getAltura());
     }
@@ -141,6 +156,13 @@ public class TelaPilotagem extends TelaBase {
         controlador.usarLayout(layout);
     }
 
+    /** Saiu da tela (fim da partida ou jogo fechando): a sombra desta nave some para os outros na hora. */
+    @Override
+    public void hide() {
+        sombras.fechar();
+        super.hide();
+    }
+
     // ------------------------------------------------------------------ tempo
 
     @Override
@@ -150,6 +172,7 @@ public class TelaPilotagem extends TelaBase {
         }
         relogio += delta;
         ultimoQuadro = delta;
+        sombras.atualizar(delta, controlador.getPartida().getNave(), controlador.getPartida().getCaverna());
         for (EventoDeVoo e : controlador.atualizar(delta)) {
             ControladorDaPilotagem.som(e.tipo()).ifPresent(jogo.getSons()::tocar);
             if (e.tipo() == EventoDeVoo.Tipo.EXPLODIU) {
@@ -197,6 +220,7 @@ public class TelaPilotagem extends TelaBase {
         desenharCaverna(p.getCaverna());
         desenharPassageiros(p);
         desenharAsteroides(p.getCaverna());
+        desenharSombras();
         desenharNave(nave);
         desenharExplosao();
         lote().end();
@@ -307,6 +331,33 @@ public class TelaPilotagem extends TelaBase {
                 y - Folha.NAVE.getAltura() / 2f);
     }
 
+    /** As naves dos outros pilotos: translúcidas, azuladas e com o nome em cima. */
+    private void desenharSombras() {
+        for (Sombra s : sombras.getSombras()) {
+            float x = (float) s.x();
+            float y = (float) s.y();
+            float angulo = (float) s.angulo();
+            if (s.motor()) {
+                double rad = Math.toRadians(angulo);
+                float bx = x + (float) (28 * Math.sin(rad));    // o bocal: 28 abaixo do centro, girado
+                float by = y - (float) (28 * Math.cos(rad));
+                TextureRegion chama = recursos().quadro(Folha.CHAMA, (int) (relogio * 20) % Folha.CHAMA.getQuadros());
+                float w = chama.getRegionWidth();
+                float h = chama.getRegionHeight();
+                lote().setColor(1, 1, 1, 0.45f);
+                lote().draw(chama, bx - w / 2, by - h, w / 2, h, w, h, 0.8f, 1f, angulo);
+            }
+            int quadro = Math.round(angulo / GRAUS_POR_QUADRO_DA_NAVE);
+            quadro = ((quadro % Folha.NAVE.getQuadros()) + Folha.NAVE.getQuadros()) % Folha.NAVE.getQuadros();
+            lote().setColor(SOMBRA);
+            lote().draw(recursos().quadro(Folha.NAVE, quadro), x - Folha.NAVE.getLargura() / 2f,
+                    y - Folha.NAVE.getAltura() / 2f);
+            lote().setColor(Color.WHITE);
+            escrever(s.nome(), x - s.nome().length() * 5.5f, y + Folha.NAVE.getAltura() / 2f + 22, NOME_DA_SOMBRA,
+                    1.3f);
+        }
+    }
+
     private void desenharExplosao() {
         if (tempoDaExplosao < 0) {
             return;
@@ -331,7 +382,8 @@ public class TelaPilotagem extends TelaBase {
         float x = v.x() + MARGEM;
         float topo = v.topo() - MARGEM;
         float largura = 300;
-        float altura = 214;
+        Optional<String> linhaDasSombras = sombras.descricao();
+        float altura = linhaDasSombras.isPresent() ? 240 : 214;
         NaveEmVoo nave = p.getNave();
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -363,6 +415,8 @@ public class TelaPilotagem extends TelaBase {
                 !voando || p.deslizeSeguro() ? SEGURO : PERIGO, 0.9f);
         escrever(String.format("ângulo %d°", Math.round(nave.getAngulo())), x + 80, topo - 192,
                 !voando || p.inclinacaoSegura() ? SEGURO : PERIGO, 0.9f);
+        linhaDasSombras.ifPresent(texto -> escrever(texto, x + 12, topo - 218,
+                sombras.getSituacao() == SombrasDaPilotagem.Situacao.CONECTADAS ? Color.SKY : Color.LIGHT_GRAY, 0.9f));
         // as mensagens ficam embaixo (acima dos botões), longe da nave, que a câmera mantém no meio da tela
         Retangulo motor = layout.botoes().get(Botao.MOTOR);
         float yDaMensagem = v.y() + MARGEM + (motor != null ? motor.altura() + 34 : 46);
@@ -399,6 +453,10 @@ public class TelaPilotagem extends TelaBase {
         formas().setColor(PERIGO);
         for (AsteroideEmOrbita a : c.getAsteroides()) {
             formas().circle(m.x() + (float) a.getX() * escala, m.y() + (float) a.getY() * escala, 2.5f);
+        }
+        formas().setColor(Color.SKY);
+        for (Sombra s : sombras.getSombras()) {
+            formas().circle(m.x() + (float) s.x() * escala, m.y() + (float) s.y() * escala, 3f);
         }
         NaveEmVoo nave = p.getNave();
         if (nave.getEstado() != NaveEmVoo.Estado.DESTRUIDA) {
