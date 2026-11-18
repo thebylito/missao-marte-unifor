@@ -53,3 +53,11 @@ tasks.named('test') {
 tasks.named('bootRun') {
     workingDir = projectDir
 }
+
+// Um único jar executável, com nome fixo (o Dockerfile copia este arquivo). O jar "plain" não é usado.
+tasks.named('bootJar') {
+    archiveFileName = 'missao-marte-servidor.jar'
+}
+tasks.named('jar') {
+    enabled = false
+}

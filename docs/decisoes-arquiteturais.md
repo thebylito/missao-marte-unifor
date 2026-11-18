@@ -216,3 +216,18 @@ testes do domínio não precisem do servidor.
 **Consequências.** Com o servidor desligado, a entrada mostra "Servidor indisponível. Você pode jogar como
 convidado.", e o resto do jogo segue normal. Os 186 testes do cliente rodam sem servidor. O adaptador é testado
 contra um servidor HTTP falso do JDK em localhost. `nucleo` e `console` não mudaram.
+
+## DA-18 — Só o servidor Java, em contêiner, com docker compose para desenvolvimento (Fase 5)
+
+**Contexto.** Em 2026-11-17 a equipe cogitou uma segunda versão do servidor, em Node.js, para publicar. Em 2026-11-18
+decidiu manter só a API Java, conteinerizada. A Sprint 4 pede o servidor pronto para publicação, com variáveis de
+ambiente, porta, verificação de saúde e persistência documentadas.
+**Decisão.** `servidor/Dockerfile` em dois estágios: JDK 17 para compilar com o wrapper e JRE 17 para rodar o jar,
+com usuário sem privilégios, `VOLUME /dados`, `EXPOSE 8080` e `HEALTHCHECK` no `/actuator/health`.
+`servidor/compose.yaml` cuida do desenvolvimento: porta configurável, volume nomeado, segredo vindo de um `.env`
+ignorado pelo Git (com `.env.exemplo` versionado e vazio) e `develop.watch`, que reconstrói a imagem quando `src/` ou
+o `build.gradle` mudam. O `bootJar` passou a ter nome fixo (`missao-marte-servidor.jar`), e o jar "plain" foi
+desligado.
+**Consequências.** Quem não tem Java sobe o servidor com `docker compose up --build`, e a mesma imagem serve para
+publicar (por exemplo, no Dokploy, se a equipe decidir). A imagem tem cerca de 577 MB, quase tudo do JRE em Ubuntu;
+uma base menor fica como melhoria. Não verificados: o `--watch` na prática e a imagem em amd64.

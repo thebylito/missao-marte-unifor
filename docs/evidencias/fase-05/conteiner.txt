@@ -1,0 +1,41 @@
+Servidor em contêiner (Docker Desktop 29.9.2, Compose v5.6.1, macOS arm64), 2026-11-18.
+Pasta servidor/: Dockerfile (2 estágios: JDK 17 compila com o wrapper, JRE 17 roda o jar) e compose.yaml.
+Segredo do token vindo de servidor/.env (gerado com openssl rand -base64 48; o Git ignora o .env).
+
+$ docker compose build
+Image missao-marte-servidor:dev Built   (577MB)
+
+$ docker compose up -d   (e espera o HEALTHCHECK)
+NAME                  STATUS                        PORTS
+servidor-servidor-1   Up About a minute (healthy)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+
+$ docker compose exec servidor id      (roda sem privilégios)
+uid=999(missao) gid=999(missao) groups=999(missao)
+
+$ curl http://localhost:8080/actuator/health
+{"groups":["liveness","readiness"],"status":"UP"}
+
+Jogo de verdade contra o contêiner (PilotoDaJanela, roteiro "online", endereço padrão http://localhost:8080):
+[Ciclo] conectado ao servidor como Ana
+[Piloto] print prints/03-menu-conectado.png (1600x1200)
+[Piloto] print prints/04-nova-partida-conectado.png (1600x1200)
+[Ciclo] AssetManager: 21 assets liberados; restam 0
+8 prints, iguais aos de janela-online/ (cadastro, vitória enviada, ranking global, histórico)
+
+$ curl http://localhost:8080/api/ranking
+[{"posicao":1,"nome":"Ana","pontos":60,"dificuldade":"FACIL","passageiros":4,"tempoSegundos":4,"registradaEm":"2026-11-18T04:39:26.525527Z"}]
+
+$ docker compose down && docker compose up -d     (contêiner recriado; o volume "dados" fica)
+ Network servidor_default Removed 
+ Container servidor-servidor-1 Started 
+saúde: healthy
+$ curl http://localhost:8080/api/ranking
+[{"posicao":1,"nome":"Ana","pontos":60,"dificuldade":"FACIL","passageiros":4,"tempoSegundos":4,"registradaEm":"2026-11-18T04:39:26.525527Z"}]
+(a vitória da Ana continua lá: o banco H2 está no volume)
+
+$ docker compose logs servidor | grep -c <senha usada no cadastro (segredo1)>
+0
+$ docker image history: nenhuma camada tem o segredo (ele só existe no .env e no ambiente do contêiner)
+0
+
+Não verificado: docker compose up --watch (reconstrução automática ao editar src/) e o build da imagem em amd64.

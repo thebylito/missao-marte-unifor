@@ -1,0 +1,27 @@
+# Servidor de ranking em contêiner, para desenvolvimento.
+#   docker compose up --build          sobe em http://localhost:8080 (Swagger em /swagger-ui.html)
+#   docker compose up --build --watch  idem, e reconstrói sozinho quando src/ ou o build.gradle mudam
+#   docker compose down                para (os dados ficam no volume "dados")
+#   docker compose down -v             para e apaga os dados
+# O segredo do token vem do arquivo .env desta pasta (copie .env.exemplo para .env); o .env não vai para o Git.
+services:
+  servidor:
+    build: .
+    image: missao-marte-servidor:dev
+    ports:
+      - "${PORTA:-8080}:8080"
+    environment:
+      MISSAOMARTE_JWT_SEGREDO: ${MISSAOMARTE_JWT_SEGREDO:-}
+      MISSAOMARTE_DADOS: /dados/missaomarte
+    volumes:
+      - dados:/dados
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src
+        - action: rebuild
+          path: ./build.gradle
+
+volumes:
+  dados:

@@ -80,6 +80,19 @@ cd servidor; .\gradlew.bat bootRun
 | `MISSAOMARTE_DADOS` | arquivo do banco H2 (sem `.mv.db`) | `servidor/dados/missaomarte` |
 | `PORT` | porta HTTP | `8080` |
 
+**Em contêiner** (Docker; não precisa de Java na máquina):
+
+```bash
+cd servidor
+cp .env.exemplo .env          # preencha MISSAOMARTE_JWT_SEGREDO (openssl rand -base64 48); o .env não vai para o Git
+docker compose up --build     # http://localhost:8080; os dados ficam no volume "dados"
+docker compose up --build --watch   # modo dev: reconstrói sozinho quando src/ ou o build.gradle mudam
+docker compose down           # para (docker compose down -v apaga também os dados)
+```
+
+A imagem (`servidor/Dockerfile`) compila com o wrapper num JDK 17 e roda só com o JRE 17, com um usuário sem
+privilégios, o banco em `/dados` e verificação de saúde pelo `/actuator/health`.
+
 Documentação interativa em `http://localhost:8080/swagger-ui.html` (contrato em [`docs/api/openapi.json`](docs/api/openapi.json)).
 Saúde: `http://localhost:8080/actuator/health`.
 

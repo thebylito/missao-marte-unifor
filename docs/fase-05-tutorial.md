@@ -304,6 +304,29 @@ cd servidor; .\gradlew.bat bootRun
 
 Testes: `./gradlew build` (cliente, 186 testes) e `cd servidor && ./gradlew build` (servidor, 21 testes).
 
+**Em contêiner** (acrescentado depois da tag `fase-5`; DA-18):
+
+```bash
+cd servidor
+cp .env.exemplo .env                  # preencha MISSAOMARTE_JWT_SEGREDO; o .env é ignorado pelo Git
+docker compose up --build             # imagem missao-marte-servidor:dev, porta 8080, volume "dados"
+docker compose up --build --watch     # modo dev: reconstrói quando src/ ou o build.gradle mudam
+```
+
+O `Dockerfile` tem dois estágios:
+- o primeiro compila com o wrapper num `eclipse-temurin:17-jdk`, com as dependências numa camada própria que fica
+  em cache;
+- o segundo roda só o jar num `eclipse-temurin:17-jre`, com um usuário sem privilégios, o banco no volume `/dados` e
+  um `HEALTHCHECK` que consulta o `/actuator/health` (pelo próprio bash, sem instalar `curl`).
+
+O segredo nunca entra na imagem: vem do ambiente, pelo `.env`. A evidência está em
+`docs/evidencias/fase-05/conteiner.txt`:
+- a imagem é construída e o contêiner fica `healthy`;
+- o processo roda como `uid=999(missao)`;
+- o jogo de verdade se conecta, cadastra e registra uma vitória;
+- a vitória continua lá depois de `docker compose down` e `up`;
+- o segredo não aparece nas camadas da imagem nem nos logs.
+
 **Validação da fase** (as saídas estão em `docs/evidencias/fase-05/`):
 
 | Verificação | Resultado |
