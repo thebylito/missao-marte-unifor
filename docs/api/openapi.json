@@ -113,6 +113,21 @@
                     "controlador-de-ranking"
                 ],
                 "operationId": "top10",
+                "parameters": [
+                    {
+                        "name": "modo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "CLASSICO",
+                            "enum": [
+                                "CLASSICO",
+                                "PILOTAGEM"
+                            ]
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -269,6 +284,13 @@
                         "format": "int64",
                         "maximum": 86400,
                         "minimum": 0
+                    },
+                    "modo": {
+                        "type": "string",
+                        "enum": [
+                            "CLASSICO",
+                            "PILOTAGEM"
+                        ]
                     }
                 },
                 "required": [
@@ -322,6 +344,13 @@
                     "registradaEm": {
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "modo": {
+                        "type": "string",
+                        "enum": [
+                            "CLASSICO",
+                            "PILOTAGEM"
+                        ]
                     }
                 }
             },

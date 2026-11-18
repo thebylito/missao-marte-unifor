@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.servidor.ranking;
 
+import br.edu.unifor.missaomarte.servidor.partida.Modo;
 import br.edu.unifor.missaomarte.servidor.partida.Partida;
 import br.edu.unifor.missaomarte.servidor.partida.RepositorioDePartidas;
 import br.edu.unifor.missaomarte.servidor.partida.Resultado;
@@ -12,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Top 10 global: a melhor vitória de cada jogador, da maior para a menor pontuação. No empate, fica na frente quem
- * fez a pontuação primeiro. Só vitórias contam, como no ranking local do jogo (Top 5).
+ * fez a pontuação primeiro. Só vitórias contam, como no ranking local do jogo (Top 5). Fase 7: cada modo de jogo
+ * (clássico e pilotagem) tem o seu Top 10.
  */
 @Service
 public class ServicoDeRanking {
@@ -30,10 +32,10 @@ public class ServicoDeRanking {
      * correto para o volume do projeto; com muitos dados, a mesma regra caberia numa consulta com função de janela.
      */
     @Transactional(readOnly = true)
-    public List<PosicaoNoRanking> top10() {
+    public List<PosicaoNoRanking> top10(Modo modo) {
         List<PosicaoNoRanking> ranking = new ArrayList<>();
         Set<Long> jaListados = new HashSet<>();
-        for (Partida p : partidas.melhoresPrimeiro(Resultado.VITORIA)) {
+        for (Partida p : partidas.melhoresPrimeiro(Resultado.VITORIA, modo)) {
             if (jaListados.add(p.getJogador().getId())) {
                 ranking.add(new PosicaoNoRanking(ranking.size() + 1, p.getJogador().getNome(), p.getPontos(),
                         p.getDificuldade(), p.getPassageiros(), p.getTempoSegundos(), p.getRegistradaEm()));

@@ -52,6 +52,10 @@ Regras:
   O nome do volume (`servidor_dados` acima) aparece em `docker volume ls`. Ele depende do nome do projeto do
   compose ou da plataforma.
 - Para restaurar, copie o arquivo de volta para o volume com o servidor parado.
+- **Atualizar uma versão já publicada:** o esquema do banco evolui sozinho (`spring.jpa.hibernate.ddl-auto=update`).
+  Na Fase 7, a coluna `modo` é criada com o valor padrão `CLASSICO`, e as partidas já gravadas passam a contar como
+  do modo clássico. Isso foi testado num banco com partidas das Fases 5 e 6. Faça uma cópia de segurança antes de
+  atualizar, como em qualquer migração.
 
 ## 4. Verificação de saúde
 
