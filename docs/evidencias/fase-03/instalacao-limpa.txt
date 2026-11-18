@@ -1,0 +1,21 @@
+Instalação limpa, executada em 2026-11-18 no macOS (arm64):
+
+1. git clone --branch sprint-2 <repositório> <pasta temporária nova>   (commit ef6dc67)
+2. JAVA_HOME removido do ambiente; o "java" do PATH é o Homebrew OpenJDK 11.0.27
+3. GRADLE_USER_HOME apontando para uma pasta vazia (sem Gradle, libGDX nem JUnit em cache)
+
+$ ./gradlew clean build
+BUILD SUCCESSFUL in 14s
+  - o wrapper baixou gradle-8.14.3-bin para o GRADLE_USER_HOME vazio
+  - o Maven Central forneceu a libGDX 1.14.2 (gdx, gdx-backend-lwjgl3, gdx-platform natives-desktop,
+    gdx-backend-headless para os testes) e o JUnit 5.10.2
+  - resultado: 104 testes, 0 falhas (nucleo 62, console 3, core 39; */build/test-results/test/*.xml)
+  - gerados: console/build/libs/missao-marte-console-3.0.0.jar e lwjgl3/build/libs/missao-marte-3.0.0.jar
+
+Único aviso do Gradle (--warning-mode all):
+  "Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0."
+  Ele se refere à JVM que executa o próprio Gradle (o Java 11 do PATH, escolhido de propósito para este teste),
+  não aos scripts do projeto: a compilação usa o JDK 17 pelo toolchain. Com um JDK 17 no JAVA_HOME o build não
+  mostra nenhum aviso. Para o Gradle 9 será preciso rodar o Gradle com Java 17 ou mais novo.
+
+Não verificado: Windows (gradlew.bat) e Linux. Não havia essas máquinas disponíveis.

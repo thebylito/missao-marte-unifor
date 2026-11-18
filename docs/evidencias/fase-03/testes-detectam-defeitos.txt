@@ -1,0 +1,12 @@
+Defeitos inseridos de propósito numa cópia descartável do projeto; ./gradlew :core:test precisa falhar.
+Falhas contadas nos relatórios XML do JUnit (core/build/test-results/test).
+
+[trocar de tela não libera a anterior] -> PEGO: 1 de 39 testes falharam
+[w vira "baixo"] -> PEGO: 3 de 39 testes falharam
+[eixo y não invertido] -> PEGO: 2 de 39 testes falharam
+[inimigo desenhado por cima do asteroide] -> PEGO: 1 de 39 testes falharam
+[vitória não grava o ranking] -> PEGO: 3 de 39 testes falharam
+[mapa da janela aceita tamanho 1] -> PEGO: 1 de 39 testes falharam
+[apagar o ranking sem confirmar] -> PEGO: 1 de 39 testes falharam
+
+Sem defeitos: 39 testes, 0 falhas.

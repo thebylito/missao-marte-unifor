@@ -61,3 +61,44 @@ padrão e JDK 17 instalado. O libGDX da Fase 3 (1.13.1) já foi usado nesta máq
 **Consequências.** Um único comando (`./gradlew build`) em qualquer máquina com um JDK 17 instalado, provado num
 clone limpo com cache vazio e Java 11 como padrão. A divergência em relação ao referencial (8.7 → 8.14.3) fica
 registrada aqui e no tutorial da Fase 2. Para o Gradle 9, a sintaxe do build já está sem avisos de obsoleto.
+
+## DA-08 — Quatro módulos: nucleo, console, core e lwjgl3 (Fase 3)
+
+**Contexto.** O referencial usa dois módulos (`core` com o jogo e `lwjgl3` com a janela). No nosso projeto as
+regras já existem e não dependem de interface (DA-03), e o enunciado exige que o domínio não dependa da libGDX e
+que o comportamento anterior continue provado.
+**Decisão.** `nucleo` (domínio, aplicação e infraestrutura, Java puro), `console` (o jogo de texto),
+`core` (o cliente libGDX compartilhado: `Game`, telas e controladores) e `lwjgl3` (só o launcher desktop). Só
+`core` e `lwjgl3` declaram a libGDX. O primeiro commit da fase apenas moveu arquivos (`git mv`).
+**Consequências.** "O domínio não depende da libGDX" vira erro de compilação, e não só convenção (prova em
+`docs/evidencias/fase-03/dependencia-proibida.txt`). O console continua jogável e validável pelos mesmos roteiros e
+pela comparação por semente. O módulo Android da Fase 6 reaproveita o `core` como o `lwjgl3` faz. Custo: dois
+módulos a mais que no referencial.
+
+## DA-09 — libGDX 1.14.2 e reinício automático da JVM no macOS (Fase 3)
+
+**Contexto.** O referencial usa a libGDX 1.12.1. A versão estável mais nova no Maven Central é a 1.14.2
+(backend LWJGL 3.3.3), e a regra prática do próprio referencial ("Qual versão usar?") é preferir uma versão
+estável recente. No macOS, a janela (GLFW) precisa rodar na primeira thread do processo, o que exige a opção
+`-XstartOnFirstThread`.
+**Decisão.** libGDX 1.14.2, com a versão declarada uma única vez no `build.gradle` raiz (`gdxVersion`). A tarefa
+`run` passa `-XstartOnFirstThread` no macOS. Fora do Gradle (script do `installDist`, `java -jar`), o
+`ReinicioNoMacOS` reinicia a JVM com essa opção, a mesma ideia do `StartupHelper` dos projetos gerados pela libGDX.
+**Consequências.** `./gradlew :lwjgl3:run`, o script e o jar abrem a janela sem configuração manual. As classes
+usadas (`Game`, `Screen`, `ShapeRenderer`, `FitViewport`, `InputAdapter`) são as mesmas do referencial. Para
+alinhar ao referencial, basta trocar `gdxVersion`.
+
+## DA-10 — Telas passivas, controladores testáveis e troca de tela que libera a anterior (Fase 3)
+
+**Contexto.** As decisões de cada tela (que tecla vira qual comando, quando a partida acabou, quando gravar o
+ranking, a confirmação antes de apagar) precisam de testes. Uma `Screen` da libGDX só roda com janela e OpenGL.
+Além disso, `Game.setScreen` chama `hide()` na tela antiga, mas nunca `dispose()`.
+**Decisão.** Padrão Humble Object: `ControladorDaPartida`, `ControladorDoMenu`, `FormularioNovaPartida`,
+`MapaDeTeclas`, `QuadroDaPartida`, `GeometriaDoMapa` e `TextosDaInterface` ficam no pacote `apresentacao`, sem
+OpenGL. As telas (`telas`) só repassam teclas e desenham o que eles expõem. `MissaoMarteGame.trocarTela` chama
+`dispose()` na tela anterior. Nesta fase o desenho usa só formas (`ShapeRenderer`) e a fonte padrão. Sprites, sons e
+a fonte própria ficam para a Fase 4.
+**Consequências.** 39 testes do `core` rodam sem janela, e 7 defeitos inseridos de propósito foram todos
+detectados. A janela real foi validada de ponta a ponta pelo `validacao/janela/PilotoDaJanela.java`. Limite da
+apresentação: na janela, o mapa vai de 2 a 10. Com tamanho 1, o Médio e o Difícil não cabem no mapa e o sorteio
+nunca termina (problema herdado do console, que continua igual).

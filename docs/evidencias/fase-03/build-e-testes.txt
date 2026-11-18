@@ -1,0 +1,83 @@
+> Task :console:clean
+> Task :core:clean
+> Task :lwjgl3:clean
+> Task :nucleo:clean
+> Task :nucleo:compileJava
+> Task :console:compileJava
+> Task :console:processResources NO-SOURCE
+> Task :console:classes
+> Task :console:jar
+> Task :nucleo:processResources NO-SOURCE
+> Task :nucleo:classes
+> Task :nucleo:jar
+> Task :console:startScripts
+> Task :console:distTar
+> Task :console:distZip
+> Task :console:assemble
+> Task :console:compileTestJava
+> Task :console:processTestResources NO-SOURCE
+> Task :console:testClasses
+> Task :console:test
+> Task :console:check
+> Task :console:build
+> Task :core:compileJava
+> Task :core:processResources NO-SOURCE
+> Task :core:classes
+> Task :core:jar
+> Task :core:assemble
+> Task :core:compileTestJava
+> Task :core:processTestResources NO-SOURCE
+> Task :core:testClasses
+> Task :core:test
+> Task :core:check
+> Task :core:build
+> Task :lwjgl3:compileJava
+> Task :lwjgl3:processResources NO-SOURCE
+> Task :lwjgl3:classes
+> Task :lwjgl3:jar
+> Task :lwjgl3:startScripts
+> Task :lwjgl3:distTar
+> Task :lwjgl3:distZip
+> Task :lwjgl3:assemble
+> Task :lwjgl3:compileTestJava NO-SOURCE
+> Task :lwjgl3:processTestResources NO-SOURCE
+> Task :lwjgl3:testClasses UP-TO-DATE
+> Task :lwjgl3:test NO-SOURCE
+> Task :lwjgl3:check UP-TO-DATE
+> Task :lwjgl3:build
+> Task :nucleo:assemble
+> Task :nucleo:compileTestJava
+> Task :nucleo:processTestResources NO-SOURCE
+> Task :nucleo:testClasses
+> Task :nucleo:test
+> Task :nucleo:check
+> Task :nucleo:build
+
+BUILD SUCCESSFUL in 2s
+24 actionable tasks: 24 executed
+
+Resultado JUnit por classe (build/test-results/test/*.xml de cada módulo):
+  nucleo   ComandoTeste                     2 testes  falhas=0 erros=0
+  nucleo   GeradorDeMissaoTeste             4 testes  falhas=0 erros=0
+  nucleo   PartidaTeste                    14 testes  falhas=0 erros=0
+  nucleo   ServicoRankingTeste              5 testes  falhas=0 erros=0
+  nucleo   DificuldadeTeste                 3 testes  falhas=0 erros=0
+  nucleo   MapaTeste                        3 testes  falhas=0 erros=0
+  nucleo   MissaoTeste                      6 testes  falhas=0 erros=0
+  nucleo   MovimentoAleatorioTeste          3 testes  falhas=0 erros=0
+  nucleo   NaveTeste                        6 testes  falhas=0 erros=0
+  nucleo   PassageiroTeste                  2 testes  falhas=0 erros=0
+  nucleo   RankingTeste                     6 testes  falhas=0 erros=0
+  nucleo   RankingArquivoJsonTeste          8 testes  falhas=0 erros=0
+  nucleo   subtotal: 62
+  console  JogoConsoleTeste                 3 testes  falhas=0 erros=0
+  console  subtotal: 3
+  core     MissaoMarteGameTeste             3 testes  falhas=0 erros=0
+  core     ControladorDaPartidaTeste        9 testes  falhas=0 erros=0
+  core     ControladorDoMenuTeste           5 testes  falhas=0 erros=0
+  core     FormularioNovaPartidaTeste       8 testes  falhas=0 erros=0
+  core     GeometriaDoMapaTeste             5 testes  falhas=0 erros=0
+  core     MapaDeTeclasTeste                4 testes  falhas=0 erros=0
+  core     QuadroDaPartidaTeste             5 testes  falhas=0 erros=0
+  core     subtotal: 39
+  total: 104 testes

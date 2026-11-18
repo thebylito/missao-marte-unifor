@@ -1,0 +1,91 @@
+Janela real (macOS arm64, libGDX 1.14.2/LWJGL3, OpenGL), 2026-11-18, dirigida por validacao/janela/PilotoDaJanela.java.
+As teclas entram pelo InputProcessor da tela atual (keyDown, keyTyped, keyUp), como o backend entrega;
+os prints são lidos do framebuffer. Semente 3, Fácil, mapa 3, ranking numa pasta temporária vazia.
+
+[Ciclo] create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+[Ciclo] show: TelaMenu
+[Ciclo] resize: 800x600
+[Piloto] print janela/01-menu.png (1600x1200)
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 2
+[Piloto] print janela/02-ranking-vazio.png (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Piloto] tecla Enter
+[Piloto] tecla 3
+[Piloto] print janela/03-menu-confirmar-apagar.png (1600x1200)
+[Piloto] tecla N
+[Piloto] print janela/04-menu-apagar-cancelado.png (1600x1200)
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaNovaPartida
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 1
+[Piloto] print janela/05-nova-partida-padrao.png (1600x1200)
+[Piloto] tecla L-Shift
+[Piloto] tecla A
+[Piloto] tecla N
+[Piloto] tecla A
+[Piloto] tecla Left
+[Piloto] tecla Down
+[Piloto] tecla Down
+[Piloto] print janela/06-nova-partida-ana-facil-3.png (1600x1200)
+[Ciclo] hide: TelaNovaPartida
+[Ciclo] show: TelaPartida
+[Ciclo] dispose: TelaNovaPartida
+[Piloto] tecla Enter
+[Piloto] print janela/07-partida-inicio.png (1600x1200)
+[Piloto] tecla D
+[Piloto] tecla D
+[Piloto] tecla C
+[Piloto] tecla S
+[Piloto] tecla S
+[Piloto] tecla C
+[Piloto] print janela/08-partida-dois-a-bordo.png (1600x1200)
+[Piloto] tecla D
+[Piloto] tecla W
+[Piloto] tecla C
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla A
+[Piloto] tecla W
+[Piloto] tecla W
+[Piloto] tecla W
+[Piloto] tecla C
+[Piloto] print janela/09-partida-retorne-a-plataforma.png (1600x1200)
+[Piloto] tecla D
+[Piloto] tecla D
+[Piloto] tecla D
+[Piloto] tecla S
+[Ciclo] hide: TelaPartida
+[Ciclo] show: TelaFimDePartida
+[Ciclo] dispose: TelaPartida
+[Piloto] tecla S
+[Piloto] print janela/10-fim-vitoria.png (1600x1200)
+[Ciclo] hide: TelaFimDePartida
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaFimDePartida
+[Piloto] tecla Enter
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 2
+[Piloto] print janela/11-ranking-com-ana.png (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Piloto] tecla Enter
+[Ciclo] saindo: Gdx.app.exit() pede à libGDX que encerre o laço e chame dispose()
+[Piloto] tecla 4
+[Ciclo] pause
+[Ciclo] dispose: liberando a tela atual e os recursos compartilhados
+[Ciclo] hide: TelaMenu
+[Ciclo] dispose: TelaMenu
+
+ranking.json gravado pela janela:
+[{"name":"Ana","score":60,"dificuldade":"FACIL","passageirosColetados":4,"dataHora":"2026-11-18 00:17:11","tempoJogo":5}]
