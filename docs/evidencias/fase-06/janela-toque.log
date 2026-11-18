@@ -1,0 +1,76 @@
+[Ciclo] create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+[Ciclo] show: TelaCarregamento
+[Ciclo] resize: 800x600
+[Ciclo] carregamento concluído: 21 assets no AssetManager
+[Ciclo] hide: TelaCarregamento
+[Ciclo] show: TelaEntrada
+[Ciclo] dispose: TelaCarregamento
+[Piloto] print prints/01-entrada-toque.png (1600x1200)
+[Ciclo] modo convidado: só o ranking local
+[Ciclo] hide: TelaEntrada
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaEntrada
+[Piloto] toque em 440,228
+[Piloto] print prints/02-menu-toque.png (1600x1200)
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaNovaPartida
+[Ciclo] dispose: TelaMenu
+[Piloto] toque em 470,375
+[Piloto] toque em 595,334
+[Piloto] toque em 595,264
+[Piloto] toque em 595,264
+[Piloto] print prints/03-nova-partida-toque.png (1600x1200)
+[Ciclo] hide: TelaNovaPartida
+[Ciclo] show: TelaPartida
+[Ciclo] dispose: TelaNovaPartida
+[Piloto] toque em 325,96
+[Piloto] print prints/04-partida-toque.png (1600x1200)
+[Piloto] toque em 741,147
+[Piloto] toque em 741,147
+[Piloto] toque em 653,329
+[Piloto] toque em 653,59
+[Piloto] toque em 653,59
+[Piloto] toque em 653,329
+[Piloto] toque em 741,147
+[Piloto] toque em 653,235
+[Piloto] toque em 653,329
+[Piloto] toque em 565,147
+[Piloto] print prints/05-partida-toque-embarques.png (1600x1200)
+[Piloto] toque em 565,147
+[Piloto] toque em 565,147
+[Piloto] toque em 565,147
+[Piloto] toque em 565,147
+[Piloto] toque em 565,147
+[Piloto] toque em 653,235
+[Piloto] toque em 653,235
+[Piloto] toque em 653,235
+[Piloto] toque em 653,329
+[Piloto] toque em 741,147
+[Piloto] toque em 741,147
+[Piloto] toque em 741,147
+[Piloto] toque em 653,59
+[Piloto] toque em 653,59
+[Ciclo] hide: TelaPartida
+[Ciclo] show: TelaFimDePartida
+[Ciclo] dispose: TelaPartida
+[Piloto] print prints/06-fim-vitoria-toque.png (1600x1200)
+[Ciclo] hide: TelaFimDePartida
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaFimDePartida
+[Piloto] toque em 400,300
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] toque em 470,339
+[Piloto] print prints/07-ranking-toque.png (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Piloto] toque em 400,68
+[Ciclo] saindo: Gdx.app.exit() pede à libGDX que encerre o laço e chame dispose()
+[Piloto] toque em 470,267
+[Ciclo] pause
+[Ciclo] dispose: liberando a tela atual e os recursos compartilhados
+[Ciclo] hide: TelaMenu
+[Ciclo] dispose: TelaMenu
+[Ciclo] AssetManager: 21 assets liberados; restam 0

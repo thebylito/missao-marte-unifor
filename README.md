@@ -11,24 +11,25 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 | 3 — libGDX (janela desktop) | validada | `fase-3` | [tutorial](docs/fase-03-tutorial.md) |
 | 4 — Interface gráfica (sprites, sons, HUD) | validada | `fase-4` | [tutorial](docs/fase-04-tutorial.md) |
 | 5 — Servidor e ranking global (Spring Boot) | validada | `fase-5` | [tutorial](docs/fase-05-tutorial.md) · [API (OpenAPI)](docs/api/openapi.json) |
-| 6 — Android | planejada | | |
+| 6 — Android e toque | validada | `fase-6` | [tutorial](docs/fase-06-tutorial.md) · [publicação do servidor](servidor/PUBLICACAO.md) |
 | 7 — Evolução livre | planejada | | |
 
 Decisões de arquitetura: [docs/decisoes-arquiteturais.md](docs/decisoes-arquiteturais.md).
 Kanban: [GitHub Project](https://github.com/users/thebylito/projects/2).
 
-## Executar (estado atual: Fase 5)
+## Executar (estado atual: Fase 6)
 
 Requisito: **um JDK 17 instalado**. O Gradle o encontra sozinho (toolchain), mesmo que o `java` padrão seja outro.
 Não é preciso instalar o Gradle: o wrapper (`gradlew`) baixa a versão certa (8.14.3).
 
-O projeto tem quatro módulos: `nucleo` (as regras, sem libGDX), `console` (o jogo de texto), `core` (o jogo
-gráfico com libGDX 1.14.2) e `lwjgl3` (a janela desktop). Os sprites, sons e fontes ficam em `assets/` (origem em
+O projeto tem cinco módulos: `nucleo` (as regras, sem libGDX), `console` (o jogo de texto), `core` (o jogo
+gráfico com libGDX 1.14.2), `lwjgl3` (a janela desktop) e `android` (o app para celular, que só entra no build
+quando há um Android SDK; veja abaixo). Os sprites, sons e fontes ficam em `assets/` (origem em
 [`assets/ORIGEM.md`](assets/ORIGEM.md)) e são gerados pelos scripts de [`arte/`](arte): Blender para os sprites e
 Python para os sons. Para compilar e jogar não é preciso ter o Blender.
 
 ```bash
-./gradlew build                              # compila os 4 módulos e roda os testes (JUnit 5)
+./gradlew build                              # compila os módulos e roda os testes (JUnit 5); com SDK, gera o APK
 ./gradlew :lwjgl3:run                        # joga na janela
 ./gradlew :console:run -q --console=plain    # joga no terminal (-q esconde as mensagens do Gradle)
 ```
@@ -47,14 +48,33 @@ lado e rodam com `java -jar` (Java 17 no PATH). No macOS a janela precisa de `-X
 `./gradlew :lwjgl3:run` já passa essa opção, e o script e o jar reiniciam a JVM com ela sozinhos. Relatório dos
 testes: `<módulo>/build/reports/tests/test/index.html`.
 
-Controles na janela: na entrada, `1` entrar, `2` criar conta, `3` convidado; `1` a `6` no menu; na nova partida, digite o nome, setas `←`/`→` escolhem a dificuldade,
+Controles na janela: na entrada, `1` entrar, `2` criar conta, `3` convidado, `4` endereço do servidor; `1` a `6` no menu; na nova partida, digite o nome, setas `←`/`→` escolhem a dificuldade,
 `↑`/`↓` o tamanho do mapa e `Enter` decola; na partida, `WASD` ou setas movem, `C` ou espaço embarcam, `Q` ou
 `Esc` abortam, `M` liga e desliga o som. No terminal: `w/a/s/d` movem a nave, `c` embarca o passageiro da célula, `q` aborta a missão.
+Para testar os controles de toque com o mouse: `./gradlew :lwjgl3:run -Dmissaomarte.toque=true`.
 
 O ranking fica em `ranking.json`, na pasta de trabalho do jogo, e é o mesmo para a janela e o terminal: com
 `./gradlew`, a pasta do projeto (outra pasta: `-PpastaDoJogo=/caminho`); com o script ou o jar, a pasta de onde
 foram chamados. Opção `-Dmissaomarte.semente=N` (por exemplo, `./gradlew :lwjgl3:run -Dmissaomarte.semente=7`):
 mesmo mapa e mesmos movimentos dos inimigos a cada execução.
+
+### Android (Fase 6)
+
+O mesmo jogo no celular, com layout para retrato e paisagem e controles de toque (direcional, Embarcar, Som e
+Abortar). Na partida, o botão Voltar do Android não aborta; nas outras telas, ele volta. Requisitos para gerar o
+APK: o Android SDK com a plataforma 36 e o Platform-Tools (o Android Studio instala os dois), e `ANDROID_HOME`
+apontando para ele (ou `sdk.dir=...` num `local.properties` na raiz, que o Git ignora). Sem SDK, o módulo fica de
+fora com um aviso, e o resto do build não muda.
+
+```bash
+./gradlew :android:assembleDebug    # android/build/outputs/apk/debug/android-debug.apk
+./gradlew :android:installDebug     # instala no emulador ou no celular (depuração USB ligada)
+```
+
+Android 8.0 (API 26) ou mais novo. No emulador, o servidor do computador já é o padrão (`http://10.0.2.2:8080`).
+Num celular na mesma rede Wi-Fi, toque em **4. Servidor** na tela de entrada e digite
+`http://<IP do computador>:8080`; o endereço fica guardado no aparelho. Detalhes e limitações no
+[tutorial da Fase 6](docs/fase-06-tutorial.md#11-limitações-de-dispositivo).
 
 ### Servidor de ranking (Fase 5)
 
@@ -79,6 +99,7 @@ cd servidor; .\gradlew.bat bootRun
 | `MISSAOMARTE_JWT_SEGREDO` | segredo do token (32 bytes ou mais); nunca versionar | temporário a cada início |
 | `MISSAOMARTE_DADOS` | arquivo do banco H2 (sem `.mv.db`) | `servidor/dados/missaomarte` |
 | `PORT` | porta HTTP | `8080` |
+| `MISSAOMARTE_URL_PUBLICA` | endereço público (Swagger), só na publicação | `http://localhost:8080` |
 
 **Em contêiner** (Docker; não precisa de Java na máquina):
 
@@ -93,19 +114,22 @@ docker compose down           # para (docker compose down -v apaga também os da
 A imagem (`servidor/Dockerfile`) compila com o wrapper num JDK 17 e roda só com o JRE 17, com um usuário sem
 privilégios, o banco em `/dados` e verificação de saúde pelo `/actuator/health`.
 
+Para publicar (variáveis, saúde, volume, cópia de segurança e HTTPS por proxy): [`servidor/PUBLICACAO.md`](servidor/PUBLICACAO.md).
+
 Documentação interativa em `http://localhost:8080/swagger-ui.html` (contrato em [`docs/api/openapi.json`](docs/api/openapi.json)).
 Saúde: `http://localhost:8080/actuator/health`.
 
 No jogo, a primeira tela oferece **1 entrar**, **2 criar conta** ou **3 jogar como convidado**. O convidado joga sem
 servidor, só com o ranking local, como nas fases anteriores. Com uma conta, cada partida vai para o histórico, e as
-vitórias entram no ranking global (Top 10, a melhor de cada jogador). O endereço do servidor é configurável:
+vitórias entram no ranking global (Top 10, a melhor de cada jogador). O endereço do servidor é configurável na
+opção **4** da entrada (fica guardado) ou na linha de comando, que tem prioridade:
 `./gradlew :lwjgl3:run -Dmissaomarte.servidor=http://outra-maquina:8080` (padrão `http://localhost:8080`). Com o
 servidor desligado, o jogo avisa e continua.
 
 Para ver uma versão anterior: `git checkout fase-0` (`javac -encoding UTF-8 -d out src/*.java` e `java -cp out Main`),
 `git checkout fase-1` (`./build.sh run`), `git checkout fase-2` (`./gradlew run -q --console=plain`),
-`git checkout fase-3` (a janela só com formas: `./gradlew :lwjgl3:run`) ou `git checkout fase-4` (sprites e sons, sem
-servidor).
+`git checkout fase-3` (a janela só com formas: `./gradlew :lwjgl3:run`), `git checkout fase-4` (sprites e sons, sem
+servidor) ou `git checkout fase-5` (servidor e ranking global, só desktop).
 
 ## Validação
 
@@ -116,5 +140,9 @@ Cada fase só é encerrada depois de provada (as evidências ficam em `docs/evid
 - `piloto_automatico.py`: joga partidas inteiras (vencer, colidir, esgotar os pontos) e confere as regras a cada turno;
 - `comparar_com_semente.py`: joga as mesmas partidas, com a mesma semente, em duas versões e compara tudo;
 - `janela/PilotoDaJanela.java`: joga na janela real sem teclado (as teclas entram pelo `InputProcessor`) e salva um
-  print de cada tela a partir do OpenGL. Tem os roteiros `vitoria`, `colisao`, `online` e `offline` (Fase 5) e serve
-  quando o sistema não deixa enviar teclas nem capturar a tela.
+  print de cada tela a partir do OpenGL. Tem os roteiros `vitoria`, `colisao`, `online` e `offline` (Fase 5) e
+  `toque` (Fase 6, cliques nos botões de toque) e serve quando o sistema não deixa enviar teclas nem capturar a tela;
+- `android/pilotar_android.py` (Fase 6): joga no emulador ou num celular pelo `adb` (toques, caixas de texto,
+  rotação, segundo plano) e salva prints e o log;
+- `android/conferir_api_minima.py` (Fase 6): confere no APK pronto se o código do jogo só chama APIs que existem
+  no `minSdk` (o lint do Android não analisa `core` nem `nucleo`).

@@ -1,0 +1,64 @@
+Janela desktop SEM toque: a Fase 6 desenha igual à Fase 5? (PilotoDaJanela, semente 3, prints 1600x1200 do framebuffer)
+
+Método: o mesmo roteiro rodou na tag fase-5 (git archive) duas vezes e na Fase 6 uma vez. A comparação é pixel a pixel.
+Se uma diferença Fase 5 x Fase 6 também aparece entre duas execuções da própria Fase 5, ela vem das animações
+que dependem do relógio (nave flutuando no menu, asteroide girando, explosão, data no ranking), não do código novo.
+
+== roteiro vitoria: Fase 5 x Fase 6
+01-menu.png: 13030 pixels diferentes em (243, 468, 1390, 669)
+02-ranking-vazio.png: idêntico
+03-menu-confirmar-apagar.png: 467 pixels diferentes em (243, 464, 357, 627)
+04-menu-apagar-cancelado.png: idêntico
+05-nova-partida-padrao.png: idêntico
+06-nova-partida-ana-facil-3.png: idêntico
+07-partida-inicio.png: 3620 pixels diferentes em (707, 67, 813, 173)
+08-partida-dois-a-bordo.png: idêntico
+09-partida-retorne-a-plataforma.png: idêntico
+10-fim-vitoria.png: 158 pixels diferentes em (758, 30, 841, 160)
+11-ranking-com-ana.png: 920 pixels diferentes em (988, 380, 1045, 401)
+6/11 prints idênticos
+== roteiro vitoria: Fase 5 x Fase 5 (ruído de tempo)
+01-menu.png: 439 pixels diferentes em (243, 468, 357, 632)
+02-ranking-vazio.png: idêntico
+03-menu-confirmar-apagar.png: 15795 pixels diferentes em (241, 462, 1391, 667)
+04-menu-apagar-cancelado.png: 4961 pixels diferentes em (241, 458, 359, 622)
+05-nova-partida-padrao.png: idêntico
+06-nova-partida-ana-facil-3.png: idêntico
+07-partida-inicio.png: 3620 pixels diferentes em (707, 67, 813, 173)
+08-partida-dois-a-bordo.png: idêntico
+09-partida-retorne-a-plataforma.png: 9730 pixels diferentes em (221, 1013, 336, 1136)
+10-fim-vitoria.png: 2220 pixels diferentes em (753, 29, 847, 160)
+11-ranking-com-ana.png: 712 pixels diferentes em (988, 380, 1037, 401)
+4/11 prints idênticos
+
+== roteiro colisao: Fase 5 x Fase 6
+01-menu.png: 12591 pixels diferentes em (1263, 531, 1390, 669)
+02-ranking-vazio.png: idêntico
+03-menu-confirmar-apagar.png: 226 pixels diferentes em (245, 465, 354, 626)
+04-menu-apagar-cancelado.png: idêntico
+05-nova-partida-padrao.png: idêntico
+06-nova-partida-ana-facil-3.png: idêntico
+07-partida-inicio.png: 3620 pixels diferentes em (707, 67, 813, 173)
+08-partida-embarque.png: idêntico
+09-partida-colisao-explosao.png: 22585 pixels diferentes em (84, 223, 1131, 1146)
+10-partida-nave-destruida.png: 67922 pixels diferentes em (33, 17, 1170, 1171)
+11-fim-derrota.png: idêntico
+6/11 prints idênticos
+== roteiro colisao: Fase 5 x Fase 5 (ruído de tempo)
+01-menu.png: idêntico
+02-ranking-vazio.png: idêntico
+03-menu-confirmar-apagar.png: 16030 pixels diferentes em (243, 463, 1391, 667)
+04-menu-apagar-cancelado.png: 219 pixels diferentes em (243, 459, 357, 621)
+05-nova-partida-padrao.png: idêntico
+06-nova-partida-ana-facil-3.png: idêntico
+07-partida-inicio.png: idêntico
+08-partida-embarque.png: idêntico
+09-partida-colisao-explosao.png: 29174 pixels diferentes em (84, 223, 1132, 1146)
+10-partida-nave-destruida.png: 106615 pixels diferentes em (34, 16, 1172, 1170)
+11-fim-derrota.png: idêntico
+7/11 prints idênticos
+
+Conclusão: as telas sem animação saem idênticas. Nas que diferem, a diferença fica nas mesmas regiões que já
+variam entre duas execuções da Fase 5. Os dois roteiros terminam como na Fase 5: vitória com 60 pontos no ranking
+e derrota por colisão. O layout de 800x600 sem toque também é conferido por teste:
+LayoutDaPartidaTeste.desktopSemToqueFicaIgualAsFasesAnteriores (mapa 20,20,560,560 e painel 596,20,192,560).

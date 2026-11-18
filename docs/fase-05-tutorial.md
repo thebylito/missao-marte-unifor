@@ -367,4 +367,4 @@ O Missão Marte agora tem um servidor de verdade: contas com senha protegida, to
 validação, erros padronizados, documentação e verificação de saúde. O cliente ganhou uma porta (`ServidorDoJogo`) e
 um adaptador HTTP assíncrono, de modo que nenhuma tela trava esperando a rede e o modo convidado continua intacto. O
 domínio do jogo não percebeu nada, e é por isso que o console segue idêntico. O mesmo contrato (`openapi.json`) é o
-ponto de partida para a publicação do servidor (Sprint 4) e para a versão em Node.js.
+ponto de partida para a publicação do servidor (Sprint 4).

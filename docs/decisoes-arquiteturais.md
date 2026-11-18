@@ -161,7 +161,7 @@ com Java 11 como padrão). Por isso o servidor tem `gradle/gradle-daemon-jvm.pro
 wrapper roda o daemon num JDK 17 instalado.
 **Consequências.** Dois comandos e dois terminais (`./gradlew :lwjgl3:run` e `cd servidor && ./gradlew bootRun`). O
 servidor pode ser publicado sozinho (Sprint 4) e reimplementado em outra linguagem com o mesmo contrato (a versão
-Node planejada). Custo: o enum de dificuldade existe nos dois lados.
+Node chegou a ser planejada e foi descartada; ver DA-18). Custo: o enum de dificuldade existe nos dois lados.
 
 ## DA-15 — Senha com BCrypt, token JWT sem estado e erros no formato RFC 9457 (Fase 5)
 
@@ -231,3 +231,105 @@ desligado.
 **Consequências.** Quem não tem Java sobe o servidor com `docker compose up --build`, e a mesma imagem serve para
 publicar (por exemplo, no Dokploy, se a equipe decidir). A imagem tem cerca de 577 MB, quase tudo do JRE em Ubuntu;
 uma base menor fica como melhoria. Não verificados: o `--watch` na prática e a imagem em amd64.
+
+## DA-19 — Módulo Android opcional, minSdk 26 e API mínima conferida no APK (Fase 6)
+
+**Contexto.** A Fase 6 pede um APK que reaproveite o `core`. Nem toda máquina que compila o projeto tem o Android
+SDK (o professor corrigindo o console, por exemplo). O `nucleo` usa `java.nio.file` (ranking em arquivo) e
+`java.time` (datas). O lint do Android não analisa `core` nem `nucleo`, que para ele são dependências externas.
+**Decisão.**
+- Módulo `android` com o Android Gradle Plugin 8.13.2 (o mais novo compatível com o Gradle 8.14.3),
+  `compileSdk`/`targetSdk` 36 e `minSdk` 26.
+- O `settings.gradle` só inclui o módulo quando há SDK (`ANDROID_HOME`, `ANDROID_SDK_ROOT` ou `sdk.dir`).
+- Os assets vêm de `assets/` da raiz, sem cópia.
+- As bibliotecas nativas da libGDX e do FreeType (4 ABIs) são extraídas por uma tarefa (`copiarNativas`) para
+  `android/libs`, pasta gerada e ignorada pelo Git.
+- O `AndroidLauncher` é só a raiz de composição: o ranking fica em `getFilesDir()`, o toque vem ligado e o servidor
+  padrão é o do emulador.
+- A API mínima é conferida no APK pronto por `validacao/android/conferir_api_minima.py`, que lê o bytecode final e
+  procura cada chamada do jogo no `api-versions.xml`, subindo pela hierarquia das classes.
+
+**Consequências.** Sem SDK, o build segue igual ao da Fase 5. O APK de depuração tem 10 MB e roda do Android 8.0 em
+diante. A conferência encontrou 0 chamadas do jogo acima da API 26 e acusou uma chamada da API 33 inserida de
+propósito. Não verificado: um aparelho de verdade abaixo da API 34.
+
+## DA-20 — ExtendViewport e layout da partida calculado em Java puro (Fase 6)
+
+**Contexto.** O `FitViewport` deixava faixas pretas em telas que não são 4:3 (mais da metade de um celular em pé),
+e a `TelaPartida` usava posições fixas para 800x600. A issue #11 pede que nada fique cortado nem sobreposto em
+retrato e paisagem.
+**Decisão.**
+- A `TelaBase` usa `ExtendViewport(800, 600)` com a câmera sempre em (400, 300): as telas desenhadas para 800x600
+  continuam inteiras e centralizadas, e o mundo cresce no lado que sobra.
+- `visivel()` informa a área real, e o fundo a cobre toda.
+- Só a partida reorganiza o conteúdo. Ela usa o `LayoutDaPartida`, um record em Java puro que recebe a área
+  visível e o modo toque e devolve o mapa, o painel e os botões:
+  - paisagem: mapa centralizado na vertical à esquerda, painel e controles na borda direita;
+  - retrato: mapa em cima, painel no meio e controles embaixo.
+- Cada botão tem pelo menos 72 unidades (cerca de 48 dp em paisagem), e o Abortar fica longe do Embarcar.
+
+**Consequências.** O layout é testado em vários tamanhos sem abrir janela: nada cortado, nada sobreposto, alvo
+mínimo e, em 800x600 sem toque, a mesma posição das Fases 4 e 5. Os prints do desktop saem iguais aos da Fase 5,
+salvo as animações. Em 4:3 com toque, o mapa cai para 282 de lado.
+
+## DA-21 — Toque pelo caminho do teclado, Voltar como Esc e caixas de texto do sistema (Fase 6)
+
+**Contexto.** As telas e os controladores eram testados pelo teclado. No celular não há teclado físico, e o botão
+Voltar fecha a `Activity` por padrão.
+**Decisão.**
+- Cada tela declara `alvosDeToque()` como pares `(Retangulo, ação)`. Quase toda ação "aperta" a tecla equivalente
+  (`keyDown`, `keyTyped`, `keyUp`), e a `TelaBase` converte o toque com `viewport.unproject`.
+- O `Keys.BACK` é capturado e tratado como `Esc`, menos na partida: lá, abortar só pelo botão Abortar.
+- No Android, nome, senha e endereço vêm de `Gdx.input.getTextInput` (com o teclado de senha). Depois do OK, o
+  teclado virtual é escondido.
+- `-Dmissaomarte.toque=true` mostra os controles no desktop.
+
+**Consequências.** Não há um segundo caminho de entrada para testar: os controladores são os mesmos. No emulador e
+no celular, o jogo inteiro foi jogado só com toques. Um toque por ação, sem repetição ao segurar o botão
+(a partida é por turnos).
+
+## DA-22 — Endereço do servidor configurável no jogo e HTTP liberado na rede local (Fase 6)
+
+**Contexto.** No celular não existe `-Dmissaomarte.servidor`, e `localhost` é o próprio aparelho. Em aula, o
+servidor roda num computador da rede local, sem certificado. Desde o Android 9, `http://` é bloqueado por padrão.
+**Decisão.**
+- `ConfiguracaoDoServidor` decide o endereço, nesta ordem:
+  1. o `-D` da linha de comando (só no desktop, sem poder trocar na tela);
+  2. o gravado pelo jogador na opção 4 da entrada (nas `Preferences` da libGDX);
+  3. o padrão da plataforma: `localhost:8080` no desktop e `10.0.2.2:8080` no Android (o computador visto pelo
+     emulador).
+- Só aceita `http://` ou `https://`, com host, porta de 1 a 65535 e sem usuário, `?` ou `#`.
+- O `ServidorHttp` lê o endereço a cada pedido, então a troca vale na hora.
+- O manifesto tem `usesCleartextTraffic="true"`.
+
+**Consequências.** O mesmo APK serve para o emulador (sem configurar nada), para um celular na rede local (IP do
+computador) e para um servidor publicado (`https://`). O HTTP fica liberado em qualquer rede. Restringir isso
+com um `network_security_config` numa versão publicada fica como melhoria.
+
+## DA-23 — O Gradle da raiz também roda em Java 17 (Fase 6)
+
+**Contexto.** O plugin Android, como o do Spring Boot 4 (DA-14), exige que o próprio Gradle rode em Java 17 ou mais
+novo. O toolchain só escolhe o JDK que compila.
+**Decisão.** `gradle/gradle-daemon-jvm.properties` na raiz, com `toolchainVersion=17`, e
+`android.useAndroidX=true` no `gradle.properties` (o backend Android da libGDX usa o `androidx.core`).
+**Consequências.** O requisito continua sendo "um JDK 17 instalado em qualquer lugar que o Gradle detecte", mesmo
+com outro `java` como padrão. O Gradle avisa que a descoberta do JVM do daemon é um recurso em incubação.
+
+## DA-24 — Servidor pronto para publicar: endereço público no Swagger e guia de publicação (Fase 6)
+
+**Contexto.** A Sprint 4 pede o servidor pronto para publicação, com as variáveis, a porta, a saúde e a
+persistência documentadas. Num teste em contêiner, o Swagger mostrou o endereço `http://localhost:8080` fixo no
+código, mesmo com os cabeçalhos de proxy: publicado, o "Try it out" mandaria os pedidos para a máquina de quem
+abriu a página.
+**Decisão.** A variável `MISSAOMARTE_URL_PUBLICA` (padrão `http://localhost:8080`) define o endereço do OpenAPI, com
+um teste automático. `servidor/PUBLICACAO.md` documenta:
+- as variáveis (o segredo é obrigatório e nunca fica no Git);
+- o volume `/dados`, com uma instância só, e a cópia de segurança;
+- a saúde (`/actuator/health`, `/liveness` e `/readiness`);
+- o HTTPS por proxy reverso;
+- como desligar a documentação (`SPRINGDOC_*_ENABLED=false`);
+- uma lista de verificação.
+
+**Consequências.** Publicar é configurar a plataforma com esse guia, sem mudar código. Testado localmente com
+Docker: a variável, a documentação desligada, a cópia de segurança e os dados mantidos ao recriar o contêiner.
+Não testados: um proxy HTTPS de verdade e um domínio público. Publicar é uma ação externa e só acontece a pedido.
