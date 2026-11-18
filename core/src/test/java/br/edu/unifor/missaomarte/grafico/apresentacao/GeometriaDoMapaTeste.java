@@ -55,4 +55,12 @@ class GeometriaDoMapaTeste {
             }
         }
     }
+
+    @Test
+    void posicaoFracionariaFicaEntreAsDuasCelulas() {
+        GeometriaDoMapa.Quadrado meio = geometria.celula(0.5f, 0f);       // nave deslizando de (0,0) para (1,0)
+        assertEquals(400, meio.centroX(), DELTA);
+        assertEquals(300, meio.centroY(), DELTA);
+        assertEquals(geometria.celula(new Posicao(1, 2)), geometria.celula(1f, 2f));
+    }
 }

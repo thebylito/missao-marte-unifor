@@ -30,8 +30,10 @@ import java.util.zip.Deflater;
  *   L=lwjgl3/build/install/missao-marte/lib
  *   javac -d /tmp/piloto -cp "$L/*" validacao/janela/PilotoDaJanela.java
  *   mkdir -p /tmp/janela/prints && cd /tmp/janela
- *   java -XstartOnFirstThread -cp "<projeto>/$L/*:/tmp/piloto" PilotoDaJanela /tmp/janela/prints 3
- * (-XstartOnFirstThread só no macOS.) O roteiro de teclas está em montarRoteiro(); com a semente 3 vence com 60.
+ *   java -XstartOnFirstThread -cp "<projeto>/$L/*:/tmp/piloto" PilotoDaJanela /tmp/janela/prints 3 vitoria
+ * (-XstartOnFirstThread só no macOS.) Roteiros (semente 3, Fácil, mapa 3):
+ *   vitoria  - ddcsscdwcaaaaaawwwcdddss: resgata os 4 passageiros e vence com 60 pontos;
+ *   colisao  - ddcsssaaaadada: embarca um passageiro e bate 3 vezes no asteroide em (-2,3) até a nave ser destruída.
  */
 public class PilotoDaJanela extends MissaoMarteGame {
 
@@ -43,13 +45,18 @@ public class PilotoDaJanela extends MissaoMarteGame {
     private int quadros;
     private int numeroDoPrint;
 
-    PilotoDaJanela(ServicosDoJogo servicos, String pasta) {
+    PilotoDaJanela(ServicosDoJogo servicos, String pasta, String roteiro) {
         super(servicos);
         this.pasta = pasta;
-        montarRoteiro();
+        if (roteiro.equals("colisao")) {
+            montarRoteiroDeColisao();
+        } else {
+            montarRoteiro();
+        }
     }
 
-    private void montarRoteiro() {
+    /** Começo comum: menu, ranking vazio, apagar cancelado e a nova partida (Ana, Fácil, mapa 3). */
+    private void comecoComum() {
         print("menu");
         tecla(Keys.NUM_2, '2'); print("ranking-vazio");
         tecla(Keys.ENTER, '\r');
@@ -61,6 +68,10 @@ public class PilotoDaJanela extends MissaoMarteGame {
         tecla(Keys.LEFT, (char) 0);
         tecla(Keys.DOWN, (char) 0); tecla(Keys.DOWN, (char) 0); print("nova-partida-ana-facil-3");
         tecla(Keys.ENTER, '\r'); print("partida-inicio");
+    }
+
+    private void montarRoteiro() {
+        comecoComum();
         String vitoria = "ddcsscdwcaaaaaawwwcdddss";
         for (int i = 0; i < vitoria.length(); i++) {
             char c = vitoria.charAt(i);
@@ -68,11 +79,36 @@ public class PilotoDaJanela extends MissaoMarteGame {
             if (i == 5) print("partida-dois-a-bordo");
             if (i == 18) print("partida-retorne-a-plataforma");
         }
+        aguardar(0.6f);
         print("fim-vitoria");
         tecla(Keys.ENTER, '\r');
         tecla(Keys.NUM_2, '2'); print("ranking-com-ana");
         tecla(Keys.ENTER, '\r');
         tecla(Keys.NUM_4, '4');
+    }
+
+    private void montarRoteiroDeColisao() {
+        comecoComum();
+        String colisao = "ddcsssaaaadada";
+        for (int i = 0; i < colisao.length(); i++) {
+            char c = colisao.charAt(i);
+            tecla(Keys.valueOf(String.valueOf(Character.toUpperCase(c))), c);
+            if (i == 2) print("partida-embarque");
+            if (i == 9) print("partida-colisao-explosao");
+            if (i == 13) print("partida-nave-destruida");
+        }
+        aguardar(1.2f);
+        print("fim-derrota");
+        tecla(Keys.ENTER, '\r');
+        tecla(Keys.NUM_4, '4');
+    }
+
+    /** Passos vazios: dá tempo para animações e efeitos terminarem. */
+    private void aguardar(float segundos) {
+        int passos = (int) Math.ceil(segundos * 60 / QUADROS_ENTRE_PASSOS);
+        for (int i = 0; i < passos; i++) {
+            roteiro.add(() -> { });
+        }
     }
 
     private void tecla(int codigo, char caractere) {
@@ -100,6 +136,9 @@ public class PilotoDaJanela extends MissaoMarteGame {
     @Override
     public void render() {
         super.render();                       // a tela desenha o quadro normalmente
+        if (getRecursos() == null || !getRecursos().isCarregado()) {
+            return;                           // Fase 4: espera a tela de carregamento terminar
+        }
         if (++quadros % QUADROS_ENTRE_PASSOS == 0 && !roteiro.isEmpty()) {
             roteiro.poll().executar();        // o print lê o quadro recém-desenhado, antes da troca de buffers
         }
@@ -115,6 +154,6 @@ public class PilotoDaJanela extends MissaoMarteGame {
         config.useVsync(true);
         config.setForegroundFPS(60);
         config.setIdleFPS(60);                // sem foco a janela continua no mesmo ritmo
-        new Lwjgl3Application(new PilotoDaJanela(servicos, args[0]), config);
+        new Lwjgl3Application(new PilotoDaJanela(servicos, args[0], args.length > 2 ? args[2] : "vitoria"), config);
     }
 }
