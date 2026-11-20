@@ -161,7 +161,7 @@ com Java 11 como padrão). Por isso o servidor tem `gradle/gradle-daemon-jvm.pro
 wrapper roda o daemon num JDK 17 instalado.
 **Consequências.** Dois comandos e dois terminais (`./gradlew :lwjgl3:run` e `cd servidor && ./gradlew bootRun`). O
 servidor pode ser publicado sozinho (Sprint 4) e reimplementado em outra linguagem com o mesmo contrato (a versão
-Node planejada). Custo: o enum de dificuldade existe nos dois lados.
+Node chegou a ser planejada e foi descartada; ver DA-18). Custo: o enum de dificuldade existe nos dois lados.
 
 ## DA-15 — Senha com BCrypt, token JWT sem estado e erros no formato RFC 9457 (Fase 5)
 
@@ -231,3 +231,284 @@ desligado.
 **Consequências.** Quem não tem Java sobe o servidor com `docker compose up --build`, e a mesma imagem serve para
 publicar (por exemplo, no Dokploy, se a equipe decidir). A imagem tem cerca de 577 MB, quase tudo do JRE em Ubuntu;
 uma base menor fica como melhoria. Não verificados: o `--watch` na prática e a imagem em amd64.
+
+## DA-19 — Módulo Android opcional, minSdk 26 e API mínima conferida no APK (Fase 6)
+
+**Contexto.** A Fase 6 pede um APK que reaproveite o `core`. Nem toda máquina que compila o projeto tem o Android
+SDK (o professor corrigindo o console, por exemplo). O `nucleo` usa `java.nio.file` (ranking em arquivo) e
+`java.time` (datas). O lint do Android não analisa `core` nem `nucleo`, que para ele são dependências externas.
+**Decisão.**
+- Módulo `android` com o Android Gradle Plugin 8.13.2 (o mais novo compatível com o Gradle 8.14.3),
+  `compileSdk`/`targetSdk` 36 e `minSdk` 26.
+- O `settings.gradle` só inclui o módulo quando há SDK (`ANDROID_HOME`, `ANDROID_SDK_ROOT` ou `sdk.dir`).
+- Os assets vêm de `assets/` da raiz, sem cópia.
+- As bibliotecas nativas da libGDX e do FreeType (4 ABIs) são extraídas por uma tarefa (`copiarNativas`) para
+  `android/libs`, pasta gerada e ignorada pelo Git.
+- O `AndroidLauncher` é só a raiz de composição: o ranking fica em `getFilesDir()`, o toque vem ligado e o servidor
+  padrão é o do emulador.
+- A API mínima é conferida no APK pronto por `validacao/android/conferir_api_minima.py`, que lê o bytecode final e
+  procura cada chamada do jogo no `api-versions.xml`, subindo pela hierarquia das classes.
+
+**Consequências.** Sem SDK, o build segue igual ao da Fase 5. O APK de depuração tem 10 MB e roda do Android 8.0 em
+diante. A conferência encontrou 0 chamadas do jogo acima da API 26 e acusou uma chamada da API 33 inserida de
+propósito. Não verificado: um aparelho de verdade abaixo da API 34.
+
+## DA-20 — ExtendViewport e layout da partida calculado em Java puro (Fase 6)
+
+**Contexto.** O `FitViewport` deixava faixas pretas em telas que não são 4:3 (mais da metade de um celular em pé),
+e a `TelaPartida` usava posições fixas para 800x600. A issue #11 pede que nada fique cortado nem sobreposto em
+retrato e paisagem.
+**Decisão.**
+- A `TelaBase` usa `ExtendViewport(800, 600)` com a câmera sempre em (400, 300): as telas desenhadas para 800x600
+  continuam inteiras e centralizadas, e o mundo cresce no lado que sobra.
+- `visivel()` informa a área real, e o fundo a cobre toda.
+- Só a partida reorganiza o conteúdo. Ela usa o `LayoutDaPartida`, um record em Java puro que recebe a área
+  visível e o modo toque e devolve o mapa, o painel e os botões:
+  - paisagem: mapa centralizado na vertical à esquerda, painel e controles na borda direita;
+  - retrato: mapa em cima, painel no meio e controles embaixo.
+- Cada botão tem pelo menos 72 unidades (cerca de 48 dp em paisagem), e o Abortar fica longe do Embarcar.
+
+**Consequências.** O layout é testado em vários tamanhos sem abrir janela: nada cortado, nada sobreposto, alvo
+mínimo e, em 800x600 sem toque, a mesma posição das Fases 4 e 5. Os prints do desktop saem iguais aos da Fase 5,
+salvo as animações. Em 4:3 com toque, o mapa cai para 282 de lado.
+
+## DA-21 — Toque pelo caminho do teclado, Voltar como Esc e caixas de texto do sistema (Fase 6)
+
+**Contexto.** As telas e os controladores eram testados pelo teclado. No celular não há teclado físico, e o botão
+Voltar fecha a `Activity` por padrão.
+**Decisão.**
+- Cada tela declara `alvosDeToque()` como pares `(Retangulo, ação)`. Quase toda ação "aperta" a tecla equivalente
+  (`keyDown`, `keyTyped`, `keyUp`), e a `TelaBase` converte o toque com `viewport.unproject`.
+- O `Keys.BACK` é capturado e tratado como `Esc`, menos na partida: lá, abortar só pelo botão Abortar.
+- No Android, nome, senha e endereço vêm de `Gdx.input.getTextInput` (com o teclado de senha). Depois do OK, o
+  teclado virtual é escondido.
+- `-Dmissaomarte.toque=true` mostra os controles no desktop.
+
+**Consequências.** Não há um segundo caminho de entrada para testar: os controladores são os mesmos. No emulador e
+no celular, o jogo inteiro foi jogado só com toques. Um toque por ação, sem repetição ao segurar o botão
+(a partida é por turnos).
+
+## DA-22 — Endereço do servidor configurável no jogo e HTTP liberado na rede local (Fase 6)
+
+**Contexto.** No celular não existe `-Dmissaomarte.servidor`, e `localhost` é o próprio aparelho. Em aula, o
+servidor roda num computador da rede local, sem certificado. Desde o Android 9, `http://` é bloqueado por padrão.
+**Decisão.**
+- `ConfiguracaoDoServidor` decide o endereço, nesta ordem:
+  1. o `-D` da linha de comando (só no desktop, sem poder trocar na tela);
+  2. o gravado pelo jogador na opção 4 da entrada (nas `Preferences` da libGDX);
+  3. o padrão da plataforma: `localhost:8080` no desktop e `10.0.2.2:8080` no Android (o computador visto pelo
+     emulador).
+- Só aceita `http://` ou `https://`, com host, porta de 1 a 65535 e sem usuário, `?` ou `#`.
+- O `ServidorHttp` lê o endereço a cada pedido, então a troca vale na hora.
+- O manifesto tem `usesCleartextTraffic="true"`.
+
+**Consequências.** O mesmo APK serve para o emulador (sem configurar nada), para um celular na rede local (IP do
+computador) e para um servidor publicado (`https://`). O HTTP fica liberado em qualquer rede. Restringir isso
+com um `network_security_config` numa versão publicada fica como melhoria.
+
+## DA-23 — O Gradle da raiz também roda em Java 17 (Fase 6)
+
+**Contexto.** O plugin Android, como o do Spring Boot 4 (DA-14), exige que o próprio Gradle rode em Java 17 ou mais
+novo. O toolchain só escolhe o JDK que compila.
+**Decisão.** `gradle/gradle-daemon-jvm.properties` na raiz, com `toolchainVersion=17`, e
+`android.useAndroidX=true` no `gradle.properties` (o backend Android da libGDX usa o `androidx.core`).
+**Consequências.** O requisito continua sendo "um JDK 17 instalado em qualquer lugar que o Gradle detecte", mesmo
+com outro `java` como padrão. O Gradle avisa que a descoberta do JVM do daemon é um recurso em incubação.
+
+## DA-24 — Servidor pronto para publicar: endereço público no Swagger e guia de publicação (Fase 6)
+
+**Contexto.** A Sprint 4 pede o servidor pronto para publicação, com as variáveis, a porta, a saúde e a
+persistência documentadas. Num teste em contêiner, o Swagger mostrou o endereço `http://localhost:8080` fixo no
+código, mesmo com os cabeçalhos de proxy: publicado, o "Try it out" mandaria os pedidos para a máquina de quem
+abriu a página.
+**Decisão.** A variável `MISSAOMARTE_URL_PUBLICA` (padrão `http://localhost:8080`) define o endereço do OpenAPI, com
+um teste automático. `servidor/PUBLICACAO.md` documenta:
+- as variáveis (o segredo é obrigatório e nunca fica no Git);
+- o volume `/dados`, com uma instância só, e a cópia de segurança;
+- a saúde (`/actuator/health`, `/liveness` e `/readiness`);
+- o HTTPS por proxy reverso;
+- como desligar a documentação (`SPRINGDOC_*_ENABLED=false`);
+- uma lista de verificação.
+
+**Consequências.** Publicar é configurar a plataforma com esse guia, sem mudar código. Testado localmente com
+Docker: a variável, a documentação desligada, a cópia de segurança e os dados mantidos ao recriar o contêiner.
+Não testados: um proxy HTTPS de verdade e um domínio público. Publicar é uma ação externa e só acontece a pedido.
+
+## DA-25 — A melhoria da Fase 7 é um modo novo, ao lado do clássico (Fase 7)
+
+**Contexto.** A Fase 7 pede uma melhoria pequena e demonstrável, que não altere comportamentos anteriores sem
+teste nem explicação. A mecânica de pilotagem da POC (girar, motor, gravidade, pouso) foi validada pelo usuário em
+2026-11-04 e reservada para esta fase (decisão de 2026-11-04, reconfirmada em 2026-11-17).
+**Decisão.**
+- A pilotagem é um **modo de jogo novo**, escolhido na tela de nova missão ("Modo", tecla Tab ou botão).
+- O clássico continua o padrão e não muda.
+- O console não ganha a pilotagem: física em tempo real não cabe num terminal por turnos.
+- As regras ficam num pacote próprio do `nucleo` (`pilotagem`).
+- A análise, com os critérios de aceite e os casos de teste, foi escrita e commitada antes do código
+  (`docs/fase-07-analise.md`).
+
+**Consequências.** O modo clássico é provado igual ao da Fase 6: 200/200 partidas pela semente no console, os
+roteiros do gabarito e os testes antigos. Só as telas de nova missão e de ranking ganharam a escolha do modo, uma
+mudança intencional. O jogo agora tem dois modos para manter.
+
+## DA-26 — Física em passo fixo de 1/120 s e tempo simulado (Fase 7)
+
+**Contexto.** A física com o tempo do quadro muda conforme a taxa de quadros (30 no celular fraco, 144 num monitor
+rápido), e testes que dependem do relógio são lentos e instáveis. A issue #14 pede regras sem relógio, janela ou
+rede nos testes.
+**Decisão.**
+- `PartidaDePilotagem.atualizar(segundos, comandos)` acumula o tempo do quadro e executa quantos passos de 1/120 s
+  couberem. Um quadro longo (a volta do segundo plano) vale no máximo 0,25 s.
+- O tempo da partida é a soma dos passos, e nenhuma regra lê o relógio.
+- Os asteroides são funções do tempo (seno), sem sorteio.
+
+**Consequências.** O mesmo voo dá o mesmo resultado a 30 e a 144 quadros por segundo (teste). O piloto automático é
+determinístico, e a vitória no Fácil é um teste de unidade (0,1 s) e também um roteiro na janela real. O tempo
+mostrado no fim é o tempo de jogo simulado, que pode diferir alguns décimos do relógio de parede.
+
+## DA-27 — A pilotagem reaproveita o domínio e os serviços do clássico (Fase 7)
+
+**Contexto.** O enunciado pede usar os pontos de extensão existentes. Duplicar regras (pontos por passageiro,
+dificuldade, ranking) criaria duas fontes de verdade.
+**Decisão.** A pilotagem usa as peças do clássico:
+- **passageiros:** os mesmos `Astronauta`, `Engenheiro` e `Professor`, com os mesmos nomes; os pontos vêm do
+  polimorfismo de `Passageiro` (20/15/10, desde a Fase 1);
+- **dificuldade e estado:** a `Dificuldade` (cada uma mapeada para uma `ConfigDeVoo`) e o `Partida.Estado` (em
+  andamento, vitória, derrota, abortada);
+- **resultado e ranking:** o `ResultadoPartida` (na pilotagem, os "movimentos" são os pousos) e o `ServicoRanking`
+  com outro `RepositorioRanking` (`ranking-pilotagem.json`), que é o padrão Repository da Fase 1 pagando dividendo;
+- **fim e envio:** o `FimDePartida` e a `TelaFimDePartida`, com o modo e um resumo do voo (o construtor antigo
+  continua valendo para o clássico), e o `EnvioDoResultado` e a `TelaHistorico`, sem mudança de fluxo.
+
+**Consequências.** As regras novas são só as do voo. A correção do plano ("10 por passageiro", um número da POC)
+virou "os pontos do clássico", que é a regra de verdade da versão-base. Os pontos dos dois modos não são
+comparáveis, e por isso cada modo tem o seu ranking.
+
+## DA-28 — Entrada contínua: o controlador acompanha teclas e dedos (Fase 7)
+
+**Contexto.** Até a Fase 6, um toque equivalia a "apertar uma tecla", o que bastava para um jogo por turnos. Na
+pilotagem, os comandos valem enquanto estão apertados, e é preciso girar e acelerar ao mesmo tempo (dois polegares).
+**Decisão.**
+- A `TelaBase` e o `FiltroDeEntrada` passam a repassar o número do dedo, o soltar e o arrastar.
+- O `ControladorDaPilotagem` (Humble Object) guarda as teclas apertadas e a posição de cada dedo e, a cada quadro,
+  calcula os `Comandos`. Um dedo que escorrega para fora do botão o solta, e o Abortar age na hora.
+- O layout dos botões (`LayoutDaPilotagem`) é Java puro e testado: ◄ ► à esquerda, MOTOR maior à direita e Abortar
+  no alto.
+
+**Consequências.**
+- Dois dedos ao mesmo tempo funcionam, e isso está testado. O `adb` não simula dois dedos, então isso foi visto
+  só à mão.
+- O teste do controlador, pilotando só pelo teclado, achou um defeito real: girar junto com o motor na decolagem
+  fazia a nave "pousar" de novo no mesmo instante. Agora a nave sobe reta até os pés saírem da plataforma
+  (`SUBIDA_ANTES_DE_GIRAR`).
+
+## DA-29 — O modo entra na API sem quebrar os clientes antigos (Fase 7)
+
+**Contexto.** Os clientes das Fases 5 e 6 não mandam modo, e o banco de desenvolvimento e o de quem já publicou
+têm partidas gravadas. Cada modo precisa do seu ranking global.
+**Decisão.**
+- `modo` é um campo **opcional** no `POST /api/partidas` (sem ele, `CLASSICO`) e aparece no histórico.
+- `GET /api/ranking` aceita `?modo=` (padrão `CLASSICO`).
+- A coluna `modo` tem `@ColumnDefault("'CLASSICO'")`: ao ser criada num banco com dados, as partidas antigas viram
+  clássicas.
+- O servidor tem o seu enum `Modo`, como já tinha a `Dificuldade` (DA-14).
+- O cliente pede o ranking pelo modo (`ServidorDoJogo.ranking(Modo, ...)`) e manda o modo no resumo.
+
+**Consequências.**
+- Um cliente antigo continua recebendo o mesmo ranking (o clássico).
+- A migração foi conferida no banco de desenvolvimento, com partidas das Fases 5 e 6: o ranking ficou igual, e a
+  partida antiga aparece como `CLASSICO`.
+- Um servidor antigo ignora o campo novo (o Jackson aceita campos desconhecidos), mas devolve o ranking clássico
+  também para a pilotagem.
+
+## DA-30 — Um piloto automático como instrumento de validação (Fase 7)
+
+**Contexto.** Provar que a caverna pode ser vencida com as regras de verdade, sem mãos, é difícil: há paredes, uma
+passagem estreita com um asteroide que sobe e desce, pousos com limites e combustível finito.
+**Decisão.**
+- `PilotoAutomatico` (nos testes do `nucleo`): uma rota por pontos de passagem e um controle por realimentação.
+  Ele calcula a velocidade desejada e o empuxo necessário, gira para o ângulo certo e modula o motor
+  (sigma-delta). Antes da passagem estreita, espera o asteroide começar a descer.
+- O mesmo piloto voa a janela real (roteiro `pilotagem` do `PilotoDaJanela`), apertando e soltando as setas a cada
+  quadro.
+
+**Consequências.**
+- A vitória no Fácil é um teste determinístico.
+- No Médio e no Difícil, o piloto faz as viagens do Astronauta e do Engenheiro. A do Professor, a mais longa, passa
+  dos 100 de combustível do jeito conservador como ele voa.
+- Esse número levou a duas decisões: o tanque do Difícil voltou para 100 (com 80, a caverna seria impossível) e
+  o achado sobre o Médio foi levado ao usuário, junto com a partida jogada à mão no celular.
+
+
+## DA-31 — Modo shadow: o servidor só repassa posições, por WebSocket puro (Fase 7)
+
+**Contexto.** O bloco B da Fase 7 pede ver, em tempo real, as naves de outros pilotos. Cada um continua jogando a
+própria partida: as sombras não batem, não pousam e não pegam passageiros. O HTTP da API não serve para isso:
+seriam 10 pedidos por segundo por piloto, só para perguntar "mudou alguma coisa?".
+**Decisão.**
+- Um canal WebSocket no mesmo servidor Spring Boot (`spring-boot-starter-websocket`), em `/ws/sombras`, com um
+  `TextWebSocketHandler` (o `CanalDeSombras`). É WebSocket puro, sem STOMP: só há três mensagens (`posicao`,
+  `sombra` e `saiu`), e um protocolo de tópicos seria peso sem uso.
+- O servidor não simula nada: confere a mensagem e repassa a posição a todos os outros conectados. Quem sai é
+  anunciado (`saiu`) para a sombra sumir na hora.
+- Não há salas: todos estão na mesma caverna, que é a única do jogo.
+
+**Consequências.**
+- O servidor continua sem estado de jogo (só a lista de conexões abertas, na memória). Reiniciá-lo derruba as
+  sombras, e os clientes reconectam sozinhos.
+- Se um dia houver colisão entre naves ou disputa por passageiros, o servidor precisará simular a partida (ou
+  arbitrar), e isso muda bastante a arquitetura. Ficou fora do escopo.
+
+## DA-32 — O canal das sombras usa o mesmo token da API e tem limites (Fase 7)
+
+**Contexto.** Um canal aberto na internet aceitaria qualquer um, com qualquer nome, mandando mensagens de qualquer
+tamanho na velocidade que quisesse.
+**Decisão.**
+- O aperto de mão do WebSocket é um GET comum, então passa pela mesma segurança da API: sem
+  `Authorization: Bearer <token>` válido, a resposta é 401 e a conexão não abre. O convidado não participa.
+- O nome mostrado vem do token (`nome`), nunca da mensagem: ninguém se passa por outro piloto.
+- Limites: até 512 bytes por mensagem (acima disso, a conexão é fechada); posição dentro da caverna e ângulo entre
+  -180 e 180 (senão, a mensagem é ignorada); no máximo uma posição a cada 40 ms por piloto (as outras são
+  descartadas); até 50 pilotos ao mesmo tempo. O envio a cada piloto é protegido por um
+  `ConcurrentWebSocketSessionDecorator` (1 s e 16 KB de fila), para um cliente lento não travar os outros.
+
+**Consequências.**
+- Os testes de ponta a ponta (`CanalDeSombrasTeste`, servidor numa porta aleatória e clientes WebSocket de verdade)
+  conferem cada regra. Um deles achou um estouro: o "último envio" começava em `Long.MIN_VALUE`, e
+  `agora - Long.MIN_VALUE` dá negativo, então a primeira posição de cada piloto era sempre descartada.
+- Como na API, o servidor não confere se a posição é possível pela física (um cliente modificado poderia
+  "teleportar" a própria sombra). Como as sombras não interferem no jogo dos outros, o risco é só visual.
+
+## DA-33 — No cliente, uma porta para as sombras e a biblioteca Java-WebSocket (Fase 7)
+
+**Contexto.** A libGDX não tem WebSocket, e o Android não tem o `java.net.http` do Java 11. O mesmo código do
+`core` precisa funcionar no desktop e no Android.
+**Decisão.**
+- A porta `ConexaoDeSombras` (abrir com o token, enviar, fechar e um ouvinte), e o adaptador `ConexaoWebSocket` com
+  a Java-WebSocket 1.6.0 (MIT, Java puro). O endereço vem do endereço HTTP do servidor (`http` vira `ws`, `https`
+  vira `wss`), então a opção 4 da entrada vale para as duas coisas.
+- A biblioteca avisa numa thread própria; o adaptador repassa cada aviso à thread do jogo
+  (`Gdx.app.postRunnable`), como o cliente HTTP faz. Avisos de uma conexão já fechada são descartados.
+- A lógica fica na `SombrasDaPilotagem`, em Java puro e testada com uma conexão falsa. Ela manda a posição 10 vezes
+  por segundo. Entre uma mensagem e outra, a sombra desliza até a última posição recebida (suavização
+  exponencial; o ângulo gira pelo lado mais curto), em vez de pular. Sombra sem notícia por 3 s some, e, se a
+  conexão cair, o jogo tenta de novo a cada 3 s.
+- A `TelaPilotagem` só desenha (nave translúcida e azulada com o nome, ponto no minimapa e uma linha no painel) e
+  fecha a conexão ao sair da tela.
+
+**Consequências.**
+- A sombra fica de 100 a 200 ms atrás da nave de verdade (o intervalo entre as mensagens mais a suavização). Para
+  ver outro piloto voar, isso basta; para uma corrida disputada, seria preciso prever o movimento (extrapolação).
+- `conferir_api_minima.py` conferiu as classes da biblioteca e do slf4j que ela usa: nada acima da API 26. A
+  biblioteca escreve um aviso do slf4j ("No SLF4J providers") no log, sem efeito.
+
+## DA-34 — O tanque do Médio continua 100 (Fase 7)
+
+**Contexto.** O piloto automático, que voa de forma conservadora, precisa de cerca de 120 de combustível na viagem
+do Professor (DA-30). A POC dizia que um humano consegue com 100. A decisão ficou com o usuário, depois de jogar à
+mão.
+**Decisão.** Depois de jogar a pilotagem no celular e no desktop, o usuário decidiu manter o tanque do Médio em 100
+(2026-11-18).
+**Consequências.** O Médio continua sendo a POC sem mudanças, e o Fácil (130) fica como a opção para quem ainda
+está aprendendo a pousar. O piloto automático continua sem vencer o Médio: isso mostra que ele é conservador, não
+que o nível seja impossível.

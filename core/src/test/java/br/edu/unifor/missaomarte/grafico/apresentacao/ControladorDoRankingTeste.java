@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.apresentacao;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -63,5 +64,38 @@ class ControladorDoRankingTeste {
         assertEquals(Acao.VOLTAR, ranking.teclaPressionada(Keys.ENTER));
         assertEquals(Acao.VOLTAR, ranking.teclaPressionada(Keys.ESCAPE));
         assertEquals(Acao.NENHUMA, ranking.teclaPressionada(Keys.X));
+    }
+
+    // ------------------------------------------------------------------ CT-25 (Fase 7): um ranking por modo
+
+    private final Ranking daPilotagem = new Ranking(List.of(
+            new RegistroRanking("Bia", 61, Dificuldade.MEDIO, 3, "2026-11-18 02:00:00", 140)));
+    private final ControladorDoRanking porModo = new ControladorDoRanking(local, daPilotagem, servidor);
+
+    @Test
+    void cimaEBaixoTrocamOModoEOLocalMostraOTop5DeCadaUm() {
+        assertEquals(Modo.CLASSICO, porModo.getModo());
+        porModo.teclaPressionada(Keys.DOWN);
+        assertEquals(Modo.PILOTAGEM, porModo.getModo());
+        assertEquals(List.of("1. Bia - 61 pts | Médio | Coletados: 3 | Tempo: 140s | 2026-11-18 02:00:00"),
+                porModo.linhas());
+        porModo.teclaPressionada(Keys.UP);
+        assertEquals(Modo.CLASSICO, porModo.getModo());
+        porModo.teclaPressionada(Keys.P);
+        assertEquals(Modo.PILOTAGEM, porModo.getModo());
+        porModo.teclaPressionada(Keys.C);
+        assertEquals(Modo.CLASSICO, porModo.getModo());
+        assertTrue(servidor.pedidos.isEmpty(), "o local não consulta o servidor");
+    }
+
+    @Test
+    void naAbaGlobalCadaModoConsultaOSeuRankingUmaVez() {
+        porModo.teclaPressionada(Keys.G);
+        porModo.teclaPressionada(Keys.M);
+        porModo.teclaPressionada(Keys.M);
+        porModo.teclaPressionada(Keys.M);
+        assertEquals(List.of("ranking", "ranking PILOTAGEM"), servidor.pedidos);
+        assertEquals(Modo.PILOTAGEM, porModo.getModo());
+        assertEquals(List.of("Consultando o servidor..."), porModo.linhas());
     }
 }

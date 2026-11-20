@@ -13,6 +13,9 @@ import br.edu.unifor.missaomarte.grafico.apresentacao.EfeitosDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.GeometriaDoMapa;
 import br.edu.unifor.missaomarte.grafico.apresentacao.GeometriaDoMapa.Quadrado;
 import br.edu.unifor.missaomarte.grafico.apresentacao.Hud;
+import br.edu.unifor.missaomarte.grafico.apresentacao.Botao;
+import br.edu.unifor.missaomarte.grafico.apresentacao.LayoutDaPartida;
+import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
 import br.edu.unifor.missaomarte.grafico.apresentacao.TextosDaInterface;
 import br.edu.unifor.missaomarte.grafico.recursos.Folha;
 import br.edu.unifor.missaomarte.grafico.recursos.FolhaDeSprites;
@@ -21,7 +24,9 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tela de jogo (Fase 4): mapa com sprites, deslize entre células, explosões, tremor e HUD. Não decide nada: lê a
@@ -29,10 +34,6 @@ import java.util.List;
  * (fundos translúcidos, células e barras) e depois sprites e textos.
  */
 public class TelaPartida extends TelaBase {
-
-    private static final float LADO_DO_MAPA = MissaoMarteGame.ALTURA - 2 * MARGEM;
-    private static final float X_DO_PAINEL = MARGEM + LADO_DO_MAPA + 16;
-    private static final float LARGURA_DO_PAINEL = MissaoMarteGame.LARGURA - X_DO_PAINEL - 12;
 
     private static final Color COR_SUCESSO = new Color(0.45f, 0.95f, 0.45f, 1);
     private static final Color COR_ALERTA = new Color(1f, 0.85f, 0.3f, 1);
@@ -42,12 +43,37 @@ public class TelaPartida extends TelaBase {
     private static final Color COR_VIDA_PERDIDA = new Color(0.25f, 0.2f, 0.22f, 0.8f);
 
     private final CenaDaPartida cena;
-    private final GeometriaDoMapa geometria;
+    /** Fase 6: recalculados a cada quadro a partir da área visível (girar o celular muda tudo). */
+    private LayoutDaPartida layout;
+    private GeometriaDoMapa geometria;
 
     public TelaPartida(MissaoMarteGame jogo, CenaDaPartida cena) {
         super(jogo);
         this.cena = cena;
-        this.geometria = new GeometriaDoMapa(missao().getMapa(), MARGEM, MARGEM, LADO_DO_MAPA);
+        posicionar();
+    }
+
+    private void posicionar() {
+        layout = LayoutDaPartida.calcular(visivel(), toque());
+        Retangulo m = layout.mapa();
+        geometria = new GeometriaDoMapa(missao().getMapa(), m.x(), m.y(), m.largura());
+    }
+
+    /** O botão Voltar do Android não aborta a partida (use o botão Abortar ou Esc). */
+    @Override
+    protected boolean voltarFuncionaComoEsc() {
+        return false;
+    }
+
+    /** Fase 6: cada botão de toque aperta a tecla equivalente; o resto é o mesmo caminho do teclado. */
+    @Override
+    protected List<AlvoDeToque> alvosDeToque() {
+        posicionar();
+        List<AlvoDeToque> alvos = new ArrayList<>();
+        for (Map.Entry<Botao, Retangulo> b : layout.botoes().entrySet()) {
+            alvos.add(tecla(b.getValue(), b.getKey().getTecla(), (char) 0));
+        }
+        return alvos;
     }
 
     private Missao missao() {
@@ -77,6 +103,7 @@ public class TelaPartida extends TelaBase {
         float dx = efeitos.tremorX();
         float dy = efeitos.tremorY();
         Hud hud = Hud.de(cena.getControlador().getPartida());
+        posicionar();
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -89,6 +116,7 @@ public class TelaPartida extends TelaBase {
         desenharSprites(dx, dy);
         desenharPainel(hud);
         lote().end();
+        desenharControles();
     }
 
     // ------------------------------------------------------------------ mapa
@@ -96,7 +124,8 @@ public class TelaPartida extends TelaBase {
     private void desenharTabuleiro(float dx, float dy) {
         float lado = geometria.getLadoDaCelula();
         formas().setColor(0.05f, 0.03f, 0.04f, 0.55f);
-        formas().rect(MARGEM - 4 + dx, MARGEM - 4 + dy, LADO_DO_MAPA + 8, LADO_DO_MAPA + 8);
+        Retangulo m = layout.mapa();
+        formas().rect(m.x() - 4 + dx, m.y() - 4 + dy, m.largura() + 8, m.altura() + 8);
         Posicao plataforma = missao().getMapa().getPlataforma();
         for (int y = missao().getMapa().getMin(); y <= missao().getMapa().getMax(); y++) {
             for (int x = missao().getMapa().getMin(); x <= missao().getMapa().getMax(); x++) {
@@ -177,29 +206,50 @@ public class TelaPartida extends TelaBase {
 
     // ------------------------------------------------------------------ HUD
 
-    private static final float Y_COMBUSTIVEL = 395;
-    private static final float Y_ASSENTOS = 330;
     private static final float LADO_DO_ASSENTO = 30;
+    private static final Color COR_DO_DIRECIONAL = new Color(0.95f, 0.75f, 0.4f, 0.95f);
+
+    /**
+     * Posições do painel. Em paisagem ele é uma coluna estreita (as mesmas posições das Fases 4 e 5); em retrato é uma
+     * faixa larga dividida em duas colunas: identidade, vidas e pontos à esquerda; passageiros e mensagens à direita.
+     */
+    private record Painel(float x, float topo, float largura, float xDireita, float topoDireita, float larguraDaColuna,
+                          float yCombustivel, float yAssentos) {
+
+        static Painel de(Retangulo p, boolean largo) {
+            if (!largo) {
+                return new Painel(p.x(), p.topo(), p.largura(), p.x(), p.topo() - 198, p.largura(),
+                        p.topo() - 185, p.topo() - 250);
+            }
+            float coluna = p.largura() / 2 - 16;
+            return new Painel(p.x() + 8, p.topo(), coluna, p.centroX() + 10, p.topo() - 8, coluna,
+                    p.topo() - 175, p.topo() - 78);
+        }
+    }
 
     private void desenharFundoDoPainel(Hud hud) {
+        Retangulo p = layout.painel();
+        Painel pos = Painel.de(p, layout.retrato());
         formas().setColor(0.05f, 0.03f, 0.05f, 0.62f);
-        formas().rect(X_DO_PAINEL - 8, MARGEM - 4, LARGURA_DO_PAINEL + 12, LADO_DO_MAPA + 8);
+        formas().rect(p.x() - 8, p.y() - 4, p.largura() + 12, p.altura() + 8);
         // barra de combustível (pontos): vermelha quando acaba, verde quando cheia
+        float larguraDaBarra = pos.largura() - 8;
         formas().setColor(0.18f, 0.14f, 0.16f, 1);
-        formas().rect(X_DO_PAINEL, Y_COMBUSTIVEL, LARGURA_DO_PAINEL - 8, 12);
+        formas().rect(pos.x(), pos.yCombustivel(), larguraDaBarra, 12);
         float c = hud.combustivel();
         formas().setColor(1 - c, 0.25f + 0.65f * c, 0.2f, 1);
-        formas().rect(X_DO_PAINEL, Y_COMBUSTIVEL, (LARGURA_DO_PAINEL - 8) * c, 12);
+        formas().rect(pos.x(), pos.yCombustivel(), larguraDaBarra * c, 12);
         // assentos da nave
         for (int i = 0; i < hud.capacidade(); i++) {
             formas().setColor(i < hud.aBordo().size() ? COR_ASSENTO_OCUPADO : COR_ASSENTO_LIVRE);
-            formas().rect(X_DO_PAINEL + i * (LADO_DO_ASSENTO + 3), Y_ASSENTOS, LADO_DO_ASSENTO, LADO_DO_ASSENTO);
+            formas().rect(pos.xDireita() + i * (LADO_DO_ASSENTO + 3), pos.yAssentos(), LADO_DO_ASSENTO, LADO_DO_ASSENTO);
         }
     }
 
     private void desenharPainel(Hud hud) {
-        float x = X_DO_PAINEL;
-        float y = MissaoMarteGame.ALTURA - MARGEM - 8;
+        Painel pos = Painel.de(layout.painel(), layout.retrato());
+        float x = pos.x();
+        float y = pos.topo() - 8;
         escreverTitulo("MISSÃO MARTE", x, y, Color.ORANGE, 1.25f);
         y -= 34;
         escrever(hud.piloto(), x, y, Color.WHITE, 1f);
@@ -215,30 +265,70 @@ public class TelaPartida extends TelaBase {
         }
         lote().setColor(Color.WHITE);
 
-        escrever("Pontos: " + hud.pontos(), x, Y_COMBUSTIVEL + 32, Color.WHITE, 1f);
+        escrever("Pontos: " + hud.pontos(), x, pos.yCombustivel() + 32, Color.WHITE, 1f);
 
-        escrever("A bordo " + hud.aBordo().size() + "/" + hud.capacidade(), x, Y_ASSENTOS + 52, Color.WHITE, 0.95f);
+        float xd = pos.xDireita();
+        escrever("A bordo " + hud.aBordo().size() + "/" + hud.capacidade(), xd, pos.yAssentos() + 52, Color.WHITE, 0.95f);
         for (int i = 0; i < hud.aBordo().size(); i++) {
-            float cx = x + i * (LADO_DO_ASSENTO + 3) + LADO_DO_ASSENTO / 2;
-            desenharCentralizado(folhaDo(hud.aBordo().get(i)), 0, cx, Y_ASSENTOS + LADO_DO_ASSENTO / 2,
+            float cx = xd + i * (LADO_DO_ASSENTO + 3) + LADO_DO_ASSENTO / 2;
+            desenharCentralizado(folhaDo(hud.aBordo().get(i)), 0, cx, pos.yAssentos() + LADO_DO_ASSENTO / 2,
                     LADO_DO_ASSENTO - 2);
         }
 
-        y = Y_ASSENTOS - 26;
-        escrever("Restantes no mapa: " + hud.restantes(), x, y, Color.LIGHT_GRAY, 0.85f);
+        y = pos.yAssentos() - 26;
+        escrever("Restantes no mapa: " + hud.restantes(), xd, y, Color.LIGHT_GRAY, 0.85f);
         y -= 20;
-        escrever("Movimentos: " + hud.movimentos(), x, y, Color.LIGHT_GRAY, 0.85f);
+        escrever("Movimentos: " + hud.movimentos(), xd, y, Color.LIGHT_GRAY, 0.85f);
 
         y -= 30;
         List<Evento> eventos = cena.getControlador().getUltimosEventos();
         for (Evento e : eventos) {
-            y -= escreverComQuebra(TextosDaInterface.evento(e), x, y, LARGURA_DO_PAINEL - 6, cor(Hud.tom(e)), 0.85f) + 6;
+            y -= escreverComQuebra(TextosDaInterface.evento(e), xd, y, pos.larguraDaColuna() - 6, cor(Hud.tom(e)), 0.85f)
+                    + 6;
         }
 
-        escrever("Som: " + (cena.isSomLigado() ? "ligado" : "desligado") + " (M)", x, 112, Color.GRAY, 0.8f);
-        escrever("WASD/setas: mover", x, 88, Color.GRAY, 0.8f);
-        escrever("C/espaço: embarcar", x, 68, Color.GRAY, 0.8f);
-        escrever("Q/Esc: abortar", x, 48, Color.GRAY, 0.8f);
+        if (!toque() && !layout.retrato()) {
+            float base = layout.painel().y();
+            escrever("Som: " + (cena.isSomLigado() ? "ligado" : "desligado") + " (M)", x, base + 92, Color.GRAY, 0.8f);
+            escrever("WASD/setas: mover", x, base + 68, Color.GRAY, 0.8f);
+            escrever("C/espaço: embarcar", x, base + 48, Color.GRAY, 0.8f);
+            escrever("Q/Esc: abortar", x, base + 28, Color.GRAY, 0.8f);
+        }
+    }
+
+    /** Fase 6: direcional (setas desenhadas) e botões de ação, só no modo toque. */
+    private void desenharControles() {
+        if (!toque()) {
+            return;
+        }
+        List<Retangulo> areas = new ArrayList<>();
+        List<String> rotulos = new ArrayList<>();
+        for (Map.Entry<Botao, Retangulo> b : layout.botoes().entrySet()) {
+            areas.add(b.getValue());
+            rotulos.add(b.getKey() == Botao.SOM ? (cena.isSomLigado() ? "Som: ligado" : "Som: mudo")
+                    : b.getKey().isDirecao() ? "" : b.getKey().getRotulo());
+        }
+        desenharBotoes(areas, rotulos, 0.95f);
+        formas().begin(ShapeType.Filled);
+        formas().setColor(COR_DO_DIRECIONAL);
+        for (Map.Entry<Botao, Retangulo> b : layout.botoes().entrySet()) {
+            if (b.getKey().isDirecao()) {
+                seta(b.getKey(), b.getValue());
+            }
+        }
+        formas().end();
+    }
+
+    private void seta(Botao direcao, Retangulo r) {
+        float cx = r.centroX();
+        float cy = r.centroY();
+        float t = r.largura() * 0.28f;
+        switch (direcao) {
+            case CIMA: formas().triangle(cx, cy + t, cx - t, cy - t, cx + t, cy - t); break;
+            case BAIXO: formas().triangle(cx, cy - t, cx - t, cy + t, cx + t, cy + t); break;
+            case ESQUERDA: formas().triangle(cx - t, cy, cx + t, cy + t, cx + t, cy - t); break;
+            default: formas().triangle(cx + t, cy, cx - t, cy + t, cx - t, cy - t); break;
+        }
     }
 
     private static Color cor(Hud.Tom tom) {

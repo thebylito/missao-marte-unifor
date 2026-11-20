@@ -85,6 +85,11 @@ public final class Recursos implements Disposable {
         p.genMipMaps = potenciaDeDois;
         p.minFilter = potenciaDeDois ? TextureFilter.MipMapLinearLinear : TextureFilter.Linear;
         p.magFilter = TextureFilter.Linear;
+        if (f == Folha.ROCHA) {
+            // Fase 7: a rocha é um ladrilho repetido pelas paredes da caverna; repetir exige potência de 2 no ES 2
+            p.wrapU = Texture.TextureWrap.Repeat;
+            p.wrapV = Texture.TextureWrap.Repeat;
+        }
         return p;
     }
 

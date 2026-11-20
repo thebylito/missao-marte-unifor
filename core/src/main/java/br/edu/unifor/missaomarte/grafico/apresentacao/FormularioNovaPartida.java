@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.apresentacao;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
 
 /**
@@ -22,11 +23,22 @@ public final class FormularioNovaPartida {
     private final StringBuilder nome = new StringBuilder();
     private Dificuldade dificuldade = Dificuldade.MEDIO;
     private int tamanho = TAMANHO_PADRAO;
+    private Modo modo = Modo.CLASSICO;
 
     /** Caractere digitado. Teclas de controle (Enter, Backspace, Tab...) não entram no nome. */
     public void digitar(char c) {
         if (!Character.isISOControl(c) && nome.length() < NOME_MAXIMO) {
             nome.append(c);
+        }
+    }
+
+    /** Fase 6: caixa de texto do celular (substitui o nome). */
+    public void definirNome(String texto) {
+        nome.setLength(0);
+        if (texto != null) {
+            for (char c : texto.toCharArray()) {
+                digitar(c);
+            }
         }
     }
 
@@ -67,6 +79,15 @@ public final class FormularioNovaPartida {
 
     public Dificuldade getDificuldade() {
         return dificuldade;
+    }
+
+    /** Fase 7: clássico (o padrão, como antes) ou pilotagem. */
+    public void alternarModo() {
+        modo = modo.outro();
+    }
+
+    public Modo getModo() {
+        return modo;
     }
 
     public int getTamanho() {

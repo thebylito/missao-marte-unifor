@@ -2,11 +2,13 @@
 // Aqui fica só o que é comum a todos os módulos; cada módulo tem o seu build.gradle.
 
 ext {
-    // versão da libGDX num único lugar (usada por core e lwjgl3)
+    // versão da libGDX num único lugar (usada por core, lwjgl3 e android)
     gdxVersion = '1.14.2'
 }
 
-subprojects {
+// Fase 6: o módulo android usa o plugin do Android, que não convive com o plugin "java"; as regras comuns abaixo
+// valem para os módulos Java (nucleo, console, core e lwjgl3). O android tem as suas no próprio build.gradle.
+configure(subprojects.findAll { it.name != 'android' }) {
     apply plugin: 'java'
 
     group = 'br.edu.unifor.missaomarte'

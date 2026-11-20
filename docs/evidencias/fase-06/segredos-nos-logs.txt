@@ -1,0 +1,19 @@
+Segredos no logcat do Android (roteiro completo no emulador, piloto Duda cadastrado e conectado pelo jogo)
+
+logcat do processo do jogo (adb logcat -d --pid <pid do br.edu.unifor.missaomarte>): 715 linhas
+  senha de teste do roteiro: 0 ocorrências
+  Bearer: 0 ocorrências
+  cabeçalho Authorization: 0 ocorrências
+  início de um JWT (eyJ): 0 ocorrências
+
+logcat do aparelho inteiro: 1 ocorrência da senha, vinda do adbd (o serviço do adb), que registra o comando
+usado pelo próprio roteiro para digitar no emulador (adb shell input text ...):
+  I adbd    : adbd service requested 'shell,v2,TERM=xterm-256color,raw:input text <SENHA>'
+Ou seja, a ocorrência vem da automação do teste. Num celular, o jogador digita no teclado e esse registro não existe.
+
+Celular de verdade (Samsung, Android 17 / API 37), roteiro completo com a piloto Fabi:
+logcat do processo do jogo desde a abertura: 1089 linhas
+  senha de teste do roteiro: 0 ocorrências
+  Bearer: 0 ocorrências
+  cabeçalho Authorization: 0 ocorrências
+  início de um JWT (eyJ): 0 ocorrências

@@ -11,10 +11,10 @@ public interface RepositorioDePartidas extends JpaRepository<Partida, Long> {
     List<Partida> findByJogadorIdOrderByRegistradaEmDescIdDesc(Long jogadorId, Pageable limite);
 
     /**
-     * Vitórias da maior para a menor pontuação; no empate, a mais antiga primeiro. O jogador vem junto (join fetch)
-     * para o ranking não fazer uma consulta extra por linha.
+     * Vitórias de um modo, da maior para a menor pontuação; no empate, a mais antiga primeiro. O jogador vem junto
+     * (join fetch) para o ranking não fazer uma consulta extra por linha.
      */
-    @Query("select p from Partida p join fetch p.jogador where p.resultado = :resultado "
+    @Query("select p from Partida p join fetch p.jogador where p.resultado = :resultado and p.modo = :modo "
             + "order by p.pontos desc, p.registradaEm asc, p.id asc")
-    List<Partida> melhoresPrimeiro(Resultado resultado);
+    List<Partida> melhoresPrimeiro(Resultado resultado, Modo modo);
 }

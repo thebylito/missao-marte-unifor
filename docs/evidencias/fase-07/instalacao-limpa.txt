@@ -1,0 +1,18 @@
+Instalação limpa da Fase 7, executada em 2026-11-18 no macOS (arm64):
+
+1. git clone --branch sprint-4 <repositório> <pasta temporária nova>   (commit e6c031e; sem local.properties)
+2. JAVA_HOME removido do ambiente; o "java" do PATH é o Homebrew OpenJDK 11.0.27
+3. GRADLE_USER_HOME apontando para uma pasta vazia (o wrapper baixou o Gradle 8.14.3)
+
+A) SEM Android SDK:  ./gradlew clean build
+   "Android SDK não encontrado: o módulo android fica de fora (desktop e console continuam normais)."
+   BUILD SUCCESSFUL in 17s; 25 tarefas; 263 testes, 0 falhas (nucleo 92, console 3, core 168)
+
+B) COM Android SDK (o cache ainda sem o plugin Android):  ./gradlew clean build
+   BUILD SUCCESSFUL in 1m 14s; 123 tarefas; 263 testes, 0 falhas
+   android-debug.apk: 10557863 bytes (o mesmo tamanho do APK local)
+
+C) Servidor (o mesmo cache):  cd servidor && ./gradlew clean build
+   BUILD SUCCESSFUL in 54s; 28 testes, 0 falhas
+
+Não verificado: Windows (gradlew.bat) e Linux.

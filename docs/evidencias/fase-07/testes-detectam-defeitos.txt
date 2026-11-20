@@ -1,0 +1,36 @@
+Defeitos inseridos de propósito numa cópia descartável; os testes do módulo afetado (./gradlew :nucleo:test,
+:core:test ou, no servidor, ./gradlew test) precisam falhar. Falhas contadas nos relatórios XML do JUnit.
+
+[nucleo] [limite de queda exclusivo] -> PEGO: 1 de 92 testes falharam
+[nucleo] [motor empurra sem combustível] -> PEGO: 1 de 92 testes falharam
+[nucleo] [motor não gasta combustível] -> PEGO: 2 de 92 testes falharam
+[nucleo] [giro invertido] -> PEGO: 5 de 92 testes falharam
+[nucleo] [girar logo na decolagem] -> PEGO: 2 de 92 testes falharam
+[nucleo] [embarque imediato] -> PEGO: 1 de 92 testes falharam
+[nucleo] [nave cheia embarca mesmo assim] -> PEGO: 1 de 92 testes falharam
+[nucleo] [explosão não devolve os passageiros] -> PEGO: 1 de 92 testes falharam
+[nucleo] [pontos fixos em vez dos do passageiro] -> PEGO: 4 de 92 testes falharam
+[nucleo] [bônus sem olhar o combustível] -> PEGO: 1 de 92 testes falharam
+[nucleo] [um passo por quadro (física depende da taxa de quadros)] -> PEGO: 2 de 92 testes falharam
+[nucleo] [renasce sem esperar] -> PEGO: 1 de 92 testes falharam
+[nucleo] [Fácil igual ao Médio] -> PEGO: 3 de 92 testes falharam
+[nucleo] [asteroide parado] -> PEGO: 3 de 92 testes falharam
+[cliente] [botões da pilotagem sem tamanho mínimo] -> PEGO: 1 de 168 testes falharam
+[cliente] [Abortar por cima do minimapa] -> PEGO: 2 de 168 testes falharam
+[cliente] [câmera mostra o lado de fora da caverna] -> PEGO: 2 de 168 testes falharam
+[cliente] [soltar o dedo não solta o botão] -> PEGO: 1 de 168 testes falharam
+[cliente] [botão Abortar não aborta] -> PEGO: 1 de 168 testes falharam
+[cliente] [vitória da pilotagem não entra no ranking] -> PEGO: 1 de 168 testes falharam
+[cliente] [pilotagem vai ao servidor como clássico] -> PEGO: 2 de 168 testes falharam
+[cliente] [ranking global ignora o modo] -> PEGO: 1 de 168 testes falharam
+[cliente] [formulário não troca de modo] -> PEGO: 1 de 168 testes falharam
+[cliente] [cliente HTTP não envia o modo] -> PEGO: 2 de 168 testes falharam
+[servidor] [ranking mistura os modos] -> PEGO: 1 de 28 testes falharam
+[servidor] [sem o modo, vira pilotagem] -> PEGO: 7 de 28 testes falharam
+[servidor] [histórico sem o modo de verdade] -> PEGO: 2 de 28 testes falharam
+
+Sem defeitos (nucleo): 92 testes, 0 falhas.
+
+Sem defeitos (cliente): 168 testes, 0 falhas.
+
+Sem defeitos (servidor): 28 testes, 0 falhas.

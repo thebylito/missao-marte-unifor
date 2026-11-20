@@ -1,0 +1,5 @@
+--------- beginning of main
+I Ciclo   : create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+I Ciclo   : resize: 720x1280
+I Ciclo   : carregamento concluído: 21 assets no AssetManager
+I Ciclo   : modo convidado: só o ranking local

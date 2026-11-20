@@ -1,0 +1,31 @@
+Defeitos inseridos de propósito numa cópia descartável; os testes do servidor (./gradlew test em servidor/)
+ou do cliente (./gradlew :core:test) precisam falhar. Falhas contadas nos relatórios XML do JUnit.
+
+[servidor] [Swagger com o endereço de desenvolvimento fixo] -> PEGO: 1 de 23 testes falharam
+[cliente] [retrato e paisagem trocados] -> PEGO: 4 de 144 testes falharam
+[cliente] [botão sem tamanho mínimo de alvo] -> PEGO: 1 de 144 testes falharam
+[cliente] [botão sem tamanho máximo] -> PEGO: 1 de 144 testes falharam
+[cliente] [controles em paisagem por cima do mapa] -> PEGO: 2 de 144 testes falharam
+[cliente] [mapa em retrato sem limite de altura] -> PEGO: 1 de 144 testes falharam
+[cliente] [desktop sem toque com o mapa menor] -> PEGO: 1 de 144 testes falharam
+[cliente] [mapa grudado embaixo em paisagem] -> PEGO: 1 de 144 testes falharam
+[cliente] [Abortar e Embarcar trocados] -> PEGO: 3 de 144 testes falharam
+[cliente] [borda do botão não conta como toque] -> PEGO: 1 de 144 testes falharam
+[cliente] [encostar conta como sobrepor] -> PEGO: 1 de 144 testes falharam
+[cliente] [endereço da linha de comando ignorado] -> PEGO: 2 de 144 testes falharam
+[cliente] [endereço gravado ignorado] -> PEGO: 2 de 144 testes falharam
+[cliente] [endereço inválido gravado mesmo assim] -> PEGO: 2 de 144 testes falharam
+[cliente] [porta fora da faixa aceita] -> PEGO: 1 de 144 testes falharam
+[cliente] [usuário e senha no endereço aceitos] -> PEGO: 1 de 144 testes falharam
+[cliente] [barra no fim do endereço mantida] -> PEGO: 1 de 144 testes falharam
+[cliente] [endereço lido só uma vez] -> PEGO: 1 de 144 testes falharam
+[cliente] [tecla 4 não abre o servidor] -> PEGO: 2 de 144 testes falharam
+[cliente] [endereço inválido sai da edição] -> PEGO: 1 de 144 testes falharam
+[cliente] [linha de comando não impede a edição] -> PEGO: 1 de 144 testes falharam
+[cliente] [nome da caixa de texto sem aparar] -> PEGO: 1 de 144 testes falharam
+[cliente] [botão Entrar não envia] -> PEGO: 1 de 144 testes falharam
+[cliente] [toque no campo não muda o foco] -> PEGO: 1 de 144 testes falharam
+
+Sem defeitos (servidor): 23 testes, 0 falhas.
+
+Sem defeitos (cliente): 144 testes, 0 falhas.

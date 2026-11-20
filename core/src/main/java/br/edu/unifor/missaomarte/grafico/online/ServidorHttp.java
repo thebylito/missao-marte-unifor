@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
+import br.edu.unifor.missaomarte.aplicacao.Modo;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Net.HttpMethods;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.JsonWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,7 +26,7 @@ public final class ServidorHttp implements ServidorDoJogo {
     /** Tempo máximo de espera por resposta, em milissegundos. */
     static final int TEMPO_LIMITE = 5000;
 
-    private final String endereco;
+    private final Supplier<String> endereco;
     private final Supplier<Net> rede;
     private final Executor naThreadDoJogo;
 
@@ -34,18 +36,28 @@ public final class ServidorHttp implements ServidorDoJogo {
      * @param naThreadDoJogo onde entregar as respostas (no jogo, {@code Gdx.app::postRunnable}; nos testes, na hora)
      */
     public ServidorHttp(String endereco, Supplier<Net> rede, Executor naThreadDoJogo) {
-        this.endereco = endereco.endsWith("/") ? endereco.substring(0, endereco.length() - 1) : endereco;
+        this(() -> endereco, rede, naThreadDoJogo);
+    }
+
+    /** Fase 6: o endereço é lido a cada pedido, então trocá-lo na tela de entrada vale na hora. */
+    public ServidorHttp(Supplier<String> endereco, Supplier<Net> rede, Executor naThreadDoJogo) {
+        this.endereco = endereco;
         this.rede = rede;
         this.naThreadDoJogo = naThreadDoJogo;
     }
 
     /** Versão do jogo: usa o {@code Gdx.net} e entrega as respostas com {@code Gdx.app.postRunnable}. */
     public static ServidorHttp daLibgdx(String endereco) {
+        return daLibgdx(() -> endereco);
+    }
+
+    public static ServidorHttp daLibgdx(Supplier<String> endereco) {
         return new ServidorHttp(endereco, () -> Gdx.net, r -> Gdx.app.postRunnable(r));
     }
 
     public String getEndereco() {
-        return endereco;
+        String e = endereco.get();
+        return e.endsWith("/") ? e.substring(0, e.length() - 1) : e;
     }
 
     // ------------------------------------------------------------------ operações
@@ -76,12 +88,13 @@ public final class ServidorHttp implements ServidorDoJogo {
         corpo.addChild("passageiros", new JsonValue(p.passageiros()));
         corpo.addChild("movimentos", new JsonValue(p.movimentos()));
         corpo.addChild("tempoSegundos", new JsonValue(p.tempoSegundos()));
+        corpo.addChild("modo", new JsonValue(p.modo()));   // Fase 7 (um servidor antigo ignora o campo)
         enviar(HttpMethods.POST, "/api/partidas", sessao, corpo, json -> null, resposta);
     }
 
     @Override
-    public void ranking(Resposta<List<PosicaoGlobal>> resposta) {
-        enviar(HttpMethods.GET, "/api/ranking", null, null, json -> lista(json, item -> new PosicaoGlobal(
+    public void ranking(Modo modo, Resposta<List<PosicaoGlobal>> resposta) {
+        enviar(HttpMethods.GET, "/api/ranking?modo=" + modo.name(), null, null, json -> lista(json, item -> new PosicaoGlobal(
                 item.getInt("posicao"), item.getString("nome"), item.getInt("pontos"), item.getString("dificuldade"),
                 item.getInt("passageiros"), item.getLong("tempoSegundos"), item.getString("registradaEm"))), resposta);
     }
@@ -91,7 +104,18 @@ public final class ServidorHttp implements ServidorDoJogo {
         enviar(HttpMethods.GET, "/api/partidas/minhas", sessao, null, json -> lista(json, item -> new PartidaDoHistorico(
                 item.getString("resultado"), item.getString("dificuldade"), item.getInt("pontos"),
                 item.getInt("passageiros"), item.getInt("movimentos"), item.getLong("tempoSegundos"),
-                item.getString("registradaEm"))), resposta);
+                item.getString("registradaEm"), item.getString("modo", "CLASSICO"))), resposta);
+    }
+
+    /** O canal das sombras no mesmo servidor ({@code http} vira {@code ws}, {@code https} vira {@code wss}). */
+    @Override
+    public Optional<ConexaoDeSombras> conexaoDeSombras() {
+        try {
+            return Optional.of(new ConexaoWebSocket(ConexaoWebSocket.enderecoDasSombras(getEndereco()),
+                    naThreadDoJogo));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     // ------------------------------------------------------------------ HTTP
@@ -99,7 +123,7 @@ public final class ServidorHttp implements ServidorDoJogo {
     private <T> void enviar(String metodo, String rota, Sessao sessao, JsonValue corpo,
                             Function<JsonValue, T> ler, Resposta<T> resposta) {
         Net.HttpRequest pedido = new Net.HttpRequest(metodo);
-        pedido.setUrl(endereco + rota);
+        pedido.setUrl(getEndereco() + rota);
         pedido.setTimeOut(TEMPO_LIMITE);
         pedido.setHeader("Accept", "application/json");
         if (sessao != null) {

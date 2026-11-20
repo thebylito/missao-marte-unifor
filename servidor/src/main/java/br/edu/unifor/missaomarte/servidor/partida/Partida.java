@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.ColumnDefault;
 
 /** Uma partida concluída, sempre de um jogador (o dono do token que a enviou). */
 @Entity
@@ -54,6 +55,15 @@ public class Partida {
     @Column(name = "registrada_em", nullable = false)
     private Instant registradaEm;
 
+    /**
+     * Fase 7. O valor padrão no banco faz as partidas já gravadas (Fases 5 e 6) virarem clássicas quando a coluna é
+     * criada num banco que já tem dados.
+     */
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'CLASSICO'")
+    @Column(nullable = false, length = 10)
+    private Modo modo = Modo.CLASSICO;
+
     protected Partida() {
         // exigido pelo JPA
     }
@@ -67,6 +77,7 @@ public class Partida {
         this.movimentos = dados.movimentos();
         this.tempoSegundos = dados.tempoSegundos();
         this.registradaEm = registradaEm;
+        this.modo = dados.modo();
     }
 
     public Long getId() { return id; }
@@ -78,4 +89,5 @@ public class Partida {
     public int getMovimentos() { return movimentos; }
     public long getTempoSegundos() { return tempoSegundos; }
     public Instant getRegistradaEm() { return registradaEm; }
+    public Modo getModo() { return modo; }
 }

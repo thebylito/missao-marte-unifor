@@ -1,0 +1,66 @@
+[Ciclo] create: janela e contexto OpenGL prontos; criando os recursos compartilhados
+[Ciclo] show: TelaCarregamento
+[Ciclo] resize: 800x600
+[Ciclo] carregamento concluído: 24 assets no AssetManager
+[Ciclo] hide: TelaCarregamento
+[Ciclo] show: TelaEntrada
+[Ciclo] dispose: TelaCarregamento
+[Ciclo] modo convidado: só o ranking local
+[Ciclo] hide: TelaEntrada
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaEntrada
+[Piloto] tecla 3
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaNovaPartida
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 1
+[Piloto] print prints/01-nova-partida-classico.png (1600x1200)
+[Piloto] tecla Tab
+[Piloto] tecla L-Shift
+[Piloto] tecla A
+[Piloto] tecla N
+[Piloto] tecla A
+[Piloto] tecla Left
+[Piloto] print prints/02-nova-partida-pilotagem.png (1600x1200)
+[Ciclo] pilotagem: Fácil
+[Ciclo] hide: TelaNovaPartida
+[Ciclo] show: TelaPilotagem
+[Ciclo] dispose: TelaNovaPartida
+[Piloto] tecla Enter
+[Piloto] print prints/03-pilotagem-na-base.png (1600x1200)
+[Piloto] piloto automático assumiu
+[Piloto] print prints/04-pilotagem-voando.png (1600x1200)
+[Piloto] print prints/05-pilotagem-depois-do-vao.png (1600x1200)
+[Piloto] print prints/06-pilotagem-embarque-1.png (1600x1200)
+[Piloto] print prints/07-pilotagem-entrega-1.png (1600x1200)
+[Piloto] print prints/08-pilotagem-embarque-2.png (1600x1200)
+[Piloto] print prints/09-pilotagem-entrega-2.png (1600x1200)
+[Piloto] print prints/10-pilotagem-embarque-3.png (1600x1200)
+[Piloto] print prints/11-pilotagem-entrega-3.png (1600x1200)
+[Ciclo] hide: TelaPilotagem
+[Ciclo] show: TelaFimDePartida
+[Ciclo] dispose: TelaPilotagem
+[Piloto] voo terminado
+[Piloto] print prints/12-fim-vitoria-pilotagem.png (1600x1200)
+[Ciclo] hide: TelaFimDePartida
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaFimDePartida
+[Piloto] tecla Enter
+[Ciclo] hide: TelaMenu
+[Ciclo] show: TelaRanking
+[Ciclo] dispose: TelaMenu
+[Piloto] tecla 2
+[Piloto] print prints/13-ranking-classico.png (1600x1200)
+[Piloto] tecla Down
+[Piloto] print prints/14-ranking-pilotagem.png (1600x1200)
+[Ciclo] hide: TelaRanking
+[Ciclo] show: TelaMenu
+[Ciclo] dispose: TelaRanking
+[Piloto] tecla Enter
+[Ciclo] saindo: Gdx.app.exit() pede à libGDX que encerre o laço e chame dispose()
+[Piloto] tecla 4
+[Ciclo] pause
+[Ciclo] dispose: liberando a tela atual e os recursos compartilhados
+[Ciclo] hide: TelaMenu
+[Ciclo] dispose: TelaMenu
+[Ciclo] AssetManager: 24 assets liberados; restam 0

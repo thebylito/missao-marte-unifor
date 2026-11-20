@@ -1,3 +1,12 @@
+// Fase 6: o plugin Android vem do repositório do Google (precisa estar antes de tudo neste arquivo).
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'missao-marte-unifor'
 
 // Fase 3: projeto multi-módulo.
@@ -5,3 +14,18 @@ include 'nucleo'    // regras do jogo (domínio, aplicação, ranking em arquivo
 include 'console'   // o jogo em modo texto, que continua funcionando
 include 'core'      // cliente libGDX compartilhado entre as plataformas (Game e telas)
 include 'lwjgl3'    // launcher desktop (janela com LWJGL3/OpenGL)
+
+// Fase 6: o módulo Android só entra quando há um Android SDK nesta máquina (ANDROID_HOME, ANDROID_SDK_ROOT ou
+// sdk.dir no local.properties). Sem SDK, o build do desktop e do console continua funcionando normalmente.
+def propriedadesLocais = new Properties()
+def arquivoLocal = file('local.properties')
+if (arquivoLocal.exists()) {
+    arquivoLocal.withInputStream { propriedadesLocais.load(it) }
+}
+def temAndroidSdk = [System.getenv('ANDROID_HOME'), System.getenv('ANDROID_SDK_ROOT'), propriedadesLocais.getProperty('sdk.dir')]
+        .any { it != null && new File(it).isDirectory() }
+if (temAndroidSdk) {
+    include 'android'   // launcher Android (APK), reaproveita o core
+} else {
+    println 'Android SDK não encontrado: o módulo android fica de fora (desktop e console continuam normais).'
+}

@@ -1,0 +1,24 @@
+Instalação limpa da Fase 6, executada em 2026-11-18 no macOS (arm64):
+
+1. git clone --branch sprint-4 <repositório> <pasta temporária nova>   (commit 52bfe39; sem local.properties)
+2. JAVA_HOME removido do ambiente; o "java" do PATH é o Homebrew OpenJDK 11.0.27
+3. GRADLE_USER_HOME apontando para uma pasta vazia (o wrapper baixou o Gradle 8.14.3)
+
+A) SEM Android SDK (ANDROID_HOME e ANDROID_SDK_ROOT removidos):  ./gradlew clean build
+   "Daemon JVM discovery is an incubating feature."
+   "Android SDK não encontrado: o módulo android fica de fora (desktop e console continuam normais)."
+   BUILD SUCCESSFUL in 15s; 25 tarefas; 209 testes, 0 falhas (nucleo 62, console 3, core 144)
+   android/build não existe (o módulo não entrou no build)
+
+B) COM Android SDK (ANDROID_HOME apontando para o SDK; o cache ainda sem o plugin Android):  ./gradlew clean build
+   BUILD SUCCESSFUL in 1m 29s; 123 tarefas (inclui baixar o AGP 8.13.2 e as nativas, lint e o APK)
+   209 testes, 0 falhas
+   android/libs/ criada pela tarefa copiarNativas: arm64-v8a, armeabi-v7a, x86, x86_64
+   android/build/outputs/apk/debug/android-debug.apk: 10525001 bytes (o mesmo tamanho do APK local)
+
+C) Servidor (o mesmo cache):  cd servidor && ./gradlew clean build
+   BUILD SUCCESSFUL in 1m 4s; 23 testes, 0 falhas
+
+Requisitos confirmados: um JDK 17 instalado em qualquer lugar que o Gradle detecte (o daemon roda nele pelo
+gradle-daemon-jvm.properties, mesmo com Java 11 como padrão); para o APK, o Android SDK com a plataforma 36.
+Não verificado: Windows (gradlew.bat) e Linux.

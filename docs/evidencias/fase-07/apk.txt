@@ -1,0 +1,36 @@
+APK de depuração da Fase 7 (10557863 bytes), gerado por ./gradlew build
+
+$ python3 validacao/android/conferir_api_minima.py <apk> --sdk $ANDROID_HOME --min 26
+  APK: android-debug.apk (9 dex); minSdk 26; base: android-36/data/api-versions.xml
+  Classes do jogo (br/edu/unifor/*) no APK: 285
+  Referências delas à plataforma (Java e Android), conferidas no bytecode final: 250
+  Acima do minSdk 26: 0
+  Não resolvidas (nem no APK nem no api-versions.xml): 1
+    método java/lang/StringBuilder.setLength(I)V
+  (StringBuilder.setLength vem de AbstractStringBuilder, que o api-versions.xml não lista; existe desde a API 1)
+
+Classes novas da Fase 7 no APK (pacote pilotagem e telas):
+  br/edu/unifor/missaomarte/grafico/apresentacao/CameraDaPilotagem
+  br/edu/unifor/missaomarte/grafico/apresentacao/ControladorDaPilotagem
+  br/edu/unifor/missaomarte/grafico/apresentacao/LayoutDaPilotagem
+  br/edu/unifor/missaomarte/grafico/telas/TelaPilotagem
+  br/edu/unifor/missaomarte/pilotagem
+
+Modo shadow (mesmo APK 7.0.0, com a biblioteca Java-WebSocket 1.6.0 e o slf4j-api que ela usa):
+$ python3 validacao/android/conferir_api_minima.py --sdk $ANDROID_HOME --min 26 --pacote org/java_websocket android/build/outputs/apk/debug/android-debug.apk
+  Classes do jogo (org/java_websocket*) no APK: 76
+  Referências delas à plataforma (Java e Android), conferidas no bytecode final: 437
+  Acima do minSdk 26: 0
+  Não resolvidas (nem no APK nem no api-versions.xml): 0
+$ python3 validacao/android/conferir_api_minima.py --sdk $ANDROID_HOME --min 26 --pacote org/slf4j android/build/outputs/apk/debug/android-debug.apk
+  Classes do jogo (org/slf4j*) no APK: 55
+  Referências delas à plataforma (Java e Android), conferidas no bytecode final: 143
+  Acima do minSdk 26: 0
+  Não resolvidas (nem no APK nem no api-versions.xml): 0
+$ python3 validacao/android/conferir_api_minima.py --sdk $ANDROID_HOME --min 26 android/build/outputs/apk/debug/android-debug.apk   (o jogo, com o shadow)
+  Classes do jogo (br/edu/unifor/*) no APK: 304
+  Referências delas à plataforma (Java e Android), conferidas no bytecode final: 263
+  Acima do minSdk 26: 0
+  Não resolvidas (nem no APK nem no api-versions.xml): 1
+    método java/lang/StringBuilder.setLength(I)V
+  (a mesma referência conhecida de antes: StringBuilder.setLength, existe desde a API 1)

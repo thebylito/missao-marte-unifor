@@ -10,6 +10,8 @@ dependencies {
     api "com.badlogicgames.gdx:gdx:$gdxVersion"
     // Fase 4: fontes TrueType geradas em tempo de execução (as bibliotecas nativas ficam com cada launcher)
     api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    // Fase 7 (modo shadow): cliente WebSocket em Java puro (MIT), o mesmo no desktop e no Android
+    implementation 'org.java-websocket:Java-WebSocket:1.6.0'
 
     // só nos testes: implementações "falsas" de Graphics etc., sem janela nem OpenGL
     testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"

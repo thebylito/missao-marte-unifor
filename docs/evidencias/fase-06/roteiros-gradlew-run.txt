@@ -1,0 +1,13 @@
+IGUAL    01-eof-imediato
+IGUAL    02-menu-invalido-ranking-sair
+IGUAL    03-reset-cancelado
+IGUAL    04-reset-confirmado
+IGUAL    05-partida-abortada
+IGUAL    06-entradas-padrao-invalidas
+IGUAL    07-comando-invalido
+IGUAL    08-eof-antes-de-decolar
+IGUAL    09-ranking-existente
+IGUAL    10-ranking-nome-com-virgula
+IGUAL    11-reset-com-ranking
+
+11/11 roteiros idênticos ao gabarito

@@ -17,3 +17,9 @@ local.properties
 # Dados gerados pelo jogo
 ranking.json
 servidor/dados/
+
+# Android (Fase 6): nativas extraídas pelo build
+android/libs/
+
+# cache do Python (scripts de validação)
+__pycache__/

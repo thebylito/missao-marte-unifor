@@ -1,0 +1,39 @@
+Modo shadow (Fase 7): defeitos inseridos de propósito, um de cada vez, numa cópia descartável do projeto.
+
+Defeitos inseridos de propósito numa cópia descartável; os testes do módulo afetado (./gradlew :nucleo:test,
+:core:test ou, no servidor, ./gradlew test) precisam falhar. Falhas contadas nos relatórios XML do JUnit.
+
+[servidor] [sem token, entra] -> PEGO: 1 de 35 testes falharam
+[servidor] [nome não vem do token] -> PEGO: 1 de 35 testes falharam
+[servidor] [sem limite de frequência] -> PEGO: 1 de 35 testes falharam
+[servidor] [aceita posição fora da caverna] -> PEGO: 1 de 35 testes falharam
+[servidor] [aceita motor sem ser booleano] -> PEGO: 1 de 35 testes falharam
+[servidor] [devolve a sombra ao próprio piloto] -> PEGO: 1 de 35 testes falharam
+[servidor] [não avisa quem saiu] -> PEGO: 1 de 35 testes falharam
+[cliente] [convidado tenta conectar] -> PEGO: 1 de 186 testes falharam
+[cliente] [manda posição antes de a conexão abrir] -> PEGO: 1 de 186 testes falharam
+[cliente] [manda a posição a cada quadro] -> PEGO: 1 de 186 testes falharam
+[cliente] [sombra pula em vez de deslizar] -> PEGO: 1 de 186 testes falharam
+[cliente] [ângulo gira pelo lado mais longo] -> PEGO: 1 de 186 testes falharam
+[cliente] [sombra sem notícia não some] -> PEGO: 1 de 186 testes falharam
+[cliente] [quem saiu continua na tela] -> PEGO: 1 de 186 testes falharam
+[cliente] [não reconecta] -> PEGO: 1 de 186 testes falharam
+[cliente] [fechar a tela não fecha a conexão] -> PEGO: 1 de 186 testes falharam
+[cliente] [aperto de mão sem o token] -> PEGO: 1 de 186 testes falharam
+[cliente] [avisos fora da thread do jogo] -> PEGO: 1 de 186 testes falharam
+[cliente] [quem fecha é avisado (aviso velho chega)] -> PEGO: 1 de 186 testes falharam
+[cliente] [https vira ws (sem criptografia)] -> PEGO: 1 de 186 testes falharam
+
+Sem defeitos (cliente): 186 testes, 0 falhas.
+
+Sem defeitos (servidor): 35 testes, 0 falhas.
+
+20/20 pegos.
+
+Observações:
+- A primeira rodada também pegou os 20, mas a rodada final, sem defeitos, teve 1 falha no servidor: o
+  CanalDeSombrasTeste contava os pilotos a partir de "quantos já estavam conectados", e o fechamento do teste
+  anterior às vezes ainda não tinha chegado ao servidor. Corrigido no teste (cada teste espera o servidor voltar a 0
+  conexões e conta a partir de 0); depois disso, 10 de 10 rodadas sem falha, e esta segunda rodada inteira.
+- Nesta rodada, o Mac entrou em repouso (pmset: Sleep e DarkWake), e um teste chegou a "levar" 929 s; as classes
+  de teste, acordadas, somam cerca de 30 s no servidor.

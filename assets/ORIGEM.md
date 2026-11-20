@@ -28,9 +28,9 @@ Para regerar tudo (Blender 5.2.3 LTS, cerca de 11 s; termina conferindo tamanhos
 | `sprites/plataforma_base.png` | 1 (256x64) | `plataforma_base.py` + `cenario_modelo.py` | plataforma de pouso L |
 | `sprites/fundo.png` | 1 (1200x900) | `fundo.py` | fundo de todas as telas |
 | `sprites/icone.png` | 1 (256x256) | `icone.py` (+ `nave_modelo.py`, `chama.py`) | ícone da janela (Windows e Linux) |
-| `sprites/chama.png` | 4 (4x1, 64x96) | `chama.py` | reservado para a Fase 7 (pilotagem com empuxo) |
-| `sprites/plataforma_passageiro.png` | 1 (160x48) | `plataforma_passageiro.py` | reservado para a Fase 7 |
-| `sprites/rocha_tile.png` | 1 (256x256) | `rocha_tile.py` | reservado para a Fase 7 |
+| `sprites/chama.png` | 4 (4x1, 64x96) | `chama.py` | Fase 7: a chama do motor na pilotagem |
+| `sprites/plataforma_passageiro.png` | 1 (160x48) | `plataforma_passageiro.py` | Fase 7: as plataformas dos passageiros na pilotagem |
+| `sprites/rocha_tile.png` | 1 (256x256) | `rocha_tile.py` | Fase 7: as paredes da caverna na pilotagem (ladrilho repetido) |
 
 Os scripts nasceram na prova de conceito da equipe (POC 2.5D, novembro de 2026) e foram trazidos para o
 repositório na Fase 4. Mudanças em relação à POC: fundo em 1200x900 (proporção 4:3 da janela, em vez de 1920x1080),

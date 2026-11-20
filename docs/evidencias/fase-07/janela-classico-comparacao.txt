@@ -1,0 +1,40 @@
+Janela desktop, modo CLÁSSICO: a Fase 7 desenha igual à Fase 6? (PilotoDaJanela, semente 3, prints 1600x1200 do framebuffer)
+
+Método: o mesmo roteiro rodou na tag fase-6 (git archive) e na Fase 7. A comparação é pixel a pixel.
+
+Diferenças INTENCIONAIS (Fase 7, documentadas):
+  - 05/06 nova partida: a linha "Modo: [Tab] Clássico" e a dica "Tab: modo";
+  - 02/11 ranking: o seletor "[ Clássico ]  Pilotagem" e o título um pouco mais alto.
+As demais diferenças ficam nas regiões animadas, que já variam entre duas execuções da mesma versão (medido
+na Fase 6, docs/evidencias/fase-06/janela-desktop-comparacao.txt): a nave flutuando no menu (x 243-359), o
+asteroide girando (x 1263-1390), a decolagem no início da partida (707-813, 67-173), a nave no fim e a explosão.
+
+== roteiro vitoria: Fase 6 x Fase 7
+01-menu.png: 882 pixels diferentes em (242, 468, 359, 631)
+02-ranking-vazio.png: 37003 pixels diferentes em (352, 80, 1248, 1088)
+03-menu-confirmar-apagar.png: 667 pixels diferentes em (243, 463, 357, 627)
+04-menu-apagar-cancelado.png: 2918 pixels diferentes em (241, 457, 358, 622)
+05-nova-partida-padrao.png: 16970 pixels diferentes em (227, 236, 1373, 926)
+06-nova-partida-ana-facil-3.png: 16970 pixels diferentes em (227, 236, 1373, 926)
+07-partida-inicio.png: 3620 pixels diferentes em (707, 67, 813, 173)
+08-partida-dois-a-bordo.png: idêntico
+09-partida-retorne-a-plataforma.png: idêntico
+10-fim-vitoria.png: 2513 pixels diferentes em (753, 29, 847, 160)
+11-ranking-com-ana.png: 37580 pixels diferentes em (352, 80, 1248, 1088)
+2/11 prints idênticos
+
+== roteiro colisao: Fase 6 x Fase 7
+01-menu.png: 13915 pixels diferentes em (243, 467, 1390, 669)
+02-ranking-vazio.png: 37003 pixels diferentes em (352, 80, 1248, 1088)
+03-menu-confirmar-apagar.png: idêntico
+04-menu-apagar-cancelado.png: 1639 pixels diferentes em (243, 457, 358, 622)
+05-nova-partida-padrao.png: 16970 pixels diferentes em (227, 236, 1373, 926)
+06-nova-partida-ana-facil-3.png: 16970 pixels diferentes em (227, 236, 1373, 926)
+07-partida-inicio.png: 3620 pixels diferentes em (707, 67, 813, 173)
+08-partida-embarque.png: idêntico
+09-partida-colisao-explosao.png: 14760 pixels diferentes em (79, 217, 1125, 1143)
+10-partida-nave-destruida.png: 54404 pixels diferentes em (39, 47, 1176, 1190)
+11-fim-derrota.png: idêntico
+3/11 prints idênticos
+
+As telas da partida clássica sem animação (08 e 09 da vitória, 08 da colisão, 11 da derrota) são idênticas.

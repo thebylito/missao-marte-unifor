@@ -13,6 +13,7 @@ services:
     environment:
       MISSAOMARTE_JWT_SEGREDO: ${MISSAOMARTE_JWT_SEGREDO:-}
       MISSAOMARTE_DADOS: /dados/missaomarte
+      MISSAOMARTE_URL_PUBLICA: ${MISSAOMARTE_URL_PUBLICA:-}
     volumes:
       - dados:/dados
     restart: unless-stopped

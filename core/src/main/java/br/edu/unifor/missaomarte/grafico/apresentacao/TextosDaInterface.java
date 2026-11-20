@@ -80,8 +80,15 @@ public final class TextosDaInterface {
         }
         ResultadoPartida r = fim.resultado().get();
         linhas.add("Estatísticas da Partida:");
-        linhas.add(String.format(" - Pontuação Final: %d pontos", r.pontos()));
-        linhas.add(String.format(" - Movimentos Efetuados: %d", r.movimentos()));
+        if (fim.voo().isPresent()) {   // Fase 7: na pilotagem, o bônus de combustível e os pousos
+            FimDePartida.ResumoDoVoo voo = fim.voo().get();
+            linhas.add(String.format(" - Pontuação Final: %d pontos (resgates %d + bônus de combustível %d)",
+                    r.pontos(), voo.pontosDosResgates(), voo.bonus()));
+            linhas.add(String.format(" - Pousos: %d", voo.pousos()));
+        } else {
+            linhas.add(String.format(" - Pontuação Final: %d pontos", r.pontos()));
+            linhas.add(String.format(" - Movimentos Efetuados: %d", r.movimentos()));
+        }
         linhas.add(String.format(" - Tempo de Jogo: %d segundos", r.tempoSegundos()));
         linhas.add(String.format(" - Passageiros Resgatados: %d", r.passageirosResgatados()));
         int recorde = fim.liderAnterior().map(RegistroRanking::pontos).orElse(0);
@@ -136,6 +143,12 @@ public final class TextosDaInterface {
         }
         List<String> linhas = new ArrayList<>();
         for (PartidaDoHistorico p : partidas) {
+            if ("PILOTAGEM".equals(p.modo())) {   // Fase 7: os "movimentos" da pilotagem são os pousos
+                linhas.add(String.format("%s | Pilotagem | %s | %d pts | %s | %d passageiro(s) | %d pousos",
+                        data(p.registradaEm()), resultado(p.resultado()), p.pontos(), dificuldade(p.dificuldade()),
+                        p.passageiros(), p.movimentos()));
+                continue;
+            }
             linhas.add(String.format("%s | %s | %d pts | %s | %d passageiro(s) | %d movimentos", data(p.registradaEm()),
                     resultado(p.resultado()), p.pontos(), dificuldade(p.dificuldade()), p.passageiros(), p.movimentos()));
         }
