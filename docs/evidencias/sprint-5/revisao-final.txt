@@ -1,0 +1,49 @@
+Revisão final da entrega (Sprint 5, issue #15), executada em 2026-11-20 no macOS (arm64)
+
+Base: clone novo da main do GitHub, commit aca78bc (merge do PR #19), sem local.properties.
+Ambiente: JAVA_HOME removido; o "java" do PATH é o OpenJDK 11.0.27; GRADLE_USER_HOME numa pasta vazia.
+
+1. BUILD E TESTES, PELOS COMANDOS DO README
+A) Sem Android SDK:  ./gradlew clean build
+   "Android SDK não encontrado: o módulo android fica de fora (desktop e console continuam normais)."
+   BUILD SUCCESSFUL in 18s; android/build não existe
+B) Com Android SDK:  ./gradlew clean build
+   BUILD SUCCESSFUL in 1m 23s; android-debug.apk com 10656167 bytes
+C) Servidor:  cd servidor && ./gradlew clean build
+   BUILD SUCCESSFUL in 1m 7s
+Testes (relatórios XML do JUnit): nucleo 92, console 3, core 186, servidor 35 = 316, com 0 falhas, 0 erros e 0 ignorados.
+
+2. CONSOLE: ROTEIROS CONTRA O GABARITO (validacao/gabarito/fase-01)
+   script do installDist                        11/11 idênticos (com e sem Android SDK)
+   java -jar (Java 17)                          11/11 idênticos (com e sem Android SDK)
+   ./gradlew :console:run -q --console=plain    11/11 com o Android SDK; 0/11 SEM o SDK
+   Causa dos 0/11: sem o SDK, o settings.gradle imprime com println a linha "Android SDK não encontrado: ..." antes do
+   menu, e o -q não esconde um println. O jogo é o mesmo, e só essa linha a mais aparece na saída. As fases
+   anteriores sempre validaram essa forma numa máquina com o SDK, por isso a diferença não tinha aparecido.
+
+3. SERVIDOR PELO DOCKER COMPOSE (cd servidor && cp .env.exemplo .env && docker compose up --build -d; porta 8081)
+   contêiner healthy; GET /actuator/health -> {"groups":["liveness","readiness"],"status":"UP"}
+   Com o .env.exemplo vazio, o servidor avisa que usa um segredo temporário, sem mostrá-lo.
+   0 ocorrências de "Bearer", "senha" ou "eyJ" no log do servidor depois dos roteiros.
+   Contêiner e volume de teste removidos no fim (docker compose down -v).
+
+4. JANELA REAL (./gradlew :lwjgl3:installDist e validacao/janela/PilotoDaJanela, servidor da seção 3)
+   vitoria    11 prints, 16 s: vitória com 60 pontos e ranking local
+   online     8 prints, 20 s: conta "Ana", vitória, "Resultado registrado no servidor.", ranking global e histórico
+              GET /api/ranking -> [{"posicao":1,"nome":"Ana","pontos":60,"dificuldade":"FACIL",...}]
+   pilotagem  14 prints, 241 s: o piloto automático vence a caverna no Fácil ("Missão cumprida!", 46 pontos = 45 + 1
+              de bônus) e o ranking da pilotagem. É convidado, então o resultado fica só no ranking local.
+   Os três terminam com "AssetManager: 24 assets liberados; restam 0".
+   Prints selecionados em janela/.
+
+5. FASES ANTERIORES INTACTAS
+   tags fase-0 a fase-7: anotadas e todas no histórico da main
+   git diff fase-7 main: vazio (a main é idêntica à tag fase-7)
+   fase-0: o src é idêntico ao projeto inicial do professor (diff -r sem diferenças)
+
+6. SEGREDOS NO HISTÓRICO
+   gitleaks git (43 commits): 1 achado, falso positivo: "Bearer nao-e-um-token", o token inválido de propósito do
+   teste do canal das sombras (CT-36), em docs/evidencias/fase-07/sombras-servidor.txt. Ele foi registrado no
+   .gitleaksignore, e depois disso: "no leaks found".
+
+Não verificado: Windows (gradlew.bat) e Linux; a imagem do servidor em amd64.
