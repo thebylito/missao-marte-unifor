@@ -17,7 +17,7 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 Decisões de arquitetura: [docs/decisoes-arquiteturais.md](docs/decisoes-arquiteturais.md).
 Kanban: [GitHub Project](https://github.com/users/thebylito/projects/2).
 
-Entrega final (Sprint 5): [relatório técnico](docs/relatorio-tecnico.md) ·
+Entrega final (Sprint 5): [relatório técnico](docs/relatorio-tecnico.md) ([PDF](docs/relatorio-tecnico.pdf)) ·
 [roteiro da demonstração](docs/demonstracao.md) · [retrospectiva](docs/retrospectiva.md) ·
 [revisão final](docs/evidencias/sprint-5/revisao-final.txt).
 
