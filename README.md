@@ -17,6 +17,10 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 Decisões de arquitetura: [docs/decisoes-arquiteturais.md](docs/decisoes-arquiteturais.md).
 Kanban: [GitHub Project](https://github.com/users/thebylito/projects/2).
 
+Entrega final (Sprint 5): [relatório técnico](docs/relatorio-tecnico.md) ·
+[roteiro da demonstração](docs/demonstracao.md) · [retrospectiva](docs/retrospectiva.md) ·
+[revisão final](docs/evidencias/sprint-5/revisao-final.txt).
+
 ## Executar (estado atual: Fase 7)
 
 Requisito: **um JDK 17 instalado**. O Gradle o encontra sozinho (toolchain), mesmo que o `java` padrão seja outro.
@@ -174,3 +178,18 @@ Cada fase só é encerrada depois de provada (as evidências ficam em `docs/evid
   no `minSdk` (o lint do Android não analisa `core` nem `nucleo`);
 - `sombras/piloto_fantasma.py` (Fase 7): um segundo piloto do modo shadow só pela rede, que voa perto da base e
   registra as sombras que recebe.
+
+## Não verificado
+
+O que não foi possível verificar, com o motivo e a evidência alternativa:
+
+- **Windows e Linux:** o desenvolvimento foi todo no macOS (arm64). Os comandos `.\gradlew.bat` estão no README, mas
+  não foram executados.
+- **Android abaixo da API 34 e tablets de verdade:** só havia o emulador (API 36) e um celular (API 37). A API mínima
+  26 foi conferida no bytecode do APK (`validacao/android/conferir_api_minima.py`), e o layout 4:3, em teste de unidade.
+- **APK de release assinado:** só o APK de depuração é gerado. O `android-release-unsigned.apk` não instala.
+- **Servidor publicado com HTTPS:** testado só em contêiner local. O guia está em `servidor/PUBLICACAO.md`.
+- **Imagem do servidor em amd64 e o `docker compose up --watch` na prática.**
+- **Partida do Modo Pilotagem jogada à mão no celular chegando ao ranking global (CT-32):** registrada pelo relato
+  do integrante (`docs/evidencias/fase-07/partida-a-mao-celular.txt`). A gravação no ranking da pilotagem está
+  coberta pelos testes do `core` e pelo roteiro `pilotagem` na janela real.
