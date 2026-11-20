@@ -27,5 +27,6 @@ def temAndroidSdk = [System.getenv('ANDROID_HOME'), System.getenv('ANDROID_SDK_R
 if (temAndroidSdk) {
     include 'android'   // launcher Android (APK), reaproveita o core
 } else {
-    println 'Android SDK não encontrado: o módulo android fica de fora (desktop e console continuam normais).'
+    // lifecycle, e não println: o -q esconde o aviso, e a saída do jogo de console fica limpa
+    logger.lifecycle('Android SDK não encontrado: o módulo android fica de fora (desktop e console continuam normais).')
 }

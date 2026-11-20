@@ -20,6 +20,11 @@ Testes (relatórios XML do JUnit): nucleo 92, console 3, core 186, servidor 35 =
    Causa dos 0/11: sem o SDK, o settings.gradle imprime com println a linha "Android SDK não encontrado: ..." antes do
    menu, e o -q não esconde um println. O jogo é o mesmo, e só essa linha a mais aparece na saída. As fases
    anteriores sempre validaram essa forma numa máquina com o SDK, por isso a diferença não tinha aparecido.
+   CORREÇÃO (Sprint 5, com o ok do usuário): o aviso passou de println para logger.lifecycle. Validação depois dela:
+     ./gradlew help sem -q, sem SDK    o aviso continua aparecendo
+     ./gradlew help -q, sem SDK        o aviso não aparece
+     ./gradlew :console:run -q         11/11 sem o SDK e 11/11 com o SDK
+     ./gradlew build, sem SDK          BUILD SUCCESSFUL; nucleo 92, console 3, core 186, com 0 falhas
 
 3. SERVIDOR PELO DOCKER COMPOSE (cd servidor && cp .env.exemplo .env && docker compose up --build -d; porta 8081)
    contêiner healthy; GET /actuator/health -> {"groups":["liveness","readiness"],"status":"UP"}
