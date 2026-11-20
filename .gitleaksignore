@@ -1,0 +1,2 @@
+# Falso positivo: "Bearer nao-e-um-token" é o token inválido de propósito do teste do canal das sombras (CT-36).
+6833fff7e32fe059b1f4e1592454ee7014552ea2:docs/evidencias/fase-07/sombras-servidor.txt:curl-auth-header:4
