@@ -21,8 +21,9 @@ tags (`fase-0` a `fase-7`). Esta retrospectiva foi registrada na Sprint 5, junto
 
 ## O que não funcionou tão bem
 
-- **O histórico não mostra a divisão do trabalho.** Todos os 43 commits saíram de uma única conta, e só as issues
-  #1 a #3 tinham responsável até a Sprint 5. O enunciado cobra a contribuição de cada integrante no histórico.
+- **O histórico não mostra toda a divisão do trabalho.** Todos os commits saíram de uma única conta, e só as issues
+  #1 a #3 tinham responsável até a Sprint 5. O trabalho do Lucas (testes manuais, planejamento e o aceite de cada
+  sprint) aparece só nos merges dos PRs. O enunciado cobra a contribuição de cada integrante no histórico.
 - **O Kanban foi atualizado à mão e em lote.** O GitHub Project não move sozinho os itens fechados para
   "Concluído". Em alguns momentos, vários cards foram atualizados de uma vez, e não conforme o trabalho andava.
 - **O calendário das sprints não bate com as datas reais.** O trabalho andou na frente: o PR da Sprint 4 foi
@@ -31,7 +32,7 @@ tags (`fase-0` a `fase-7`). Esta retrospectiva foi registrada na Sprint 5, junto
   mudança ficou para o fim.
 - **Uma validação que só um caminho cobria.** Os roteiros pelo `./gradlew :console:run` sempre rodaram numa
   máquina com o Android SDK. Só a revisão final, sem o SDK, mostrou que o aviso "Android SDK não encontrado" aparece
-  na saída mesmo com `-q`.
+  na saída mesmo com `-q`. Foi corrigido na própria Sprint 5.
 - **Uma prova que dependeu de relato.** A partida da pilotagem jogada à mão no celular (CT-32) ficou registrada
   pelo relato do integrante, porque o resultado não chegou ao ranking global do servidor conferido.
 - **Tempo gasto numa alternativa descartada:** uma segunda versão do servidor, em Node.js, chegou a ser planejada
@@ -48,6 +49,6 @@ tags (`fase-0` a `fase-7`). Esta retrospectiva foi registrada na Sprint 5, junto
 
 ## Ações para o fechamento
 
-- [ ] Responsáveis nas issues #4 a #15 e a participação no relatório técnico.
+- [x] Responsáveis nas issues (os dois integrantes) e a participação no relatório técnico.
 - [ ] Repositório público depois da revisão final.
 - [ ] Kanban encerrado: #15 e o PR da Sprint 5 em "Concluído", e os marcos fechados.
