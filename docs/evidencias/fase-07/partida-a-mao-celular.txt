@@ -1,0 +1,27 @@
+Partida completa jogada à mão no celular (CT-32), registrada em 2026-11-20
+
+Caso de teste: "Celular: uma partida completa jogada à mão, com o resultado no ranking global da pilotagem"
+(CA-07, CA-14; docs/fase-07-analise.md).
+
+Relato do usuário (2026-11-20): partida completa do Modo Pilotagem jogada à mão, pelo toque, no celular
+(Samsung Galaxy S24 Ultra), "feito e validado".
+
+O que foi conferido pelo sistema, no mesmo dia:
+- Ranking global da pilotagem no servidor do Mac (contêiner servidor-servidor-1, http://localhost:8080):
+  GET /api/ranking?modo=PILOTAGEM  ->  []
+- A entrada mais recente do ranking geral (clássico) é de 2026-11-18T05:32:22Z, então nenhuma partida chegou a este
+  servidor depois disso.
+- O celular aparecia "offline" no adb, então não foi possível ver de lá para qual servidor o jogo enviou o resultado
+  (ou se a partida foi jogada sem login, só com o ranking local).
+
+Decisão do usuário: registrar o CT-32 como validado pelo relato, sem a prova pelo ranking global, e criar a tag
+fase-7.
+
+O que fica coberto por outros casos de teste:
+- A vitória gravada no ranking da pilotagem (e não no clássico): CT-23, o fim de partida num teste do core, e
+  CT-29, o piloto automático vencendo a caverna inteira na janela real.
+- O toque no celular de verdade (MOTOR segurado, girar, pouso, paisagem, segundo plano e ranking da pilotagem):
+  CT-31, com os prints em android-celular-pilotagem/.
+- O envio ao servidor com o campo modo: CT-24 (resumo com modo=PILOTAGEM) e CT-26 a CT-28 (servidor).
+
+O que não ficou provado: que uma partida jogada à mão no celular chega ao ranking global da pilotagem.
