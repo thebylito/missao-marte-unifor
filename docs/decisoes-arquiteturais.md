@@ -547,3 +547,30 @@ Pilotagem. E as setas devem aceitar o polegar que cai um pouco fora do botão: o
 **Consequências.** Os roteiros de validação passaram a trocar para o Clássico quando jogam nele (`PilotoDaJanela`
 e `pilotar_android.py`). O roteiro `toque-folga` toca cada seta de 12 a 15 unidades fora do botão. Com a folga, ele
 vence a partida. Com a folga zerada, a nave não se move. Evidências em `docs/evidencias/fase-06/folga-de-toque/`.
+
+## DA-37 — Pacotes nativos para Windows e macOS com o Java embutido (pós-entrega)
+
+**Contexto.** O jogo de PC era um zip que exigia o Java 17 instalado. No Windows, instalar o Java costuma pedir
+administrador. O usuário pediu versões que funcionem sem isso (2026-11-25). No macOS, um app aberto com dois
+cliques roda com a pasta de trabalho em "/", onde o jogo não consegue gravar o `ranking.json`.
+**Decisão.**
+- **Pacotes com `jpackage`, que vem com o JDK 17.** Nenhum plugin de terceiros: a tarefa
+  `./gradlew :lwjgl3:pacoteNativo` gera um app-image com um Java enxuto.
+  - O Java tem só os módulos que o `jdeps` aponta (`java.base`, `java.desktop`, `java.management`,
+    `jdk.unsupported`), mais o `jdk.crypto.ec`. Sem esse último o HTTPS falha, como o teste mostrou.
+  - No Windows, é uma pasta com `Missao Marte.exe`, que roda descompactada em qualquer pasta do usuário.
+  - No macOS, é o `Missao Marte.app`, com `-XstartOnFirstThread` e assinatura ad hoc.
+- **Uma máquina por sistema no CI.** O `jpackage` não gera pacote de outro sistema: Windows, Mac Apple Silicon e
+  Mac Intel saem cada um da sua máquina do GitHub. Os zips vão para a página de downloads, ao lado do zip com Java,
+  que continua para Linux.
+- **Dados na pasta do usuário.** A versão empacotada grava o ranking local em `~/.missao-marte`
+  (`-Dmissaomarte.dados=usuario`, `PastaDosDados`). O `./gradlew :lwjgl3:run` e o script do zip continuam com a
+  pasta de trabalho, a mesma do console.
+**Consequências.**
+- **Sem assinatura paga.** Não há certificado da Microsoft nem conta de desenvolvedor da Apple ($99/ano). Na
+  primeira vez, o Windows mostra o SmartScreen ("Executar assim mesmo"), e o macOS pede "Abrir Mesmo Assim" em
+  Ajustes → Privacidade e Segurança. A página explica os dois.
+- **Tamanho.** Cada zip tem cerca de 40 MB (o Java vai junto), e a imagem do servidor cresce na mesma medida.
+- **Validação.** O pacote do Mac Apple Silicon foi testado aqui: aberto pelo `open` a partir de "/", ele sobe até a
+  tela de entrada e cria `~/.missao-marte`. Os de Windows e Mac Intel são conferidos no CI (o `.exe` e o `.cfg`; a
+  assinatura do `.app`), mas ninguém os abriu numa máquina de verdade ainda.

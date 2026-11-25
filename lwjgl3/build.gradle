@@ -56,3 +56,58 @@ tasks.named('jar') {
         manifest.attributes('Class-Path': configurations.runtimeClasspath.files.collect { it.name }.join(' '))
     }
 }
+
+// Pacote nativo: Windows (pasta com "Missao Marte.exe") e macOS ("Missao Marte.app"), com um Java 17 enxuto embutido.
+// Quem baixa não instala o Java nem precisa ser administrador: descompacta e abre. O jpackage só gera o pacote do
+// sistema em que roda, por isso o GitHub Actions gera cada um na sua máquina (ci.yml). Localmente:
+//   ./gradlew :lwjgl3:pacoteNativo -Pmissaomarte.servidorPadrao=https://missao-marte.thebylito.dev
+//   -> lwjgl3/build/pacote/Missao Marte.app (macOS) ou lwjgl3/build/pacote/Missao Marte/ (Windows)
+// O ranking local vai para ~/.missao-marte (-Dmissaomarte.dados=usuario): aberto com dois cliques, a pasta de
+// trabalho pode ser uma pasta do sistema, onde não dá para gravar.
+def sistema = System.getProperty('os.name').toLowerCase()
+def noMac = sistema.contains('mac')
+def noWindows = sistema.contains('windows')
+def jpackage = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+        .map { it.metadata.installationPath.file(noWindows ? 'bin/jpackage.exe' : 'bin/jpackage').asFile.absolutePath }
+
+tasks.register('pacoteNativo', Exec) {
+    group = 'distribution'
+    description = 'Gera o pacote nativo do sistema atual (Windows ou macOS) com o Java embutido.'
+    dependsOn 'installDist'
+    def destino = layout.buildDirectory.dir('pacote').get().asFile
+    def biblioteca = layout.buildDirectory.dir('install/missao-marte/lib').get().asFile
+    def jarPrincipal = tasks.named('jar').flatMap { it.archiveFileName }
+    inputs.dir(biblioteca)
+    outputs.dir(destino)
+    doFirst {
+        delete destino                   // o jpackage não sobrescreve um pacote que já existe
+        executable = jpackage.get()
+        args = ['--type', 'app-image',
+                '--dest', destino.absolutePath,
+                '--name', 'Missao Marte',
+                '--app-version', '7.0.0',
+                '--vendor', 'Projeto Integrador Unifor',
+                '--description', 'Missao Marte: resgate os passageiros e volte a base.',
+                '--input', biblioteca.absolutePath,
+                '--main-jar', jarPrincipal.get(),
+                '--main-class', application.mainClass.get(),
+                // jdeps: java.base, java.desktop, java.management, jdk.unsupported; jdk.crypto.ec para o HTTPS/WSS
+                '--add-modules', 'java.base,java.desktop,java.management,jdk.unsupported,jdk.crypto.ec',
+                '--java-options', '-Dmissaomarte.dados=usuario']
+        if (noMac) {
+            // a janela (GLFW) precisa da primeira thread; com a opção, o ReinicioNoMacOS não reinicia a JVM
+            args += ['--java-options', '-XstartOnFirstThread',
+                     '--icon', file('pacote/icone.icns').absolutePath,
+                     '--mac-package-identifier', 'br.edu.unifor.missaomarte']
+        } else if (noWindows) {
+            args += ['--icon', file('pacote/icone.ico').absolutePath]
+        }
+    }
+    doLast {
+        if (noMac) {
+            // assinatura ad hoc (sem conta paga da Apple): o Mac Apple Silicon exige o app assinado, e baixado da
+            // internet ele abre pelo "Abrir mesmo assim" em vez de aparecer como "danificado"
+            exec { commandLine 'codesign', '--force', '--deep', '--sign', '-', new File(destino, 'Missao Marte.app').absolutePath }
+        }
+    }
+}

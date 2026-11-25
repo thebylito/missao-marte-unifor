@@ -94,7 +94,7 @@ h1 {
 .botao:hover { border-color: var(--destaque); }
 .botao.principal { background: var(--destaque); border-color: var(--destaque); color: #1c1417; }
 .botao.principal:hover { background: var(--destaque-escuro); border-color: var(--destaque-escuro); }
-.botao.indisponivel { pointer-events: none; opacity: 0.45; }
+.botao.indisponivel, a.download.indisponivel { pointer-events: none; opacity: 0.45; }
 
 main { max-width: var(--largura); margin: 0 auto; padding: 0 16px; }
 section { padding: 32px 0; }
@@ -112,6 +112,9 @@ h3 { font-size: 1.25rem; font-weight: 600; margin: 0 0 6px; }
 .cartao p { margin: 0 0 16px; color: var(--suave); }
 .cartao .tamanho { margin: 8px 0 0; font-size: 0.9rem; min-height: 1.5em; }
 details { margin-top: 8px; color: var(--suave); }
+.outros-sistemas { margin-top: 20px; }
+.outros-sistemas p { margin: 8px 0 0; }
+.nota.controles { margin: 16px 0 0; }
 summary { cursor: pointer; color: var(--texto); }
 details ol { padding-left: 1.2em; margin: 8px 0 0; }
 code, kbd {

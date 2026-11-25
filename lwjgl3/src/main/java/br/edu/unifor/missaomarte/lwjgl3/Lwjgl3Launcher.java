@@ -13,7 +13,9 @@ import br.edu.unifor.missaomarte.grafico.recursos.CatalogoDeAssets;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import java.nio.file.Paths;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Random;
 
 /**
@@ -47,13 +49,26 @@ public final class Lwjgl3Launcher {
     static ServicosDoJogo montarServicos(ConfiguracaoDoServidor servidor) {
         Relogio relogio = Relogio.DO_SISTEMA;
         Long semente = Long.getLong(PROPRIEDADE_SEMENTE);
+        Path dados = pastaDosDados();
         return new ServicosDoJogo(
                 new GeradorDeMissao(semente == null ? new Random() : new Random(semente)),
-                new ServicoRanking(new RankingArquivoJson(Paths.get("ranking.json")), relogio),
+                new ServicoRanking(new RankingArquivoJson(dados.resolve("ranking.json")), relogio),
                 relogio,
                 ServidorHttp.daLibgdx(servidor::endereco),
                 // Fase 7: a pilotagem tem o seu Top 5, ao lado do ranking.json
-                new ServicoRanking(new RankingArquivoJson(Paths.get("ranking-pilotagem.json")), relogio));
+                new ServicoRanking(new RankingArquivoJson(dados.resolve("ranking-pilotagem.json")), relogio));
+    }
+
+    /** A pasta do ranking local (o pacote nativo usa a do usuário), criada se ainda não existir. */
+    private static Path pastaDosDados() {
+        Path pasta = PastaDosDados.escolher(System.getProperty(PastaDosDados.PROPRIEDADE),
+                System.getProperty("user.home"));
+        try {
+            Files.createDirectories(pasta.toAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("Não foi possível criar a pasta dos dados " + pasta.toAbsolutePath() + ": " + e);
+        }
+        return pasta;
     }
 
     static Lwjgl3ApplicationConfiguration configuracao() {
