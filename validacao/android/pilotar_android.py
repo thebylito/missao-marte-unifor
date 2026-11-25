@@ -184,7 +184,6 @@ def pilotagem(a, _endereco, _nome):
     a.abrir()
     a.tocar(*opcao_entrada(2))                          # 3. convidado
     a.tocar(*opcao_menu(0))                             # nova missão
-    a.tocar(*NOVA_MODO)                                 # modo: pilotagem
     a.tocar(*NOVA_DIF_ANTERIOR)                         # Médio -> Fácil
     a.print('nova-partida-pilotagem')
     a.tocar(*NOVA_DECOLAR, espera=1.5)
@@ -246,6 +245,7 @@ def completo(a, endereco, nome):
     a.tocar(*BOTAO_CONFIRMAR, espera=2.5)
     a.print('menu-conectado')
     a.tocar(*opcao_menu(0))                            # nova partida
+    a.tocar(*NOVA_MODO)                                # modo: clássico (a pilotagem é o padrão)
     a.tocar(*NOVA_DIF_ANTERIOR)                        # Médio -> Fácil
     a.tocar(*NOVA_MAPA_MENOR)
     a.tocar(*NOVA_MAPA_MENOR)                          # mapa 5 -> 3
@@ -283,6 +283,7 @@ def convidado(a, _endereco, _nome):
     a.tocar(*opcao_entrada(2))                          # 3. convidado
     a.print('menu-convidado')
     a.tocar(*opcao_menu(0))
+    a.tocar(*NOVA_MODO)                                 # modo: clássico (a pilotagem é o padrão)
     a.tocar(*NOVA_DIF_ANTERIOR)
     a.tocar(*NOVA_MAPA_MENOR)
     a.tocar(*NOVA_MAPA_MENOR)                           # Fácil, mapa 3: o mesmo mapa da semente 3

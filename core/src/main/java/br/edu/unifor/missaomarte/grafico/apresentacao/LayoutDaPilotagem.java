@@ -2,8 +2,10 @@ package br.edu.unifor.missaomarte.grafico.apresentacao;
 
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Onde ficam os botões de toque da pilotagem (Fase 7), em qualquer tamanho de tela. Java puro, como o
@@ -26,6 +28,9 @@ public record LayoutDaPilotagem(Retangulo minimapa, Map<Botao, Retangulo> botoes
     static final float LARGURA_DO_MINIMAPA = 240;
     static final float ALTURA_DO_ABORTAR = LayoutDaPartida.ALVO_MINIMO;
     static final float LARGURA_DO_ABORTAR = 150;
+    /** Folga de toque de ◄ e ►, a mesma do direcional ({@link LayoutDaPartida#FOLGA_DAS_SETAS}). */
+    public static final float FOLGA_DAS_SETAS = LayoutDaPartida.FOLGA_DAS_SETAS;
+    private static final Set<Botao> SETAS = EnumSet.of(Botao.ESQUERDA, Botao.DIREITA);
 
     public LayoutDaPilotagem {
         botoes = Collections.unmodifiableMap(new EnumMap<>(botoes.isEmpty() ? new EnumMap<>(Botao.class) : botoes));
@@ -58,13 +63,11 @@ public record LayoutDaPilotagem(Retangulo minimapa, Map<Botao, Retangulo> botoes
                 Math.min(140, Math.min(visivel.largura(), visivel.altura()) * 0.16f));
     }
 
-    /** O botão que contém o ponto, se houver. */
+    /**
+     * O botão no ponto: o que contém o ponto ou, fora de todos, a seta (◄ ►) mais próxima dentro da folga de toque.
+     * Motor e Abortar não têm folga.
+     */
     public Optional<Botao> botaoEm(float x, float y) {
-        for (Map.Entry<Botao, Retangulo> b : botoes.entrySet()) {
-            if (b.getValue().contem(x, y)) {
-                return Optional.of(b.getKey());
-            }
-        }
-        return Optional.empty();
+        return LayoutDaPartida.botaoEm(botoes, SETAS, FOLGA_DAS_SETAS, x, y);
     }
 }

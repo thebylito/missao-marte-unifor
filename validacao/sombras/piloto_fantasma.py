@@ -14,6 +14,7 @@ mínimo necessário (texto, ping/pong e fechamento). A senha nunca é impressa; 
 
 Uso:
   python3 validacao/sombras/piloto_fantasma.py --servidor http://localhost:8080 --nome Fantasma --segundos 60
+  python3 validacao/sombras/piloto_fantasma.py --explodir-a-cada 10   (explode a cada 10 s; os outros veem a explosão)
   (a senha vem de MISSAOMARTE_SENHA_FANTASMA; sem ela, usa uma senha fixa só de teste)
 """
 import argparse
@@ -141,6 +142,8 @@ def main():
     p.add_argument('--servidor', default='http://localhost:8080')
     p.add_argument('--nome', default='Fantasma')
     p.add_argument('--segundos', type=float, default=60)
+    p.add_argument('--explodir-a-cada', type=float, default=0, metavar='S',
+                   help='explode a cada S segundos e fica 2 s sem mandar posição, como a nave destruída do jogo')
     a = p.parse_args()
     servidor = a.servidor.rstrip('/')
     senha = os.environ.get('MISSAOMARTE_SENHA_FANTASMA', 'fantasma-so-de-teste')
@@ -153,6 +156,7 @@ def main():
     vistos = Counter()
     ultima = {}
     sairam = []
+    explosoes = []
 
     def ouvir():
         while True:
@@ -172,15 +176,27 @@ def main():
             elif m.get('tipo') == 'saiu':
                 sairam.append(m['piloto'])
                 print(f'  piloto {m["piloto"]} saiu', flush=True)
+            elif m.get('tipo') == 'explosao':
+                explosoes.append(m['piloto'])
+                print(f'  piloto {m["piloto"]} explodiu em x={m["x"]:.0f} y={m["y"]:.0f}', flush=True)
 
     threading.Thread(target=ouvir, daemon=True).start()
     inicio = time.monotonic()
     enviadas = 0
+    explodiu = 0
+    proxima_explosao = a.explodir_a_cada if a.explodir_a_cada > 0 else math.inf
     while time.monotonic() - inicio < a.segundos:
         t = time.monotonic() - inicio
         fase = 2 * math.pi * t / VOLTA_SEGUNDOS
         x = CENTRO[0] + RAIO * math.cos(fase)
         y = CENTRO[1] + RAIO * math.sin(fase)
+        if t >= proxima_explosao:
+            ws.enviar(json.dumps({'tipo': 'explodiu', 'x': round(x, 1), 'y': round(y, 1)}))
+            explodiu += 1
+            print(f'{a.nome}: explodiu em x={x:.0f} y={y:.0f}', flush=True)
+            time.sleep(2)   # destruída: o jogo não manda posição até renascer
+            proxima_explosao = time.monotonic() - inicio + a.explodir_a_cada
+            continue
         # o bico aponta para (-sen a, cos a); no círculo anti-horário, o movimento é (-sen fase, cos fase): a = fase
         angulo = (math.degrees(fase) + 180) % 360 - 180
         ws.enviar(json.dumps({'tipo': 'posicao', 'x': round(x, 1), 'y': round(y, 1), 'angulo': round(angulo, 1),
@@ -192,7 +208,9 @@ def main():
     print(f'{a.nome}: {enviadas} posições enviadas; recebidas: '
           + (', '.join(f'{n} ({c}x, última em x={ultima[n]["x"]:.0f} y={ultima[n]["y"]:.0f})'
                        for n, c in vistos.items()) or 'nenhuma sombra')
-          + (f'; saíram: {sairam}' if sairam else ''), flush=True)
+          + (f'; saíram: {sairam}' if sairam else '')
+          + (f'; explosões enviadas: {explodiu}' if explodiu else '')
+          + (f'; explosões recebidas: {explosoes}' if explosoes else ''), flush=True)
 
 
 if __name__ == '__main__':

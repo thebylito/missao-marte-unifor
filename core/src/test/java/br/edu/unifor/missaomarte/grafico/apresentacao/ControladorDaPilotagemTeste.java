@@ -102,6 +102,17 @@ class ControladorDaPilotagemTeste {
     }
 
     @Test
+    void dedoUmPoucoForaDaSetaAindaGiraEAcendeOBotao() {
+        ControladorDaPilotagem c = controlador();
+        LayoutDaPilotagem l = layoutDeToque();
+        c.usarLayout(l);
+        Retangulo direita = l.botoes().get(Botao.DIREITA);
+        c.tocou(0, direita.centroX(), direita.topo() + LayoutDaPilotagem.FOLGA_DAS_SETAS - 2);
+        assertEquals(new Comandos(false, true, false), c.comandos());
+        assertTrue(c.dedoEm(Botao.DIREITA));
+    }
+
+    @Test
     void escOuOBotaoAbortarTerminamComoAbortada() {
         ControladorDaPilotagem porTecla = controlador();
         porTecla.teclaPressionada(Keys.ESCAPE);

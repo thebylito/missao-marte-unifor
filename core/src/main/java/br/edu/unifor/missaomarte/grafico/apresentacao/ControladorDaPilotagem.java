@@ -110,14 +110,10 @@ public final class ControladorDaPilotagem {
         return false;
     }
 
-    /** Algum dedo está em cima do botão (para a tela acender o botão também). */
+    /** Algum dedo está no botão, contando a folga de toque das setas (para a tela acender o botão também). */
     public boolean dedoEm(Botao botao) {
-        Retangulo area = layout.botoes().get(botao);
-        if (area == null) {
-            return false;
-        }
         for (float[] ponto : dedos.values()) {
-            if (area.contem(ponto[0], ponto[1])) {
+            if (layout.botaoEm(ponto[0], ponto[1]).orElse(null) == botao) {
                 return true;
             }
         }

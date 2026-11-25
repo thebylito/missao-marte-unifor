@@ -101,7 +101,9 @@ class LayoutDaPartidaTeste {
             assertEquals(Optional.of(b.getKey()), l.botaoEm(b.getValue().centroX(), b.getValue().centroY()));
         }
         Retangulo cima = l.botoes().get(Botao.CIMA);
-        assertEquals(Optional.empty(), l.botaoEm(cima.x() - 5, cima.centroY()), "o canto do direcional é vazio");
+        // o meio do canto do direcional é vazio (perto da seta, a folga de toque conta como a seta)
+        float meioDoCanto = cima.x() - LayoutDaPartida.ESPACO_ENTRE_BOTOES - cima.largura() / 2;
+        assertEquals(Optional.empty(), l.botaoEm(meioDoCanto, cima.centroY()), "o canto do direcional é vazio");
         assertEquals(Optional.empty(), l.botaoEm(l.mapa().centroX(), l.mapa().centroY()));
     }
 
@@ -119,5 +121,55 @@ class LayoutDaPartidaTeste {
         assertEquals(LayoutDaPartida.ALVO_MINIMO, LayoutDaPartida.tamanhoDoBotao(new Retangulo(0, 0, 800, 300)));
         assertEquals(104, LayoutDaPartida.tamanhoDoBotao(CELULAR_RETRATO), 0.5f);
         assertEquals(120, LayoutDaPartida.tamanhoDoBotao(new Retangulo(0, 0, 3000, 3000)));
+    }
+
+    // --- folga de toque: o polegar que cai um pouco fora da seta ainda move a nave ---
+
+    @Test
+    void tocarUmPoucoForaDoDirecionalAindaContaComoASeta() {
+        float folga = LayoutDaPartida.FOLGA_DAS_SETAS;
+        for (Retangulo tela : List.of(CELULAR_PAISAGEM, CELULAR_RETRATO)) {
+            LayoutDaPartida l = LayoutDaPartida.calcular(tela, true);
+            Retangulo cima = l.botoes().get(Botao.CIMA);
+            Retangulo baixo = l.botoes().get(Botao.BAIXO);
+            Retangulo esquerda = l.botoes().get(Botao.ESQUERDA);
+            Retangulo direita = l.botoes().get(Botao.DIREITA);
+            // acima da ▲ há pelo menos 16 unidades livres (em paisagem, o Embarcar fica logo depois)
+            assertEquals(Optional.of(Botao.CIMA), l.botaoEm(cima.centroX(), cima.topo() + 10), tela.toString());
+            assertEquals(Optional.of(Botao.BAIXO), l.botaoEm(baixo.centroX(), baixo.y() - folga + 1), tela.toString());
+            assertEquals(Optional.of(Botao.ESQUERDA), l.botaoEm(esquerda.x() - folga + 1, esquerda.centroY()));
+            assertEquals(Optional.of(Botao.DIREITA), l.botaoEm(direita.direita() + folga - 1, direita.centroY()));
+            assertEquals(Optional.empty(), l.botaoEm(esquerda.x() - folga - 1, esquerda.centroY()), "longe demais");
+        }
+    }
+
+    @Test
+    void toqueDentroDeOutroBotaoVenceAFolgaDaSeta() {
+        LayoutDaPartida l = LayoutDaPartida.calcular(CELULAR_PAISAGEM, true);
+        Retangulo cima = l.botoes().get(Botao.CIMA);
+        Retangulo embarcar = l.botoes().get(Botao.EMBARCAR);
+        float y = embarcar.y() + 2;   // dentro do Embarcar e ainda na folga da ▲
+        assertTrue(y - cima.topo() <= LayoutDaPartida.FOLGA_DAS_SETAS);
+        assertEquals(Optional.of(Botao.EMBARCAR), l.botaoEm(cima.centroX(), y));
+    }
+
+    @Test
+    void oMeioDoDirecionalNaoApertaNadaEmNenhumaTela() {
+        // no tablet o botão é o menor (78): o meio fica a 49 unidades das setas, e a folga tem de ser menor que isso
+        for (Retangulo tela : List.of(CELULAR_PAISAGEM, CELULAR_RETRATO, EMULADOR_RETRATO, TABLET_PAISAGEM)) {
+            LayoutDaPartida l = LayoutDaPartida.calcular(tela, true);
+            float x = l.botoes().get(Botao.CIMA).centroX();
+            float y = l.botoes().get(Botao.ESQUERDA).centroY();
+            assertEquals(Optional.empty(), l.botaoEm(x, y), tela.toString());
+        }
+    }
+
+    @Test
+    void embarcarSomEAbortarNaoGanhamFolga() {
+        LayoutDaPartida l = LayoutDaPartida.calcular(CELULAR_RETRATO, true);
+        Retangulo embarcar = l.botoes().get(Botao.EMBARCAR);
+        Retangulo abortar = l.botoes().get(Botao.ABORTAR);
+        assertEquals(Optional.empty(), l.botaoEm(embarcar.direita() + 5, embarcar.centroY()));
+        assertEquals(Optional.empty(), l.botaoEm(abortar.centroX(), abortar.topo() + 5), "Abortar só com toque em cima");
     }
 }

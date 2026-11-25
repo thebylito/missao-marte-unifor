@@ -512,3 +512,38 @@ mão.
 **Consequências.** O Médio continua sendo a POC sem mudanças, e o Fácil (130) fica como a opção para quem ainda
 está aprendendo a pousar. O piloto automático continua sem vencer o Médio: isso mostra que ele é conservador, não
 que o nível seja impossível.
+
+## DA-35 — As sombras mostram a explosão dos outros pilotos (pós-entrega)
+
+**Contexto.** O canal das sombras só levava a posição (DA-31). Quando outro piloto batia, o jogo dele parava de
+enviar a posição: a sombra congelava no ponto da batida e, quando ele renascia, deslizava até a base. A explosão
+dele ninguém via. O usuário pediu para ver a explosão dos outros participantes (2026-11-25).
+**Decisão.**
+- **Mensagem nova.** Quem bate manda `{"tipo":"explodiu","x","y"}`. O servidor confere tamanho e caverna, como na
+  posição, e repassa `{"tipo":"explosao","piloto","x","y"}` aos outros.
+- **Quem assiste.** A sombra sai da tela e a mesma animação de explosão aparece, translúcida, sem som nem tremor.
+  Quando o outro renasce, a próxima posição traz a sombra de volta já na base.
+- **Limite próprio.** A explosão aceita no máximo uma por segundo e não divide o limite de 40 ms com as posições.
+  A validação na janela real mostrou o problema: a batida acontece a qualquer instante, e com o limite único cerca
+  de 40% das explosões caíam a menos de 40 ms da última posição e eram descartadas.
+**Consequências.** O protocolo continua compatível nos dois sentidos. Um cliente antigo ignora `explosao`, que é
+um tipo desconhecido para ele, e um servidor antigo ignora `explodiu`. Evidências em
+`docs/evidencias/fase-07/explosao-das-sombras/`.
+
+## DA-36 — Pilotagem como modo padrão e folga de toque nas setas (pós-entrega)
+
+**Contexto.** Jogando no celular, o usuário pediu duas mudanças (2026-11-25). A nova missão deve começar na
+Pilotagem. E as setas devem aceitar o polegar que cai um pouco fora do botão: o toque "não pegava".
+**Decisão.**
+- **Modo padrão.** `FormularioNovaPartida` começa na Pilotagem. Tab ou "Trocar" leva ao Clássico.
+- **Folga de toque.** As setas (◄ ► da pilotagem e o direcional do clássico) aceitam toques até 24 unidades fora
+  do botão, um terço do alvo mínimo.
+  - O toque dentro de qualquer botão vale primeiro. Fora de todos, vale a seta mais próxima dentro da folga.
+  - O vão entre ◄ e ► fica com a seta mais perto. O meio do direcional continua sem apertar nada, em todas as telas.
+  - Motor, Embarcar, Som e Abortar não têm folga, para não serem tocados sem querer.
+- **Onde fica a regra.** Está nos layouts (`LayoutDaPartida.botaoEm`, que o `LayoutDaPilotagem` reaproveita). A
+  partida clássica passou a perguntar ao layout pelo gancho `TelaBase.acaoNoPonto`, e o controlador da pilotagem
+  usa o `botaoEm` também para acender o botão.
+**Consequências.** Os roteiros de validação passaram a trocar para o Clássico quando jogam nele (`PilotoDaJanela`
+e `pilotar_android.py`). O roteiro `toque-folga` toca cada seta de 12 a 15 unidades fora do botão. Com a folga, ele
+vence a partida. Com a folga zerada, a nave não se move. Evidências em `docs/evidencias/fase-06/folga-de-toque/`.

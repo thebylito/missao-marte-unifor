@@ -216,6 +216,58 @@ class SombrasDaPilotagemTeste {
         assertEquals(1, conexao.tokens.size());   // não reconecta
     }
 
+    // --- explosões: a do jogador vai para os outros, e a dos outros aparece na tela ---
+
+    @Test
+    void quandoANaveExplodeAvisaOsOutrosComOPontoDaBatida() {
+        quadros(1);
+        conexao.ouvinte.aberta();
+        sombras.explodiu(1234.5, 600, voo.getCaverna());
+        assertEquals("{\"tipo\":\"explodiu\",\"x\":1234.5,\"y\":600.0}",
+                conexao.enviados.get(conexao.enviados.size() - 1));
+    }
+
+    @Test
+    void semConexaoAExplosaoNaoEEnviada() {
+        quadros(1);   // conectando: ainda não abriu
+        sombras.explodiu(100, 100, voo.getCaverna());
+        assertTrue(conexao.enviados.isEmpty());
+        SombrasDaPilotagem.desligadas().explodiu(100, 100, voo.getCaverna());   // sem servidor: não quebra
+    }
+
+    @Test
+    void aExplosaoDeOutroPilotoTiraASombraEFicaNaTelaPorUmInstante() {
+        conectadoComSombra(1000, 500, 0);
+        conexao.ouvinte.mensagem("{\"tipo\":\"explosao\",\"piloto\":7,\"x\":1010.0,\"y\":505.0}");
+
+        assertTrue(sombras.getSombras().isEmpty(), "a nave que explodiu some");
+        assertEquals(1, sombras.getExplosoes().size());
+        assertEquals(1010, sombras.getExplosoes().get(0).x(), 1e-9);
+        assertEquals(505, sombras.getExplosoes().get(0).y(), 1e-9);
+        segundos(0.5f);
+        assertEquals(0.5f, sombras.getExplosoes().get(0).tempo(), 0.05f);
+        segundos(SombrasDaPilotagem.DURACAO_DA_EXPLOSAO);
+        assertTrue(sombras.getExplosoes().isEmpty());
+
+        conexao.ouvinte.mensagem(sombra(7, "Bia", 200, 100, 0, false));   // renasceu na base: aparece lá direto
+        assertEquals(200, unica().x(), 1e-9);
+    }
+
+    @Test
+    void explosoesQueNaoEntendeSaoIgnoradasEFecharLimpaAsQueEstaoNaTela() {
+        conectadoComSombra(1000, 500, 0);
+        for (String ruim : List.of("{\"tipo\":\"explosao\"}", "{\"tipo\":\"explosao\",\"piloto\":7,\"x\":1}",
+                "{\"tipo\":\"explosao\",\"piloto\":7,\"x\":\"a\",\"y\":1}")) {
+            conexao.ouvinte.mensagem(ruim);
+        }
+        assertTrue(sombras.getExplosoes().isEmpty());
+        assertEquals(1, sombras.getSombras().size());
+
+        conexao.ouvinte.mensagem("{\"tipo\":\"explosao\",\"piloto\":7,\"x\":1,\"y\":1}");
+        sombras.fechar();
+        assertTrue(sombras.getExplosoes().isEmpty());
+    }
+
     @Test
     void normalizarDeixaOAnguloEntreMenos180E180() {
         assertEquals(10, SombrasDaPilotagem.normalizar(370), 1e-9);

@@ -2,8 +2,10 @@ package br.edu.unifor.missaomarte.grafico.apresentacao;
 
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Onde fica cada parte da tela de partida, para qualquer tamanho (Fase 6). Java puro: recebe a área visível do mundo
@@ -34,6 +36,12 @@ public record LayoutDaPartida(boolean retrato, Retangulo mapa, Retangulo painel,
     public static final float ALVO_MINIMO = 72;
     static final float ALVO_MAXIMO = 120;
     static final float ESPACO_ENTRE_BOTOES = 10;
+    /**
+     * Folga de toque das setas do direcional: o polegar que cai até 24 unidades fora (um terço do botão mínimo) ainda
+     * aperta a seta mais próxima. Embarcar, Som e Abortar não têm folga, para não serem tocados sem querer.
+     */
+    public static final float FOLGA_DAS_SETAS = 24;
+    private static final Set<Botao> SETAS = EnumSet.of(Botao.CIMA, Botao.BAIXO, Botao.ESQUERDA, Botao.DIREITA);
 
     public LayoutDaPartida {
         botoes = Collections.unmodifiableMap(new EnumMap<>(botoes.isEmpty() ? new EnumMap<>(Botao.class) : botoes));
@@ -43,14 +51,31 @@ public record LayoutDaPartida(boolean retrato, Retangulo mapa, Retangulo painel,
         return visivel.altura() > visivel.largura() ? retrato(visivel, toque) : paisagem(visivel, toque);
     }
 
-    /** O botão que contém o ponto (x, y), se houver. */
+    /**
+     * O botão no ponto (x, y): o que contém o ponto ou, fora de todos, a seta mais próxima dentro da folga de toque.
+     */
     public Optional<Botao> botaoEm(float x, float y) {
-        for (Map.Entry<Botao, Retangulo> b : botoes.entrySet()) {
+        return botaoEm(botoes, SETAS, FOLGA_DAS_SETAS, x, y);
+    }
+
+    /** Toque exato primeiro; senão, entre os botões com folga, o mais próximo que estiver a até {@code folga}. */
+    static <B extends Enum<B>> Optional<B> botaoEm(Map<B, Retangulo> botoes, Set<B> comFolga, float folga,
+                                                   float x, float y) {
+        for (Map.Entry<B, Retangulo> b : botoes.entrySet()) {
             if (b.getValue().contem(x, y)) {
                 return Optional.of(b.getKey());
             }
         }
-        return Optional.empty();
+        B maisPerto = null;
+        float menor = folga;
+        for (Map.Entry<B, Retangulo> b : botoes.entrySet()) {
+            float d = b.getValue().distancia(x, y);
+            if (comFolga.contains(b.getKey()) && d <= menor) {
+                maisPerto = b.getKey();
+                menor = d;
+            }
+        }
+        return Optional.ofNullable(maisPerto);
     }
 
     static float tamanhoDoBotao(Retangulo visivel) {

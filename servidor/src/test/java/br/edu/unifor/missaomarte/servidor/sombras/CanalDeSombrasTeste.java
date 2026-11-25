@@ -240,6 +240,78 @@ class CanalDeSombrasTeste {
         assertThat((Double) JsonPath.read(b.proxima(), "$.x")).isEqualTo(300.0);
     }
 
+    private static String explodiu(double x, double y) {
+        return "{\"tipo\":\"explodiu\",\"x\":" + x + ",\"y\":" + y + "}";
+    }
+
+    @Test
+    void aExplosaoDeUmPilotoChegaAosOutrosNaPosicaoInformada() throws Exception {
+        Cliente a = conectar(token(nomeUnico("Jade")));
+        Cliente b = conectar(token(nomeUnico("Kai")));
+        esperarConectados(2);
+        a.enviar(posicao(500, 300, 0, false));
+        int piloto = JsonPath.read(b.proxima(), "$.piloto");
+        avancarRelogio();
+
+        a.enviar(explodiu(512.5, 290));
+
+        String explosao = b.proxima();
+        assertThat((String) JsonPath.read(explosao, "$.tipo")).isEqualTo("explosao");
+        assertThat((Integer) JsonPath.read(explosao, "$.piloto")).isEqualTo(piloto);
+        assertThat((Double) JsonPath.read(explosao, "$.x")).isEqualTo(512.5);
+        assertThat((Double) JsonPath.read(explosao, "$.y")).isEqualTo(290.0);
+        a.nadaChegou();   // quem explodiu não recebe a própria explosão
+    }
+
+    @Test
+    void aExplosaoLogoDepoisDeUmaPosicaoNaoEDescartada() throws Exception {
+        // o jogo manda a posição a cada 100 ms, e a batida acontece a qualquer instante: a explosão não pode
+        // cair no limite de 40 ms das posições
+        Cliente a = conectar(token(nomeUnico("Nina")));
+        Cliente b = conectar(token(nomeUnico("Otto")));
+        esperarConectados(2);
+
+        a.enviar(posicao(500, 300, 0, false));
+        a.enviar(explodiu(500, 290));   // mesmo instante
+
+        assertThat((String) JsonPath.read(b.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat((String) JsonPath.read(b.proxima(), "$.tipo")).isEqualTo("explosao");
+    }
+
+    @Test
+    void explosoesSeguidasDemaisSaoDescartadas() throws Exception {
+        Cliente a = conectar(token(nomeUnico("Pia")));
+        Cliente b = conectar(token(nomeUnico("Rui")));
+        esperarConectados(2);
+
+        a.enviar(explodiu(100, 100));
+        assertThat((String) JsonPath.read(b.proxima(), "$.tipo")).isEqualTo("explosao");
+        relogio.avancar(Duration.ofMillis(CanalDeSombras.INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS - 1));
+        a.enviar(explodiu(200, 100));   // a nave ainda nem renasceu: descartada
+        b.nadaChegou();
+
+        relogio.avancar(Duration.ofMillis(1));
+        a.enviar(explodiu(300, 100));
+        assertThat((Double) JsonPath.read(b.proxima(), "$.x")).isEqualTo(300.0);
+    }
+
+    @Test
+    void explosoesInvalidasSaoIgnoradas() throws Exception {
+        Cliente a = conectar(token(nomeUnico("Lia")));
+        Cliente b = conectar(token(nomeUnico("Moa")));
+        esperarConectados(2);
+
+        for (String ruim : List.of(explodiu(-1, 100), explodiu(3841, 100), explodiu(100, 1441),
+                "{\"tipo\":\"explodiu\",\"x\":100}", "{\"tipo\":\"explodiu\",\"x\":\"100\",\"y\":100}")) {
+            a.enviar(ruim);
+            avancarRelogio();
+        }
+        b.nadaChegou();
+
+        a.enviar(explodiu(100, 100));
+        assertThat((String) JsonPath.read(b.proxima(), "$.tipo")).isEqualTo("explosao");
+    }
+
     @Test
     void quemSaiEAvisadoAosOutros() throws Exception {
         Cliente a = conectar(token(nomeUnico("Gil")));

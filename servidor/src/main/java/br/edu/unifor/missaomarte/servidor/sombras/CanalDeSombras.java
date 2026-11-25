@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.servidor.sombras;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,8 +37,10 @@ import tools.jackson.databind.node.ObjectNode;
  * </ul>
  * Mensagens (JSON): o cliente manda {@code {"tipo":"posicao","x":..,"y":..,"angulo":..,"motor":true}}; os outros
  * recebem {@code {"tipo":"sombra","piloto":7,"nome":"Ana","x":..,"y":..,"angulo":..,"motor":true}} e, quando alguém
- * sai, {@code {"tipo":"saiu","piloto":7}}. O número do piloto identifica a conexão (a mesma conta em dois aparelhos
- * são duas sombras).
+ * sai, {@code {"tipo":"saiu","piloto":7}}. Quando a nave de alguém bate, o cliente dele manda
+ * {@code {"tipo":"explodiu","x":..,"y":..}} e os outros recebem {@code {"tipo":"explosao","piloto":7,"x":..,"y":..}},
+ * com as mesmas regras de tamanho e caverna da posição e um limite próprio (uma por segundo). O número do piloto
+ * identifica a conexão (a mesma conta em dois aparelhos são duas sombras).
  */
 @Component
 public class CanalDeSombras extends TextWebSocketHandler {
@@ -46,6 +49,11 @@ public class CanalDeSombras extends TextWebSocketHandler {
 
     static final int TAMANHO_MAXIMO = 512;
     static final long INTERVALO_MINIMO_MS = 40;
+    /**
+     * A explosão tem o seu próprio limite: a batida acontece a qualquer instante, então não pode disputar os 40 ms com
+     * as posições. Uma por segundo basta, porque a nave leva segundos para renascer.
+     */
+    static final long INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS = 1000;
     static final int PILOTOS_MAXIMOS = 50;
     /** O tamanho da caverna da pilotagem (o mesmo do jogo): posições fora dela são recusadas. */
     static final double LARGURA_DA_CAVERNA = 3840;
@@ -53,8 +61,8 @@ public class CanalDeSombras extends TextWebSocketHandler {
     private static final int ESPERA_DE_ENVIO_MS = 1000;
     private static final int FILA_DE_ENVIO_BYTES = 16 * 1024;
 
-    /** Um piloto conectado; {@code ultimaPosicaoMs[0]} é null antes da primeira posição. */
-    private record Piloto(int numero, String nome, WebSocketSession sessao, Long[] ultimaPosicaoMs) {
+    /** Um piloto conectado; {@code ultimoRepasseMs} guarda, por tipo (sombra, explosão), quando ele foi repassado. */
+    private record Piloto(int numero, String nome, WebSocketSession sessao, Map<String, Long> ultimoRepasseMs) {
     }
 
     private final Map<String, Piloto> pilotos = new ConcurrentHashMap<>();
@@ -80,7 +88,7 @@ public class CanalDeSombras extends TextWebSocketHandler {
         WebSocketSession segura = new ConcurrentWebSocketSessionDecorator(sessao, ESPERA_DE_ENVIO_MS,
                 FILA_DE_ENVIO_BYTES);
         String nome = String.valueOf(token.getToken().getClaims().getOrDefault("nome", "Piloto"));
-        Piloto piloto = new Piloto(proximoNumero.getAndIncrement(), nome, segura, new Long[] {null});
+        Piloto piloto = new Piloto(proximoNumero.getAndIncrement(), nome, segura, new HashMap<>());
         pilotos.put(sessao.getId(), piloto);
         LOG.info("sombras: {} entrou (piloto {}); {} conectado(s)", nome, piloto.numero(), pilotos.size());
     }
@@ -96,31 +104,57 @@ public class CanalDeSombras extends TextWebSocketHandler {
             return;
         }
         long agora = relogio.millis();
+        ObjectNode repasse = repasseDe(piloto, mensagem.getPayload());
+        if (repasse == null) {
+            return;   // mensagem inválida: ignorada, sem derrubar a conexão
+        }
+        String tipo = repasse.get("tipo").asString();
+        long intervalo = tipo.equals("explosao") ? INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS : INTERVALO_MINIMO_MS;
         synchronized (piloto) {
-            Long ultima = piloto.ultimaPosicaoMs()[0];
-            if (ultima != null && agora - ultima < INTERVALO_MINIMO_MS) {
-                return;   // rápido demais: descarta (10 por segundo bastam para uma sombra suave)
+            Long ultimo = piloto.ultimoRepasseMs().get(tipo);
+            if (ultimo != null && agora - ultimo < intervalo) {
+                return;   // rápido demais: descarta (10 posições por segundo bastam para uma sombra suave)
             }
-            ObjectNode sombra = sombraDe(piloto, mensagem.getPayload());
-            if (sombra == null) {
-                return;   // mensagem inválida: ignorada, sem derrubar a conexão
-            }
-            piloto.ultimaPosicaoMs()[0] = agora;
-            repassar(piloto, json.writeValueAsString(sombra));
+            piloto.ultimoRepasseMs().put(tipo, agora);
+            repassar(piloto, json.writeValueAsString(repasse));
         }
     }
 
-    /** A sombra a repassar, ou null se a mensagem não for uma posição válida dentro da caverna. */
-    private ObjectNode sombraDe(Piloto piloto, String texto) {
+    /** O que repassar aos outros, ou null se a mensagem não for uma posição nem uma explosão válida. */
+    private ObjectNode repasseDe(Piloto piloto, String texto) {
         JsonNode m;
         try {
             m = json.readTree(texto);
         } catch (JacksonException e) {
             return null;
         }
-        if (m == null || !m.isObject() || !"posicao".equals(m.path("tipo").asString())) {
+        if (m == null || !m.isObject()) {
             return null;
         }
+        return switch (m.path("tipo").asString()) {
+            case "posicao" -> sombraDe(piloto, m);
+            case "explodiu" -> explosaoDe(piloto, m);
+            default -> null;
+        };
+    }
+
+    /** A explosão da nave de um piloto, no ponto da caverna em que ela bateu (as vidas e o renascer são do jogo). */
+    private ObjectNode explosaoDe(Piloto piloto, JsonNode m) {
+        JsonNode x = m.get("x");
+        JsonNode y = m.get("y");
+        if (!numero(x, 0, LARGURA_DA_CAVERNA) || !numero(y, 0, ALTURA_DA_CAVERNA)) {
+            return null;
+        }
+        ObjectNode explosao = json.createObjectNode();
+        explosao.put("tipo", "explosao");
+        explosao.put("piloto", piloto.numero());
+        explosao.put("x", x.asDouble());
+        explosao.put("y", y.asDouble());
+        return explosao;
+    }
+
+    /** A sombra a repassar, ou null se a posição não for válida dentro da caverna. */
+    private ObjectNode sombraDe(Piloto piloto, JsonNode m) {
         JsonNode x = m.get("x");
         JsonNode y = m.get("y");
         JsonNode angulo = m.get("angulo");

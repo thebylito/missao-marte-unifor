@@ -180,6 +180,8 @@ public class TelaPilotagem extends TelaBase {
                 explosaoX = (float) e.x();
                 explosaoY = (float) e.y();
                 tremor = 0.5f;
+                // os outros pilotos veem a explosão no mesmo ponto (sai antes de a tela fechar, se a partida acabou)
+                sombras.explodiu(e.x(), e.y(), controlador.getPartida().getCaverna());
             }
         }
         if (tempoDaExplosao >= 0) {
@@ -221,6 +223,7 @@ public class TelaPilotagem extends TelaBase {
         desenharPassageiros(p);
         desenharAsteroides(p.getCaverna());
         desenharSombras();
+        desenharExplosoesDasSombras();
         desenharNave(nave);
         desenharExplosao();
         lote().end();
@@ -356,6 +359,26 @@ public class TelaPilotagem extends TelaBase {
             escrever(s.nome(), x - s.nome().length() * 5.5f, y + Folha.NAVE.getAltura() / 2f + 22, NOME_DA_SOMBRA,
                     1.3f);
         }
+    }
+
+    /**
+     * A explosão da nave de outro piloto: a mesma animação da sua, translúcida como as sombras e sem som nem tremor
+     * (quem bateu foi o outro).
+     */
+    private void desenharExplosoesDasSombras() {
+        int quadros = Folha.EXPLOSAO.getQuadros();
+        float lado = Folha.EXPLOSAO.getLargura() * 1.6f;
+        for (SombrasDaPilotagem.Explosao e : sombras.getExplosoes()) {
+            int i = (int) (e.tempo() * 20);
+            if (i >= quadros) {
+                continue;
+            }
+            float alfa = i < quadros - 4 ? 0.6f : 0.6f * (quadros - i) / 5f;
+            lote().setColor(1, 1, 1, alfa);
+            lote().draw(recursos().quadro(Folha.EXPLOSAO, i), (float) e.x() - lado / 2, (float) e.y() - lado / 2,
+                    lado, lado);
+        }
+        lote().setColor(Color.WHITE);
     }
 
     private void desenharExplosao() {

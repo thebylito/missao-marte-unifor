@@ -27,6 +27,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Tela de jogo (Fase 4): mapa com sprites, deslize entre células, explosões, tremor e HUD. Não decide nada: lê a
@@ -74,6 +75,13 @@ public class TelaPartida extends TelaBase {
             alvos.add(tecla(b.getValue(), b.getKey().getTecla(), (char) 0));
         }
         return alvos;
+    }
+
+    /** O botão vem do layout, que dá folga de toque às setas do direcional (o polegar que cai um pouco fora). */
+    @Override
+    protected Optional<Runnable> acaoNoPonto(float x, float y) {
+        posicionar();
+        return layout.botaoEm(x, y).map(b -> tecla(layout.botoes().get(b), b.getTecla(), (char) 0).acao());
     }
 
     private Missao missao() {

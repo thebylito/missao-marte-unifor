@@ -12,6 +12,13 @@ public record Retangulo(float x, float y, float largura, float altura) {
         return px >= x && px <= direita() && py >= y && py <= topo();
     }
 
+    /** Distância do ponto até o retângulo: 0 dentro ou na borda (para a folga de toque dos botões). */
+    public float distancia(float px, float py) {
+        float dx = Math.max(Math.max(x - px, 0), px - direita());
+        float dy = Math.max(Math.max(y - py, 0), py - topo());
+        return (float) Math.hypot(dx, dy);
+    }
+
     /** Há área em comum (encostar na borda não conta). */
     public boolean sobrepoe(Retangulo outro) {
         return x < outro.direita() && outro.x < direita() && y < outro.topo() && outro.y < topo();
