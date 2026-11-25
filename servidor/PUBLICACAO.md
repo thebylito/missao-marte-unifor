@@ -183,6 +183,10 @@ reimplantar sem novo commit: aba **Actions → Build & Deploy → Run workflow**
 - Domain `missao-marte.thebylito.dev` → porta **8080**, em HTTP. O HTTPS fica com a Cloudflare, na frente, como nos
   outros serviços.
 - Advanced → Volumes: volume `missao-marte-api-dados` montado em `/dados`, e uma réplica só.
+- Advanced → Swarm Settings → Update Config: **Order = Stop First**. O padrão do Swarm (start-first) sobe o
+  contêiner novo antes de parar o antigo. O H2 só abre o arquivo em um processo, então o novo morre com
+  `The file is locked: /dados/missaomarte.mv.db` e a versão antiga continua no ar. Isso aconteceu no primeiro
+  deploy automático (2026-11-25). Com stop-first, cada deploy deixa o site fora do ar por uns 20 segundos.
 
 **No GitHub** (Settings → Secrets and variables → Actions):
 - `DOKPLOY_SERVER_URL`: URL do painel do Dokploy

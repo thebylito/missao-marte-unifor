@@ -2,9 +2,14 @@
 // Os nomes vêm de jogadores: entram na página só como texto (textContent), nunca como HTML.
 "use strict";
 
+// O texto do Clássico também está no index.html (é o que aparece antes do JavaScript rodar).
 const DESCRICOES = {
-  CLASSICO: "A grade por turnos: cada passo gasta combustível.",
-  PILOTAGEM: "Física de voo: gravidade, motor e pouso nas plataformas. Bônus pelo combustível que sobra.",
+  CLASSICO: "O jogo original, em turnos numa grade. Cada movimento custa 1 ponto, e você perde se os pontos "
+    + "acabarem ou se bater 3 vezes em asteroides e inimigos.",
+  PILOTAGEM: "Na pilotagem, a gravidade puxa a nave para baixo e o motor gasta combustível. "
+    + "Pouse devagar na plataforma, embarque até 2 passageiros e leve-os à base, que também reabastece. "
+    + "O combustível que sobra no fim vale até 30 pontos de bônus. Com conta, você vê as naves de quem está "
+    + "jogando ao mesmo tempo.",
 };
 const DIFICULDADES = { FACIL: "Fácil", MEDIO: "Médio", DIFICIL: "Difícil" };
 const ATUALIZAR_A_CADA_MS = 30000;
@@ -48,9 +53,10 @@ function mostrar(posicoes) {
     );
     return tr;
   }));
+  const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   estado.textContent = posicoes.length === 0
-    ? "Ninguém venceu neste modo ainda. Baixe o jogo e seja o primeiro!"
-    : `Atualizado às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.`;
+    ? "Ainda não há vitórias neste modo."
+    : `A lista se atualiza a cada 30 segundos. Última leitura às ${hora}.`;
 }
 
 async function carregarRanking() {
@@ -62,7 +68,7 @@ async function carregarRanking() {
     if (modo === modoAtual) mostrar(posicoes);
   } catch (erro) {
     if (modo === modoAtual) {
-      document.getElementById("estado").textContent = "Não foi possível falar com o servidor agora. Tentando de novo em instantes.";
+      document.getElementById("estado").textContent = "O servidor não respondeu. A página tenta de novo em 30 segundos.";
     }
   }
 }
@@ -94,7 +100,7 @@ async function conferirDownloads() {
     } catch (erro) {
       link.classList.add("indisponivel");
       link.setAttribute("aria-disabled", "true");
-      legenda.textContent = "Indisponível neste servidor.";
+      legenda.textContent = "Este arquivo ainda não foi publicado neste servidor.";
     }
   }
 }
