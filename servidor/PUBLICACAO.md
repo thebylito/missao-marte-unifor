@@ -144,7 +144,9 @@ No ar em **https://missao-marte.thebylito.dev**: um host só para tudo. O mesmo 
 |---|---|
 | `/` | página do jogo: ranking global ao vivo (os dois modos) e os downloads |
 | `/downloads/missao-marte.apk` | APK para Android 8 ou mais novo |
-| `/downloads/missao-marte-desktop.zip` | jogo desktop (Windows, macOS e Linux, com Java 17) |
+| `/downloads/missao-marte-windows.zip` | Windows, com o Java embutido: descompactar e abrir, sem instalar nem ser administrador |
+| `/downloads/missao-marte-macos-apple-silicon.zip`, `/downloads/missao-marte-macos-intel.zip` | macOS, com o Java embutido (`Missao Marte.app`, assinatura ad hoc) |
+| `/downloads/missao-marte-desktop.zip` | jogo desktop para quem já tem o Java 17 (Linux e outros sistemas) |
 | `/api/**`, `/ws/sombras` | a API e o modo shadow, como antes |
 | `/swagger-ui.html`, `/actuator/health` | documentação e saúde |
 
@@ -160,10 +162,12 @@ Quem faz o build é o GitHub Actions. O Dokploy só implanta a imagem pronta, no
 1. **`CI`** (`.github/workflows/ci.yml`), em cada PR:
    - testes do servidor (`servidor/`);
    - testes do jogo, o APK e o zip desktop com o endereço publicado (artefato `downloads`);
+   - os pacotes nativos com o Java embutido (`jpackage`, `./gradlew :lwjgl3:pacoteNativo`), um por máquina: Windows
+     (`windows-latest`), Mac Apple Silicon (`macos-15`) e Mac Intel (`macos-15-intel`) (artefatos `pacote-*`);
    - a imagem é construída, mas não é publicada.
 2. **`Build & Deploy`** (`.github/workflows/deploy.yml`), em cada merge na `main` que mexe no jogo ou no servidor:
    - roda o mesmo CI;
-   - coloca o APK e o zip em `servidor/downloads/` e gera a imagem;
+   - coloca o APK, o zip e os pacotes nativos em `servidor/downloads/` e gera a imagem;
    - publica `ghcr.io/thebylito/missao-marte-unifor-servidor:sha-<commit>` (e `:latest`);
    - chama o Dokploy (`nodilabs/dokploy-deploy-action`) para implantar essa tag.
 

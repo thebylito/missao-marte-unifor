@@ -29,7 +29,7 @@
   <main>
     <section id="baixar" aria-labelledby="titulo-baixar">
       <h2 id="titulo-baixar">Baixar</h2>
-      <p class="nota">Os dois downloads já vêm ligados a este servidor. Crie a conta na tela de entrada do jogo, e as
+      <p class="nota">Todos os downloads já vêm ligados a este servidor. Crie a conta na tela de entrada do jogo, e as
         suas vitórias passam a contar no ranking.</p>
       <div class="cartoes">
         <article class="cartao">
@@ -50,22 +50,57 @@
           </details>
         </article>
         <article class="cartao">
-          <h3>Computador</h3>
-          <p>Roda no Windows, no macOS e no Linux, desde que o Java 17 (ou mais novo) esteja instalado.</p>
-          <a class="botao principal download" data-arquivo="missao-marte-desktop.zip"
-             href="downloads/missao-marte-desktop.zip" download>Baixar o .zip</a>
-          <p class="tamanho" data-tamanho-de="missao-marte-desktop.zip"></p>
+          <h3>Windows</h3>
+          <p>O Java vem dentro do pacote. Basta descompactar numa pasta sua e abrir, sem instalar e sem pedir
+            administrador.</p>
+          <a class="botao principal download" data-arquivo="missao-marte-windows.zip"
+             href="downloads/missao-marte-windows.zip" download>Baixar para Windows</a>
+          <p class="tamanho" data-tamanho-de="missao-marte-windows.zip"></p>
           <details>
-            <summary>Como jogar</summary>
+            <summary>Como abrir</summary>
             <ol>
-              <li>Descompacte o arquivo.</li>
-              <li>Rode <code>bin/missao-marte</code> (macOS e Linux) ou <code>bin\missao-marte.bat</code> (Windows).</li>
-              <li>No modo clássico, as setas ou <kbd>WASD</kbd> movem a nave, <kbd>Espaço</kbd> embarca e
-                <kbd>Esc</kbd> aborta. Na pilotagem, <kbd>←</kbd> e <kbd>→</kbd> giram e <kbd>↑</kbd> liga o motor.</li>
+              <li>Descompacte o zip em Documentos ou na Área de Trabalho.</li>
+              <li>Abra <code>Missao Marte.exe</code>, dentro da pasta <code>Missao Marte</code>.</li>
+              <li>Na primeira vez, o Windows pode mostrar "O Windows protegeu o computador". Clique em "Mais
+                informações" e depois em "Executar assim mesmo". O aviso aparece porque o jogo não tem assinatura
+                digital paga.</li>
+            </ol>
+          </details>
+        </article>
+        <article class="cartao">
+          <h3>Mac</h3>
+          <p>O Java também vem dentro do app. Escolha pelo processador: no menu Apple → Sobre Este Mac, "Apple M1"
+            (ou M2, M3, M4) é Apple Silicon, e "Intel" é Intel.</p>
+          <a class="botao principal download" data-arquivo="missao-marte-macos-apple-silicon.zip"
+             href="downloads/missao-marte-macos-apple-silicon.zip" download>Baixar para Apple Silicon</a>
+          <p class="tamanho" data-tamanho-de="missao-marte-macos-apple-silicon.zip"></p>
+          <a class="botao download" data-arquivo="missao-marte-macos-intel.zip"
+             href="downloads/missao-marte-macos-intel.zip" download>Baixar para Intel</a>
+          <p class="tamanho" data-tamanho-de="missao-marte-macos-intel.zip"></p>
+          <details>
+            <summary>Como abrir</summary>
+            <ol>
+              <li>Dê dois cliques no zip e arraste <code>Missao Marte</code> para Aplicativos.</li>
+              <li>Na primeira vez, o macOS diz que não pôde verificar o app, porque ele não tem a assinatura paga da
+                Apple. Feche o aviso, abra Ajustes do Sistema → Privacidade e Segurança e clique em "Abrir Mesmo
+                Assim".</li>
+              <li>Quem prefere o Terminal pode liberar com
+                <code>xattr -dr com.apple.quarantine "/Applications/Missao Marte.app"</code>.</li>
             </ol>
           </details>
         </article>
       </div>
+      <details class="outros-sistemas">
+        <summary>Linux ou outro sistema</summary>
+        <p>Esta versão precisa do Java 17 (ou mais novo) instalado.
+          <a class="download" data-arquivo="missao-marte-desktop.zip" href="downloads/missao-marte-desktop.zip"
+             download>Baixar o .zip com Java</a> <span class="tamanho" data-tamanho-de="missao-marte-desktop.zip"></span>.
+          Descompacte e rode <code>bin/missao-marte</code>.</p>
+      </details>
+      <p class="nota controles">Teclado no computador: no modo clássico, as setas ou <kbd>WASD</kbd> movem a nave,
+        <kbd>Espaço</kbd> embarca e <kbd>Esc</kbd> aborta. Na pilotagem, <kbd>←</kbd> e <kbd>→</kbd> giram e
+        <kbd>↑</kbd> liga o motor. Nas versões para Windows e Mac, o ranking local fica na pasta
+        <code>.missao-marte</code> do seu usuário.</p>
     </section>
 
     <section id="ranking" aria-labelledby="titulo-ranking">
