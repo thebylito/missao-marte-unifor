@@ -25,6 +25,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -127,16 +128,28 @@ public abstract class TelaBase implements Screen {
         }));
     }
 
-    /** Converte o toque (pixels da tela) para o mundo e executa o primeiro alvo que o contém. */
+    /** Converte o toque (pixels da tela) para o mundo e executa o alvo que estiver no ponto. */
     private boolean tocar(int xNaTela, int yNaTela, int dedo, int botao) {
         viewport.unproject(toque.set(xNaTela, yNaTela));
-        for (AlvoDeToque alvo : alvosDeToque()) {
-            if (alvo.area().contem(toque.x, toque.y)) {
-                alvo.acao().run();
-                return true;
-            }
+        Optional<Runnable> acao = acaoNoPonto(toque.x, toque.y);
+        if (acao.isPresent()) {
+            acao.get().run();
+            return true;
         }
         return entradaAtual.touchDown(xNaTela, yNaTela, dedo, botao);
+    }
+
+    /**
+     * A ação do alvo no ponto (coordenadas das telas): o primeiro alvo que contém o ponto. A partida sobrescreve para
+     * dar folga de toque às setas do direcional.
+     */
+    protected Optional<Runnable> acaoNoPonto(float x, float y) {
+        for (AlvoDeToque alvo : alvosDeToque()) {
+            if (alvo.area().contem(x, y)) {
+                return Optional.of(alvo.acao());
+            }
+        }
+        return Optional.empty();
     }
 
     /** Fase 7: um ponto em pixels da tela nas coordenadas das telas (as dos layouts e dos alvos de toque). */

@@ -87,4 +87,37 @@ class LayoutDaPilotagemTeste {
         }
         assertEquals(Optional.empty(), l.botaoEm(400, 300), "o meio da tela é do voo");
     }
+
+    // --- folga de toque: o polegar que cai um pouco fora da seta ainda gira a nave ---
+
+    @Test
+    void tocarUmPoucoForaDaSetaAindaContaComoASeta() {
+        LayoutDaPilotagem l = LayoutDaPilotagem.calcular(visivel(2340, 1080), true, PROPORCAO);
+        Retangulo esquerda = l.botoes().get(Botao.ESQUERDA);
+        Retangulo direita = l.botoes().get(Botao.DIREITA);
+        float folga = LayoutDaPilotagem.FOLGA_DAS_SETAS;
+        assertEquals(Optional.of(Botao.ESQUERDA), l.botaoEm(esquerda.x() - folga + 1, esquerda.centroY()), "à esquerda");
+        assertEquals(Optional.of(Botao.ESQUERDA), l.botaoEm(esquerda.centroX(), esquerda.topo() + folga - 1), "acima");
+        assertEquals(Optional.of(Botao.DIREITA), l.botaoEm(direita.centroX(), direita.y() - folga + 1), "abaixo");
+        assertEquals(Optional.of(Botao.DIREITA), l.botaoEm(direita.direita() + 10, direita.topo() + 10), "na diagonal");
+        assertEquals(Optional.empty(), l.botaoEm(esquerda.centroX(), esquerda.topo() + folga + 1), "longe demais");
+    }
+
+    @Test
+    void noVaoEntreAsSetasVenceAMaisProxima() {
+        LayoutDaPilotagem l = LayoutDaPilotagem.calcular(visivel(2340, 1080), true, PROPORCAO);
+        Retangulo esquerda = l.botoes().get(Botao.ESQUERDA);
+        Retangulo direita = l.botoes().get(Botao.DIREITA);
+        assertEquals(Optional.of(Botao.ESQUERDA), l.botaoEm(esquerda.direita() + 2, esquerda.centroY()));
+        assertEquals(Optional.of(Botao.DIREITA), l.botaoEm(direita.x() - 2, direita.centroY()));
+    }
+
+    @Test
+    void motorEAbortarNaoGanhamFolga() {
+        LayoutDaPilotagem l = LayoutDaPilotagem.calcular(visivel(2340, 1080), true, PROPORCAO);
+        Retangulo motor = l.botoes().get(Botao.MOTOR);
+        Retangulo abortar = l.botoes().get(Botao.ABORTAR);
+        assertEquals(Optional.empty(), l.botaoEm(motor.x() - 5, motor.centroY()));
+        assertEquals(Optional.empty(), l.botaoEm(abortar.x() - 5, abortar.centroY()), "Abortar só com toque em cima");
+    }
 }
