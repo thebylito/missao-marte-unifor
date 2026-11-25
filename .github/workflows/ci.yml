@@ -64,6 +64,61 @@ jobs:
           path: downloads/
           retention-days: 7
 
+  # O jogo para Windows e macOS com o Java embutido (jpackage): quem baixa não instala o Java nem precisa ser
+  # administrador. O jpackage só gera o pacote do sistema em que roda, então cada um sai da sua máquina.
+  pacotes:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sistema: windows
+            maquina: windows-latest
+            arquivo: missao-marte-windows.zip
+          - sistema: macos-apple-silicon
+            maquina: macos-15
+            arquivo: missao-marte-macos-apple-silicon.zip
+          - sistema: macos-intel
+            maquina: macos-15-intel
+            arquivo: missao-marte-macos-intel.zip
+    runs-on: ${{ matrix.maquina }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Pacote nativo
+        shell: bash
+        run: >
+          ./gradlew --no-daemon :lwjgl3:pacoteNativo
+          -Pmissaomarte.servidorPadrao=${{ env.SERVIDOR_PUBLICADO }}
+
+      # ditto preserva os links simbólicos e a assinatura do .app (um zip comum quebra os dois)
+      - name: Zip do macOS
+        if: runner.os == 'macOS'
+        run: |
+          codesign --verify --deep --strict "lwjgl3/build/pacote/Missao Marte.app"
+          grep -q -- '-XstartOnFirstThread' "lwjgl3/build/pacote/Missao Marte.app/Contents/app/Missao Marte.cfg"
+          ditto -c -k --keepParent "lwjgl3/build/pacote/Missao Marte.app" "${{ matrix.arquivo }}"
+
+      - name: Zip do Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "lwjgl3/build/pacote/Missao Marte/Missao Marte.exe")) { throw "o .exe não foi gerado" }
+          Select-String -Path "lwjgl3/build/pacote/Missao Marte/app/Missao Marte.cfg" -Pattern "missaomarte.dados=usuario" | Out-Null
+          Compress-Archive -Path "lwjgl3/build/pacote/Missao Marte" -DestinationPath "${{ matrix.arquivo }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pacote-${{ matrix.sistema }}
+          path: ${{ matrix.arquivo }}
+          retention-days: 7
+
   # Só no PR: confere que a imagem ainda constrói, sem publicar nada (a pasta downloads fica só com o .gitkeep).
   imagem:
     if: github.event_name == 'pull_request'
