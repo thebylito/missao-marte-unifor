@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Missão Marte Unifor</title>
-  <meta name="description" content="Missão Marte Unifor: baixe o jogo para Android ou desktop e acompanhe o ranking global ao vivo.">
+  <meta name="description" content="Baixe o Missão Marte para Android ou computador e veja o ranking global dos dois modos de jogo.">
   <link rel="icon" type="image/png" href="pagina/icone.png">
   <link rel="stylesheet" href="pagina/estilo.css">
   <script src="pagina/app.js" defer></script>
@@ -16,8 +16,8 @@
       <div>
         <p class="sobretitulo">Projeto Integrador · Unifor</p>
         <h1>Missão Marte</h1>
-        <p class="chamada">Pilote a nave pelas cavernas de Marte, resgate os passageiros e volte à base antes que o
-          combustível acabe. Os melhores pilotos entram no ranking global.</p>
+        <p class="chamada">Embarque os passageiros espalhados por Marte e leve todos de volta à base. Cada vitória de
+          quem joga com conta aparece no ranking desta página.</p>
         <nav class="acoes" aria-label="Atalhos">
           <a class="botao principal" href="#baixar">Baixar o jogo</a>
           <a class="botao" href="#ranking">Ver o ranking</a>
@@ -29,37 +29,39 @@
   <main>
     <section id="baixar" aria-labelledby="titulo-baixar">
       <h2 id="titulo-baixar">Baixar</h2>
-      <p class="nota">As duas versões já vêm apontando para este servidor: crie a sua conta dentro do jogo e a vitória
-        entra no ranking abaixo.</p>
+      <p class="nota">Os dois downloads já vêm ligados a este servidor. Crie a conta na tela de entrada do jogo, e as
+        suas vitórias passam a contar no ranking.</p>
       <div class="cartoes">
         <article class="cartao">
           <h3>Android</h3>
-          <p>APK para celulares com Android 8 ou mais novo. Controles de toque, retrato e paisagem.</p>
+          <p>Para celular com Android 8 ou mais novo. Os controles ficam na tela, e o jogo se ajusta na vertical e na
+            horizontal.</p>
           <a class="botao principal download" data-arquivo="missao-marte.apk" href="downloads/missao-marte.apk"
-             download>Baixar APK</a>
+             download>Baixar o APK</a>
           <p class="tamanho" data-tamanho-de="missao-marte.apk"></p>
           <details>
             <summary>Como instalar</summary>
             <ol>
               <li>Baixe o APK pelo celular.</li>
               <li>Abra o arquivo e permita a instalação de "fontes desconhecidas" quando o Android pedir.</li>
-              <li>Se já tiver uma versão antiga instalada e a instalação falhar, desinstale a antiga antes.</li>
+              <li>Cada versão nova sai com outra assinatura. Se a instalação falhar, desinstale a versão antiga e
+                tente de novo.</li>
             </ol>
           </details>
         </article>
         <article class="cartao">
-          <h3>Desktop</h3>
-          <p>Windows, macOS e Linux. Precisa do Java 17 ou mais novo instalado.</p>
+          <h3>Computador</h3>
+          <p>Roda no Windows, no macOS e no Linux, desde que o Java 17 (ou mais novo) esteja instalado.</p>
           <a class="botao principal download" data-arquivo="missao-marte-desktop.zip"
-             href="downloads/missao-marte-desktop.zip" download>Baixar .zip</a>
+             href="downloads/missao-marte-desktop.zip" download>Baixar o .zip</a>
           <p class="tamanho" data-tamanho-de="missao-marte-desktop.zip"></p>
           <details>
             <summary>Como jogar</summary>
             <ol>
               <li>Descompacte o arquivo.</li>
               <li>Rode <code>bin/missao-marte</code> (macOS e Linux) ou <code>bin\missao-marte.bat</code> (Windows).</li>
-              <li>No modo clássico: setas ou <kbd>WASD</kbd> movem, <kbd>Espaço</kbd> embarca, <kbd>Esc</kbd> aborta.
-                Na pilotagem: <kbd>←</kbd> <kbd>→</kbd> giram e <kbd>↑</kbd> liga o motor.</li>
+              <li>No modo clássico, as setas ou <kbd>WASD</kbd> movem a nave, <kbd>Espaço</kbd> embarca e
+                <kbd>Esc</kbd> aborta. Na pilotagem, <kbd>←</kbd> e <kbd>→</kbd> giram e <kbd>↑</kbd> liga o motor.</li>
             </ol>
           </details>
         </article>
@@ -74,7 +76,8 @@
           <button type="button" role="tab" aria-selected="false" data-modo="PILOTAGEM">Pilotagem</button>
         </div>
       </div>
-      <p class="nota" id="descricao-modo">A grade por turnos: cada passo gasta combustível.</p>
+      <p class="nota" id="descricao-modo">O jogo original, em turnos numa grade. Cada movimento custa 1 ponto, e
+        você perde se os pontos acabarem ou se bater 3 vezes em asteroides e inimigos.</p>
       <div class="tabela-rolagem">
         <table aria-describedby="descricao-modo">
           <thead>
@@ -94,17 +97,18 @@
       <p class="estado" id="estado" role="status">Carregando o ranking…</p>
     </section>
 
-    <section class="tripulacao" aria-label="Passageiros a resgatar">
-      <figure><img src="pagina/professor.png" alt="" width="48" height="64"><figcaption>Professor</figcaption></figure>
-      <figure><img src="pagina/engenheiro.png" alt="" width="48" height="64"><figcaption>Engenheiro</figcaption></figure>
-      <figure><img src="pagina/astronauta.png" alt="" width="48" height="64"><figcaption>Astronauta</figcaption></figure>
+    <section class="tripulacao" aria-label="Pontos de cada passageiro">
+      <figure><img src="pagina/astronauta.png" alt="" width="48" height="64"><figcaption>Astronauta<br>20 pontos</figcaption></figure>
+      <figure><img src="pagina/engenheiro.png" alt="" width="48" height="64"><figcaption>Engenheiro<br>15 pontos</figcaption></figure>
+      <figure><img src="pagina/professor.png" alt="" width="48" height="64"><figcaption>Professor<br>10 pontos</figcaption></figure>
     </section>
   </main>
 
   <footer>
-    <p>Welington da Silva e Lucas Gomes Costa · Projeto Integrador da Unifor ·
-      <a href="https://github.com/thebylito/missao-marte-unifor">código no GitHub</a> ·
-      <a href="swagger-ui.html">API (Swagger)</a></p>
+    <p>Feito por Welington da Silva e Lucas Gomes Costa no Projeto Integrador da Unifor. O jogo começou como o
+      Exercício 10, em modo texto no terminal, e chegou a esta versão em 7 fases.</p>
+    <p><a href="https://github.com/thebylito/missao-marte-unifor">Código no GitHub</a> ·
+      <a href="swagger-ui.html">Documentação da API</a></p>
     <p class="creditos">Fonte Chakra Petch (<a href="pagina/fontes/OFL-ChakraPetch.txt">SIL Open Font License</a>).</p>
   </footer>
 </body>
