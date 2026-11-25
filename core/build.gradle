@@ -17,6 +17,27 @@ dependencies {
     testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
 }
 
+// Publicação: ./gradlew :android:assembleDebug :lwjgl3:distZip -Pmissaomarte.servidorPadrao=https://missao-marte.thebylito.dev
+// grava o endereço do servidor publicado num recurso do core (missaomarte/servidor-padrao.txt), que os launchers usam
+// como padrão (ConfiguracaoDoServidor.padraoDoBuild). Sem a propriedade o arquivo fica vazio, e o desenvolvimento
+// continua com localhost (desktop) e 10.0.2.2 (emulador).
+def servidorPadrao = providers.gradleProperty('missaomarte.servidorPadrao').map { it.trim() }.orElse('')
+def gerarServidorPadrao = tasks.register('gerarServidorPadrao') {
+    def saida = layout.buildDirectory.dir('generated/servidor-padrao')
+    inputs.property('endereco', servidorPadrao)
+    outputs.dir(saida)
+    doLast {
+        def endereco = servidorPadrao.get()
+        if (endereco && !(endereco ==~ /https?:\/\/[^\s\/?#@]+(\/[^\s?#]*)?/)) {
+            throw new GradleException("missaomarte.servidorPadrao inválido: '$endereco' (use http:// ou https://)")
+        }
+        def arquivo = saida.get().file('missaomarte/servidor-padrao.txt').asFile
+        arquivo.parentFile.mkdirs()
+        arquivo.text = endereco
+    }
+}
+sourceSets.main.resources.srcDir(gerarServidorPadrao)
+
 // Os testes do catálogo conferem os arquivos de assets/ na raiz do projeto (imagens, sons e fontes).
 tasks.named('test') {
     systemProperty 'missaomarte.assets', rootProject.file('assets').absolutePath

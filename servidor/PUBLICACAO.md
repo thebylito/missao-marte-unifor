@@ -5,7 +5,8 @@ e no desktop use o ranking global de qualquer lugar. A imagem é a mesma do dese
 pasta). Só mudam as variáveis de ambiente e o que fica na frente dela (HTTPS).
 
 Este guia **não** publica nada sozinho. Ele descreve o que a plataforma de hospedagem (Dokploy, Coolify, Render,
-um servidor com Docker etc.) precisa receber. O que foi testado está marcado no fim.
+um servidor com Docker etc.) precisa receber. O que foi testado está marcado no fim. A publicação real, no Dokploy
+com GitHub Actions, está na [seção 10](#10-publicação-no-dokploy-com-github-actions).
 
 ## 1. O que é publicado
 
@@ -134,3 +135,60 @@ Testado localmente com Docker, sem publicar em nenhum serviço:
 
 Não testados: um proxy HTTPS de verdade, um domínio público e a imagem em processadores amd64. Os testes rodaram
 num Mac com processador ARM.
+
+## 10. Publicação no Dokploy com GitHub Actions
+
+No ar em **https://missao-marte.thebylito.dev**: um host só para tudo. O mesmo contêiner entrega:
+
+| Caminho | O quê |
+|---|---|
+| `/` | página do jogo: ranking global ao vivo (os dois modos) e os downloads |
+| `/downloads/missao-marte.apk` | APK para Android 8 ou mais novo |
+| `/downloads/missao-marte-desktop.zip` | jogo desktop (Windows, macOS e Linux, com Java 17) |
+| `/api/**`, `/ws/sombras` | a API e o modo shadow, como antes |
+| `/swagger-ui.html`, `/actuator/health` | documentação e saúde |
+
+A página lê `/api/ranking` na mesma origem, por isso não precisa de CORS. Os nomes dos jogadores entram nela só como
+texto (`textContent`). O APK e o jogo desktop baixados já vêm apontando para o servidor publicado: o build embute o
+endereço com `-Pmissaomarte.servidorPadrao=https://missao-marte.thebylito.dev`. Sem essa propriedade, o
+desenvolvimento continua com `localhost` e `10.0.2.2`. O jogador ainda pode trocar o endereço na opção 4.
+
+### Como a entrega acontece
+
+Quem faz o build é o GitHub Actions. O Dokploy só implanta a imagem pronta, no mesmo fluxo do `portfolio-coletivo`:
+
+1. **`CI`** (`.github/workflows/ci.yml`), em cada PR:
+   - testes do servidor (`servidor/`);
+   - testes do jogo, o APK e o zip desktop com o endereço publicado (artefato `downloads`);
+   - a imagem é construída, mas não é publicada.
+2. **`Build & Deploy`** (`.github/workflows/deploy.yml`), em cada merge na `main` que mexe no jogo ou no servidor:
+   - roda o mesmo CI;
+   - coloca o APK e o zip em `servidor/downloads/` e gera a imagem;
+   - publica `ghcr.io/thebylito/missao-marte-unifor-servidor:sha-<commit>` (e `:latest`);
+   - chama o Dokploy (`nodilabs/dokploy-deploy-action`) para implantar essa tag.
+
+Enquanto os secrets do Dokploy não existirem, o workflow só publica a imagem e avisa que o deploy foi ignorado. Para
+reimplantar sem novo commit: aba **Actions → Build & Deploy → Run workflow**.
+
+### Configuração (uma vez só)
+
+**No Dokploy** (projeto `unifor`, ambiente `production`, serviço `missao-marte-api`, servidor "AWS - Matheus"):
+- Provider **Docker**, imagem `ghcr.io/thebylito/missao-marte-unifor-servidor:latest`. O pacote do GHCR precisa
+  ser público (ou o registry `ghcr.io` cadastrado com um token de leitura).
+- Environment:
+  - `MISSAOMARTE_URL_PUBLICA=https://missao-marte.thebylito.dev`
+  - `MISSAOMARTE_DADOS=/dados/missaomarte`
+  - `MISSAOMARTE_JWT_SEGREDO` com o valor de `openssl rand -base64 48`. **Quem preenche é o dono do painel**, e o
+    valor nunca vai para o Git.
+- Domain `missao-marte.thebylito.dev` → porta **8080**, em HTTP. O HTTPS fica com a Cloudflare, na frente, como nos
+  outros serviços.
+- Advanced → Volumes: volume `missao-marte-api-dados` montado em `/dados`, e uma réplica só.
+
+**No GitHub** (Settings → Secrets and variables → Actions):
+- `DOKPLOY_SERVER_URL`: URL do painel do Dokploy
+- `DOKPLOY_API_KEY`: chave de API do Dokploy (Profile → API/CLI no painel)
+- `DOKPLOY_APPLICATION_IDS`: ID do serviço `missao-marte-api` (o último trecho da URL dele no painel)
+
+Limitação: o APK é o de depuração, assinado com a chave que o runner gera a cada build. Uma versão nova não
+atualiza a antiga por cima: o jogador desinstala e instala de novo. Para atualizações sem desinstalar, cadastre um
+keystore fixo como secret e assine o APK de release com ele.

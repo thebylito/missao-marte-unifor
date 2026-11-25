@@ -3,6 +3,9 @@ package br.edu.unifor.missaomarte.grafico.online;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -68,5 +71,37 @@ class ConfiguracaoDoServidorTeste {
                 "http://192.168.0.10", "https://exemplo.com/api-missao"}) {
             assertEquals(Optional.empty(), ConfiguracaoDoServidor.problema(e), e);
         }
+    }
+
+    // --- Publicação: o build pode embutir o endereço do servidor publicado (-Pmissaomarte.servidorPadrao=...) ---
+
+    private static InputStream texto(String conteudo) {
+        return new ByteArrayInputStream(conteudo.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void enderecoEmbutidoNoBuildSubstituiOPadraoDaPlataforma() {
+        assertEquals("https://missao-marte.exemplo.com",
+                ConfiguracaoDoServidor.padraoDoBuild(texto("  https://missao-marte.exemplo.com/\n"), "http://localhost:8080"));
+    }
+
+    @Test
+    void semEnderecoEmbutidoFicaOPadraoDaPlataforma() {
+        assertEquals("http://10.0.2.2:8080", ConfiguracaoDoServidor.padraoDoBuild(null, "http://10.0.2.2:8080"),
+                "sem o recurso (build de desenvolvimento)");
+        assertEquals("http://10.0.2.2:8080", ConfiguracaoDoServidor.padraoDoBuild(texto(""), "http://10.0.2.2:8080"),
+                "recurso vazio (build sem a propriedade)");
+        assertEquals("http://localhost:8080", ConfiguracaoDoServidor.padraoDoBuild(texto("ftp://x"), "http://localhost:8080"),
+                "endereço inválido não é usado");
+    }
+
+    @Test
+    void enderecoGravadoPeloJogadorContinuaVencendoOEmbutido() {
+        String padrao = ConfiguracaoDoServidor.padraoDoBuild(texto("https://missao-marte.exemplo.com"), "http://localhost:8080");
+        ConfiguracaoDoServidor c = new ConfiguracaoDoServidor(preferencias, padrao, null);
+        c.alterar("http://192.168.0.10:8080");
+        assertEquals("http://192.168.0.10:8080", c.endereco());
+        c.alterar("");
+        assertEquals("https://missao-marte.exemplo.com", c.endereco(), "vazio volta ao endereço publicado");
     }
 }

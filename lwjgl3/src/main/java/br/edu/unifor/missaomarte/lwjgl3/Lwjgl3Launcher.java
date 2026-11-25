@@ -39,7 +39,7 @@ public final class Lwjgl3Launcher {
             return;   // a janela abriu (e já fechou) no processo filho
         }
         ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(new PreferenciasLibgdx("missao-marte"),
-                SERVIDOR_PADRAO, System.getProperty(PROPRIEDADE_SERVIDOR));
+                ConfiguracaoDoServidor.padraoDoBuild(SERVIDOR_PADRAO), System.getProperty(PROPRIEDADE_SERVIDOR));
         Plataforma plataforma = new Plataforma(Boolean.getBoolean(PROPRIEDADE_TOQUE), servidor);
         new Lwjgl3Application(new MissaoMarteGame(montarServicos(servidor), plataforma), configuracao());
     }

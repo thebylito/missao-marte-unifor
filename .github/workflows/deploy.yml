@@ -1,0 +1,100 @@
+name: Build & Deploy
+
+# Cada merge na main que mexe no jogo ou no servidor roda os testes, gera o APK e o jogo desktop (já apontando para
+# o servidor publicado), monta a imagem Docker do servidor com eles na página de downloads, publica no GHCR e pede
+# para o Dokploy implantar essa versão. Mesmo fluxo do portfolio-coletivo.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'servidor/**'
+      - 'nucleo/**'
+      - 'core/**'
+      - 'lwjgl3/**'
+      - 'android/**'
+      - 'assets/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    uses: ./.github/workflows/ci.yml
+
+  build-and-push:
+    needs: testes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # APK e jogo desktop do job "jogo" do CI: entram na imagem em /app/downloads
+      - uses: actions/download-artifact@v4
+        with:
+          name: downloads
+          path: servidor/downloads
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log into GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Image name
+        id: meta
+        run: |
+          IMAGE=$(echo "ghcr.io/${{ github.repository }}-servidor" | tr '[:upper:]' '[:lower:]')
+          echo "repo=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "image=$IMAGE:sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      # O label "source" liga o pacote do GHCR a este repositório.
+      - name: Build and push
+        run: |
+          docker buildx build \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --label org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            --push \
+            --tag ${{ steps.meta.outputs.image }} \
+            --tag ${{ steps.meta.outputs.repo }}:latest \
+            servidor
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      # Enquanto os secrets do Dokploy não forem cadastrados, só a imagem é publicada.
+      - name: Check Dokploy secrets
+        id: check
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+        run: |
+          if [ -z "$DOKPLOY_API_KEY" ]; then
+            echo "::warning::Secrets do Dokploy não configurados — deploy ignorado (imagem publicada no GHCR)."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Dokploy
+        if: steps.check.outputs.ok == 'true'
+        uses: nodilabs/dokploy-deploy-action@v0.1.0
+        with:
+          dokploy_api_key: ${{ secrets.DOKPLOY_API_KEY }}
+          dokploy_server_url: ${{ secrets.DOKPLOY_SERVER_URL }}
+          application_ids: ${{ secrets.DOKPLOY_APPLICATION_IDS }}
+          image_tag: ${{ needs.build-and-push.outputs.image }}

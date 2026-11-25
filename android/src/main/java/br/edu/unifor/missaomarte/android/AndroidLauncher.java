@@ -20,7 +20,8 @@ import java.util.Random;
  * Raiz de composição do Android (Fase 6): monta as mesmas peças do launcher desktop, com três diferenças de
  * plataforma: o ranking local fica na pasta privada do app, os controles são de toque e o servidor padrão é o do
  * emulador (10.0.2.2 é o computador onde o emulador roda). Num celular de verdade, o jogador troca o endereço na
- * tela de entrada (opção 4), e ele fica guardado nas preferências do app.
+ * tela de entrada (opção 4), e ele fica guardado nas preferências do app. O APK publicado no site já vem com o
+ * endereço do servidor publicado ({@link ConfiguracaoDoServidor#padraoDoBuild(String)}).
  */
 public class AndroidLauncher extends AndroidApplication {
 
@@ -40,7 +41,7 @@ public class AndroidLauncher extends AndroidApplication {
     protected void onCreate(Bundle estado) {
         super.onCreate(estado);
         ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(new PreferenciasLibgdx("missao-marte"),
-                SERVIDOR_DO_EMULADOR, null);
+                ConfiguracaoDoServidor.padraoDoBuild(SERVIDOR_DO_EMULADOR), null);
         Relogio relogio = Relogio.DO_SISTEMA;
         ServicosDoJogo servicos = new ServicosDoJogo(
                 new GeradorDeMissao(sorteio()),
