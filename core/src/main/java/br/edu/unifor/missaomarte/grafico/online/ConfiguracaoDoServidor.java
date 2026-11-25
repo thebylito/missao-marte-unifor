@@ -1,7 +1,10 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -10,6 +13,7 @@ import java.util.Optional;
  * <ol>
  *   <li>o endereço passado ao abrir o jogo ({@code -Dmissaomarte.servidor}, só no desktop);</li>
  *   <li>o endereço que o jogador gravou na tela de entrada (opção 4), guardado nas preferências;</li>
+ *   <li>o endereço embutido no build de publicação ({@link #padraoDoBuild(String)}), se houver;</li>
  *   <li>o padrão da plataforma (desktop: localhost; Android: 10.0.2.2, o computador visto pelo emulador).</li>
  * </ol>
  * Nenhum segredo fica aqui: só o endereço.
@@ -37,6 +41,30 @@ public final class ConfiguracaoDoServidor {
         this.preferencias = preferencias;
         this.padrao = padrao;
         this.forcado = forcado == null || forcado.isBlank() ? null : forcado.trim();
+    }
+
+    /**
+     * Recurso que o build de publicação grava no core ({@code -Pmissaomarte.servidorPadrao=https://...}): o APK e o
+     * jogo desktop baixados do site já vêm apontando para o servidor publicado. No build de desenvolvimento ele
+     * fica vazio, e vale o padrão da plataforma.
+     */
+    static final String RECURSO_DO_BUILD = "/missaomarte/servidor-padrao.txt";
+
+    /** O endereço embutido no build, se houver e for válido; senão, o padrão da plataforma. */
+    public static String padraoDoBuild(String padraoDaPlataforma) {
+        return padraoDoBuild(ConfiguracaoDoServidor.class.getResourceAsStream(RECURSO_DO_BUILD), padraoDaPlataforma);
+    }
+
+    static String padraoDoBuild(InputStream recurso, String padraoDaPlataforma) {
+        if (recurso == null) {
+            return padraoDaPlataforma;
+        }
+        try (InputStream in = recurso) {
+            String texto = new String(in.readAllBytes(), StandardCharsets.UTF_8).trim();
+            return texto.isEmpty() || problema(texto).isPresent() ? padraoDaPlataforma : normalizar(texto);
+        } catch (IOException e) {
+            return padraoDaPlataforma;
+        }
     }
 
     /** Só em memória (testes e telas que não precisam gravar nada). */
