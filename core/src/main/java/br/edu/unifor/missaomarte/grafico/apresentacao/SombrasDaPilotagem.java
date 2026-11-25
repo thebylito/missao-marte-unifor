@@ -35,6 +35,13 @@ public final class SombrasDaPilotagem {
     public record Sombra(int piloto, String nome, double x, double y, double angulo, boolean motor) {
     }
 
+    /** A explosão da nave de outro piloto, com o tempo desde que começou (a tela escolhe o quadro por ele). */
+    public record Explosao(double x, double y, float tempo) {
+    }
+
+    /** Quanto tempo a explosão de outro piloto fica na tela: cobre os 16 quadros a 20 por segundo (0,8 s). */
+    static final float DURACAO_DA_EXPLOSAO = 1f;
+
     static final float INTERVALO_DE_ENVIO = 0.1f;
     static final float TEMPO_SEM_NOTICIA = 3f;
     static final float ESPERA_PARA_RECONECTAR = 3f;
@@ -60,9 +67,22 @@ public final class SombrasDaPilotagem {
         }
     }
 
+    /** Uma explosão na tela, com o tempo que já passou. */
+    private static final class Explodindo {
+        final double x;
+        final double y;
+        float tempo;
+
+        Explodindo(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
     private final Optional<Sessao> sessao;
     private final Optional<ConexaoDeSombras> conexao;
     private final Map<Integer, Vista> vistas = new LinkedHashMap<>();
+    private final List<Explodindo> explosoes = new ArrayList<>();
     private final JsonReader leitor = new JsonReader();
     private Situacao situacao;
     private boolean iniciadas;
@@ -141,6 +161,19 @@ public final class SombrasDaPilotagem {
         });
     }
 
+    /**
+     * A nave do jogador bateu: os outros pilotos veem a explosão no mesmo ponto. Só sai com a conexão aberta; sem ela,
+     * os outros já perdem a sombra pelo tempo sem notícia.
+     */
+    public void explodiu(double x, double y, Caverna caverna) {
+        if (fechadas || situacao != Situacao.CONECTADAS) {
+            return;
+        }
+        double cx = Math.max(0, Math.min(caverna.getLargura(), x));
+        double cy = Math.max(0, Math.min(caverna.getAltura(), y));
+        conexao.get().enviar(String.format(Locale.ROOT, "{\"tipo\":\"explodiu\",\"x\":%.1f,\"y\":%.1f}", cx, cy));
+    }
+
     /** O que vai ao servidor; dentro da caverna e do intervalo de ângulo que o servidor aceita. */
     static String posicao(NaveEmVoo nave, Caverna caverna) {
         double x = Math.max(0, Math.min(caverna.getLargura(), nave.getX()));
@@ -188,6 +221,15 @@ public final class SombrasDaPilotagem {
                 v.semNoticia = 0;
             } else if (tipo.equals("saiu")) {
                 vistas.remove(m.getInt("piloto"));
+            } else if (tipo.equals("explosao")) {
+                int piloto = m.getInt("piloto");
+                double x = m.getDouble("x");
+                double y = m.getDouble("y");
+                if (!Double.isFinite(x) || !Double.isFinite(y)) {
+                    return;
+                }
+                vistas.remove(piloto);   // quando renascer, a próxima posição traz a sombra de volta, já na base
+                explosoes.add(new Explodindo(x, y));
             }
         } catch (RuntimeException e) {
             // campo faltando ou de outro tipo: ignora a mensagem
@@ -206,6 +248,13 @@ public final class SombrasDaPilotagem {
             v.x += (v.alvoX - v.x) * fator;
             v.y += (v.alvoY - v.y) * fator;
             v.angulo = normalizar(v.angulo + normalizar(v.alvoAngulo - v.angulo) * fator);
+        }
+        for (Iterator<Explodindo> it = explosoes.iterator(); it.hasNext(); ) {
+            Explodindo e = it.next();
+            e.tempo += delta;
+            if (e.tempo > DURACAO_DA_EXPLOSAO) {
+                it.remove();
+            }
         }
     }
 
@@ -228,6 +277,7 @@ public final class SombrasDaPilotagem {
         fechadas = true;
         conexao.ifPresent(ConexaoDeSombras::fechar);
         vistas.clear();
+        explosoes.clear();
     }
 
     // ------------------------------------------------------------------ leitura
@@ -236,6 +286,14 @@ public final class SombrasDaPilotagem {
         List<Sombra> lista = new ArrayList<>(vistas.size());
         for (Vista v : vistas.values()) {
             lista.add(new Sombra(v.piloto, v.nome, v.x, v.y, v.angulo, v.motor));
+        }
+        return lista;
+    }
+
+    public List<Explosao> getExplosoes() {
+        List<Explosao> lista = new ArrayList<>(explosoes.size());
+        for (Explodindo e : explosoes) {
+            lista.add(new Explosao(e.x, e.y, e.tempo));
         }
         return lista;
     }
