@@ -1,0 +1,41 @@
+# Publicação (Dokploy) — validação local da imagem, 2026-11-25 00:08 -03
+
+## Build do jogo igual ao CI
+$ ./gradlew test :android:assembleDebug :lwjgl3:distZip -Pmissaomarte.servidorPadrao=https://missao-marte.thebylito.dev
+BUILD SUCCESSFUL in 8s
+exit=0
+endereço embutido no APK:     [https://missao-marte.thebylito.dev]
+endereço embutido no desktop: [https://missao-marte.thebylito.dev]
+build sem a propriedade (dev): recurso vazio -> localhost / 10.0.2.2
+
+## Imagem (docker build servidor/, com o APK e o zip em servidor/downloads)
+saúde do contêiner: healthy
+GET  /                              200 text/html;charset=UTF-8
+GET  /index.html                    200 text/html
+GET  /pagina/app.js                 200 text/javascript
+GET  /pagina/estilo.css             200 text/css
+GET  /api/ranking                   200 application/json
+GET  /api/ranking?modo=PILOTAGEM    200 application/json
+GET  /actuator/health               200 application/vnd.spring-boot.actuator.v3+json
+GET  /downloads/nao-existe.zip      404 application/problem+json
+GET  /api/partidas/minhas           401 application/problem+json;charset=UTF-8
+GET  /qualquer-outra-coisa          401 application/problem+json;charset=UTF-8
+HEAD /downloads/missao-marte.apk         200 application/vnd.android.package-archive 10723057 bytes
+HEAD /downloads/missao-marte-desktop.zip 200 application/zip 19973183 bytes
+
+nome com HTML no cadastro: 400 (a página ainda usa textContent)
+
+## Navegador
+Página em http://localhost:18080: ranking Clássico (Bia 60, Ana 45) e Pilotagem (Bia 71) com dados de teste;
+tamanhos dos downloads (10,2 MB e 19 MB) lidos por HEAD; sprites da nave e dos passageiros.
+
+## Celular do usuário (SM-S928B)
+adb install -r do APK com o endereço publicado: Success (versionName 7.0.0).
+
+## Testes
+servidor: 40 testes, 0 falhas (inclui PaginaDoJogoTeste: 5)
+jogo: 324 testes, 0 falhas (ConfiguracaoDoServidorTeste: 9)
+
+## Ainda não verificado aqui
+- o deploy real no Dokploy (depende do merge, dos secrets e do pacote do GHCR);
+- a imagem em amd64 (o build local foi em arm64; o runner do GitHub é amd64).

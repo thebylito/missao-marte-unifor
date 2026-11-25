@@ -14,6 +14,10 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 | 6 — Android e toque | validada | `fase-6` | [tutorial](docs/fase-06-tutorial.md) · [publicação do servidor](servidor/PUBLICACAO.md) |
 | 7 — Evolução livre: Modo Pilotagem | validada | `fase-7` | [análise](docs/fase-07-analise.md) · [tutorial](docs/fase-07-tutorial.md) |
 
+**No ar:** https://missao-marte.thebylito.dev: ranking global ao vivo, downloads do APK e do jogo desktop (já
+apontando para o servidor) e a API. Publicado no Dokploy pelo GitHub Actions a cada merge na `main`
+([como funciona](servidor/PUBLICACAO.md#10-publicação-no-dokploy-com-github-actions)).
+
 Decisões de arquitetura: [docs/decisoes-arquiteturais.md](docs/decisoes-arquiteturais.md).
 Kanban: [GitHub Project](https://github.com/users/thebylito/projects/2).
 
