@@ -21,10 +21,14 @@ RUN groupadd --system missao && useradd --system --gid missao --home /app missao
     && mkdir -p /app /dados && chown missao:missao /dados
 WORKDIR /app
 COPY --from=compilacao /fonte/build/libs/missao-marte-servidor.jar app.jar
+# Publicação: o APK e o jogo desktop que a página oferece em /downloads. O GitHub Actions os gera (já apontando para
+# o servidor publicado) e coloca nesta pasta antes do build; fora dele, ela só tem o .gitkeep e a página avisa.
+COPY downloads /app/downloads
 
 # Banco H2 no volume /dados (sobrevive à recriação do contêiner). O segredo do token NÃO tem valor aqui:
 # vem de fora (MISSAOMARTE_JWT_SEGREDO), nunca da imagem.
 ENV MISSAOMARTE_DADOS=/dados/missaomarte \
+    MISSAOMARTE_DOWNLOADS=/app/downloads \
     PORT=8080
 VOLUME ["/dados"]
 EXPOSE 8080

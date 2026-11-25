@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Missão Marte Unifor</title>
+  <meta name="description" content="Missão Marte Unifor: baixe o jogo para Android ou desktop e acompanhe o ranking global ao vivo.">
+  <link rel="icon" type="image/png" href="pagina/icone.png">
+  <link rel="stylesheet" href="pagina/estilo.css">
+  <script src="pagina/app.js" defer></script>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-conteudo">
+      <img class="nave" src="pagina/nave.png" alt="" width="192" height="192">
+      <div>
+        <p class="sobretitulo">Projeto Integrador · Unifor</p>
+        <h1>Missão Marte</h1>
+        <p class="chamada">Pilote a nave pelas cavernas de Marte, resgate os passageiros e volte à base antes que o
+          combustível acabe. Os melhores pilotos entram no ranking global.</p>
+        <nav class="acoes" aria-label="Atalhos">
+          <a class="botao principal" href="#baixar">Baixar o jogo</a>
+          <a class="botao" href="#ranking">Ver o ranking</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="baixar" aria-labelledby="titulo-baixar">
+      <h2 id="titulo-baixar">Baixar</h2>
+      <p class="nota">As duas versões já vêm apontando para este servidor: crie a sua conta dentro do jogo e a vitória
+        entra no ranking abaixo.</p>
+      <div class="cartoes">
+        <article class="cartao">
+          <h3>Android</h3>
+          <p>APK para celulares com Android 8 ou mais novo. Controles de toque, retrato e paisagem.</p>
+          <a class="botao principal download" data-arquivo="missao-marte.apk" href="downloads/missao-marte.apk"
+             download>Baixar APK</a>
+          <p class="tamanho" data-tamanho-de="missao-marte.apk"></p>
+          <details>
+            <summary>Como instalar</summary>
+            <ol>
+              <li>Baixe o APK pelo celular.</li>
+              <li>Abra o arquivo e permita a instalação de "fontes desconhecidas" quando o Android pedir.</li>
+              <li>Se já tiver uma versão antiga instalada e a instalação falhar, desinstale a antiga antes.</li>
+            </ol>
+          </details>
+        </article>
+        <article class="cartao">
+          <h3>Desktop</h3>
+          <p>Windows, macOS e Linux. Precisa do Java 17 ou mais novo instalado.</p>
+          <a class="botao principal download" data-arquivo="missao-marte-desktop.zip"
+             href="downloads/missao-marte-desktop.zip" download>Baixar .zip</a>
+          <p class="tamanho" data-tamanho-de="missao-marte-desktop.zip"></p>
+          <details>
+            <summary>Como jogar</summary>
+            <ol>
+              <li>Descompacte o arquivo.</li>
+              <li>Rode <code>bin/missao-marte</code> (macOS e Linux) ou <code>bin\missao-marte.bat</code> (Windows).</li>
+              <li>No modo clássico: setas ou <kbd>WASD</kbd> movem, <kbd>Espaço</kbd> embarca, <kbd>Esc</kbd> aborta.
+                Na pilotagem: <kbd>←</kbd> <kbd>→</kbd> giram e <kbd>↑</kbd> liga o motor.</li>
+            </ol>
+          </details>
+        </article>
+      </div>
+    </section>
+
+    <section id="ranking" aria-labelledby="titulo-ranking">
+      <div class="cabecalho-ranking">
+        <h2 id="titulo-ranking">Ranking global</h2>
+        <div class="abas" role="tablist" aria-label="Modo de jogo">
+          <button type="button" role="tab" aria-selected="true" data-modo="CLASSICO">Clássico</button>
+          <button type="button" role="tab" aria-selected="false" data-modo="PILOTAGEM">Pilotagem</button>
+        </div>
+      </div>
+      <p class="nota" id="descricao-modo">A grade por turnos: cada passo gasta combustível.</p>
+      <div class="tabela-rolagem">
+        <table aria-describedby="descricao-modo">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Piloto</th>
+              <th scope="col" class="num">Pontos</th>
+              <th scope="col">Dificuldade</th>
+              <th scope="col" class="num">Passageiros</th>
+              <th scope="col" class="num">Tempo</th>
+              <th scope="col">Quando</th>
+            </tr>
+          </thead>
+          <tbody id="linhas"></tbody>
+        </table>
+      </div>
+      <p class="estado" id="estado" role="status">Carregando o ranking…</p>
+    </section>
+
+    <section class="tripulacao" aria-label="Passageiros a resgatar">
+      <figure><img src="pagina/professor.png" alt="" width="48" height="64"><figcaption>Professor</figcaption></figure>
+      <figure><img src="pagina/engenheiro.png" alt="" width="48" height="64"><figcaption>Engenheiro</figcaption></figure>
+      <figure><img src="pagina/astronauta.png" alt="" width="48" height="64"><figcaption>Astronauta</figcaption></figure>
+    </section>
+  </main>
+
+  <footer>
+    <p>Welington da Silva e Lucas Gomes Costa · Projeto Integrador da Unifor ·
+      <a href="https://github.com/thebylito/missao-marte-unifor">código no GitHub</a> ·
+      <a href="swagger-ui.html">API (Swagger)</a></p>
+    <p class="creditos">Fonte Chakra Petch (<a href="pagina/fontes/OFL-ChakraPetch.txt">SIL Open Font License</a>).</p>
+  </footer>
+</body>
+</html>

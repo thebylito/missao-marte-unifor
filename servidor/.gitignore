@@ -4,3 +4,6 @@ build/
 dados/
 # segredos locais do docker compose (use .env.exemplo como modelo)
 .env
+# APK e jogo desktop gerados pelo GitHub Actions para a imagem (só o .gitkeep vai para o Git)
+downloads/*
+!downloads/.gitkeep
