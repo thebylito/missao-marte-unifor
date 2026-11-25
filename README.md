@@ -63,8 +63,8 @@ Para testar os controles de toque com o mouse: `./gradlew :lwjgl3:run -Dmissaoma
 
 ### Modo Pilotagem (Fase 7)
 
-Na nova missão, `Tab` (ou o botão "Trocar") escolhe o modo: **Clássico** (o padrão, a grade por turnos de sempre) ou
-**Pilotagem**:
+A nova missão começa no modo **Pilotagem** (o padrão desde 2026-11-25). `Tab` (ou o botão "Trocar") muda para o
+**Clássico**, a grade por turnos de sempre. Na **Pilotagem**:
 - **Como se joga:** você pilota a nave numa caverna marciana, com gravidade, combustível e pouso. Pouse devagar e reto
   na plataforma de um passageiro, espere o embarque (cabem 2) e leve-os à base, que também reabastece.
 - **Teclado:** `←`/`→` (ou `A`/`D`) giram, `↑` (ou `W`, Espaço) liga o motor, `Esc` aborta.

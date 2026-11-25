@@ -23,7 +23,8 @@ public final class FormularioNovaPartida {
     private final StringBuilder nome = new StringBuilder();
     private Dificuldade dificuldade = Dificuldade.MEDIO;
     private int tamanho = TAMANHO_PADRAO;
-    private Modo modo = Modo.CLASSICO;
+    /** A pilotagem é o padrão (pedido do usuário, 2026-11-25); Tab ou "Trocar" volta ao clássico. */
+    private Modo modo = Modo.PILOTAGEM;
 
     /** Caractere digitado. Teclas de controle (Enter, Backspace, Tab...) não entram no nome. */
     public void digitar(char c) {

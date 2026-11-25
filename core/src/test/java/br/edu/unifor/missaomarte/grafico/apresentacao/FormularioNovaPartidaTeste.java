@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test;
 class FormularioNovaPartidaTeste {
 
     @Test
-    void oModoComecaClassicoEAlterna() {                       // CT-19 (Fase 7)
+    void oModoComecaNaPilotagemEAlterna() {                    // CT-19 (Fase 7); a pilotagem é o padrão desde 2026-11-25
         FormularioNovaPartida f = new FormularioNovaPartida();
-        assertEquals(Modo.CLASSICO, f.getModo());
-        f.alternarModo();
         assertEquals(Modo.PILOTAGEM, f.getModo());
         f.alternarModo();
         assertEquals(Modo.CLASSICO, f.getModo());
+        f.alternarModo();
+        assertEquals(Modo.PILOTAGEM, f.getModo());
     }
 
     private final FormularioNovaPartida form = new FormularioNovaPartida();
