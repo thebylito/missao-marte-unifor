@@ -9,6 +9,9 @@ import br.edu.unifor.missaomarte.grafico.online.RegistroDePartida;
 import br.edu.unifor.missaomarte.grafico.online.Resposta;
 import br.edu.unifor.missaomarte.grafico.online.ServidorDoJogo;
 import br.edu.unifor.missaomarte.grafico.online.Sessao;
+import br.edu.unifor.missaomarte.pilotagem.PartidaDePilotagem;
+import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDaHorda;
+import br.edu.unifor.missaomarte.pilotagem.horda.MontadorDaHorda;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -29,6 +32,28 @@ public final class InicioDaPartida implements Resposta<Bilhete> {
         return new InicioDaPartida(sessao, servidor);
     }
 
+    public static void pedirHorda(Sessao piloto, ServidorDoJogo servidor,
+                                  DescricaoDaHorda horda,
+                                  Resposta<ControladorDaPilotagem> resposta) {
+        servidor.iniciarHorda(piloto, horda.dificuldade(), horda.numero(), Resposta.de(bilhete -> {
+            if (bilhete == null || bilhete.bilhete() == null || bilhete.bilhete().isBlank()) {
+                resposta.falha(new Falha(Falha.Motivo.RESPOSTA_INVALIDA, "O servidor não entregou o bilhete."));
+                return;
+            }
+            PartidaDePilotagem partida;
+            try {
+                var montagem = MontadorDaHorda.montar(horda);
+                partida = new PartidaDePilotagem(piloto.nome(), horda.dificuldade(), montagem.caverna(), montagem.config());
+                partida.definirVentoConstante(montagem.ventoConstante());
+                partida.definirRoteiro(montagem.roteiro());
+            } catch (IllegalArgumentException e) {
+                resposta.falha(new Falha(Falha.Motivo.RESPOSTA_INVALIDA, "A descrição da Horda é inválida."));
+                return;
+            }
+            resposta.sucesso(new ControladorDaPilotagem(partida, horda.numero(), bilhete.bilhete()));
+        }, resposta::falha));
+    }
+
     public static InicioDaPartida pedir(Optional<Sessao> sessao, ServidorDoJogo servidor,
                                        Modo modo, Dificuldade dificuldade) {
         var inicio = new InicioDaPartida(sessao, servidor);
@@ -42,7 +67,7 @@ public final class InicioDaPartida implements Resposta<Bilhete> {
     public EnvioDoResultado enviar(PartidaParaEnviar partida, Consumer<RegistroDePartida> aoRegistrar,
                                     Consumer<Falha> aoFalhar) {
         var estado = sessao.isPresent() ? EnvioDoResultado.Estado.ENVIANDO : EnvioDoResultado.Estado.CONVIDADO;
-        var envio = new EnvioDoResultado(estado, aoRegistrar, aoFalhar);
+        var envio = new EnvioDoResultado(estado, partida.horda() != null, aoRegistrar, aoFalhar);
         sessao.ifPresent(piloto -> {
             Runnable registrar = () -> servidor.registrarPartidaComMoedas(piloto,
                     bilhete == null ? partida : partida.comBilhete(bilhete.bilhete()), envio);

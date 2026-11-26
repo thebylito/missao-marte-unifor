@@ -34,6 +34,23 @@ public interface ServidorDoJogo {
         resposta.falha(Falha.semConexao());
     }
 
+    default void iniciarHorda(Sessao sessao, Dificuldade dificuldade, long numero, Resposta<Bilhete> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void hordaAtual(Resposta<HordaAtual> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    /** Sem número, consulta o Top 10 da horda atual. */
+    default void rankingDaHorda(Long numero, Resposta<List<PosicaoGlobal>> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void rankingSemanal(Resposta<RankingSemanal> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
     default void loja(Resposta<List<SkinDaLoja>> resposta) {
         resposta.falha(Falha.semConexao());
     }

@@ -39,6 +39,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.Optional;
+import java.util.function.Consumer;
+import br.edu.unifor.missaomarte.grafico.online.HordaAtual;
 
 /**
  * Classe principal do cliente libGDX. A libGDX chama os métodos do ciclo de vida
@@ -284,15 +286,39 @@ public class MissaoMarteGame extends Game {
         if (formulario.getModo() == Modo.PILOTAGEM) {   // Fase 7
             Diario.registrar("pilotagem: " + formulario.getDificuldade());
             PartidaDePilotagem voo = PartidaDePilotagem.nova(formulario.getPiloto(), formulario.getDificuldade());
-            SombrasDaPilotagem sombras = new SombrasDaPilotagem(getSessao(), servicos.servidor().conexaoDeSombras());
-            trocarTela(new TelaPilotagem(this, new ControladorDaPilotagem(voo, servicos.rankingDaPilotagem()),
-                    sombras));
+            abrirPilotagem(new ControladorDaPilotagem(voo, servicos.rankingDaPilotagem()));
             return;
         }
         Partida partida = servicos.novaPartida(formulario.getPiloto(), formulario.getDificuldade(),
                 formulario.getTamanho());
         ControladorDaPartida controlador = new ControladorDaPartida(partida, servicos.ranking());
         trocarTela(new TelaPartida(this, new CenaDaPartida(controlador, sons)));
+    }
+
+    private void abrirPilotagem(ControladorDaPilotagem controle) {
+        var canal = new SombrasDaPilotagem(getSessao(), servicos.servidor().conexaoDeSombras(), controle.sala());
+        trocarTela(new TelaPilotagem(this, controle, canal));
+    }
+
+    public void iniciarHorda(HordaAtual atual, Consumer<String> aoFalhar) {
+        if (sessao == null) {
+            aoFalhar.accept("Entre com uma conta para jogar a Horda");
+            return;
+        }
+        Screen origem = getScreen();
+        long geracao = geracaoDaSessao;
+        InicioDaPartida.pedirHorda(sessao, servicos.servidor(), atual.descricao(), Resposta.de(controle -> {
+            if (getScreen() == origem && geracao == geracaoDaSessao) {
+                // O controlador já carrega o bilhete obrigatório junto do número da horda.
+                inicioDaPartida = InicioDaPartida.semBilhete(getSessao(), servicos.servidor());
+                abrirPilotagem(controle);
+            }
+        }, falha -> {
+            if (getScreen() == origem && geracao == geracaoDaSessao) {
+                aoFalhar.accept("Horda não iniciada. " + falha.mensagem());
+                verificarSessao(geracao, falha);
+            }
+        }));
     }
 
     public EnvioDoResultado enviarResultado(FimDePartida fim) {

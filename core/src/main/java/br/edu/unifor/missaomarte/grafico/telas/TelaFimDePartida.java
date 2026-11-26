@@ -77,7 +77,7 @@ public class TelaFimDePartida extends TelaBase {
         if (envio != null) {
             Color cor = envio.getEstado() == EnvioDoResultado.Estado.FALHOU ? Color.YELLOW
                     : envio.getEstado() == EnvioDoResultado.Estado.ENVIADO ? Color.LIME : Color.LIGHT_GRAY;
-            escreverCentralizado(envio.texto(), 146, cor, 0.95f);
+            escreverCentralizado(envio.textoDaColocacao().orElseGet(envio::texto), 146, cor, 0.95f);
             envio.textoDasMoedas().ifPresent(moedas -> escreverCentralizado(moedas, 121, Color.ORANGE, 1.1f));
         }
         if (!toque()) {

@@ -22,11 +22,13 @@ public final class EnvioDoResultado implements Resposta<RegistroDePartida> {
     private String motivo = "";
     private boolean sessaoRecusada;
     private RegistroDePartida registro;
+    private final boolean horda;
     private final Consumer<RegistroDePartida> aoRegistrar;
     private final Consumer<Falha> aoFalhar;
 
-    EnvioDoResultado(Estado estado, Consumer<RegistroDePartida> aoRegistrar, Consumer<Falha> aoFalhar) {
+    EnvioDoResultado(Estado estado, boolean horda, Consumer<RegistroDePartida> aoRegistrar, Consumer<Falha> aoFalhar) {
         this.estado = estado;
+        this.horda = horda;
         this.aoRegistrar = aoRegistrar;
         this.aoFalhar = aoFalhar;
     }
@@ -44,6 +46,12 @@ public final class EnvioDoResultado implements Resposta<RegistroDePartida> {
         }
     }
 
+    public Optional<String> textoDaColocacao() {
+        if (!horda || registro == null) return Optional.empty();
+        return Optional.of(registro.colocacao() == null ? "Fora do Top 10 da Horda"
+                : registro.colocacao() + "º lugar na Horda");
+    }
+
     public Optional<String> textoDasMoedas() {
         return Optional.ofNullable(registro)
                 .map(r -> "+" + r.moedasGanhas() + " moedas  |  Saldo: " + r.saldo());
@@ -52,7 +60,8 @@ public final class EnvioDoResultado implements Resposta<RegistroDePartida> {
     @Override
     public void falha(Falha falha) {
         estado = Estado.FALHOU;
-        motivo = falha.mensagem();
+        motivo = horda && "HORDA_ENCERRADA".equals(falha.codigo())
+                ? "O prazo para registrar esta Horda terminou." : falha.mensagem();
         sessaoRecusada = falha.motivo() == Falha.Motivo.NAO_AUTORIZADO;
         aoFalhar.accept(falha);
     }

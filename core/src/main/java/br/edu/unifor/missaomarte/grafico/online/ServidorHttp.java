@@ -94,8 +94,21 @@ public final class ServidorHttp implements ServidorDoJogo {
 
     @Override
     public void iniciarPartida(Sessao sessao, Modo modo, Dificuldade dificuldade, Resposta<Bilhete> resposta) {
+        pedirBilhete(sessao, modo.name(), dificuldade, null, resposta);
+    }
+
+    @Override
+    public void iniciarHorda(Sessao sessao, Dificuldade dificuldade, long numero, Resposta<Bilhete> resposta) {
+        pedirBilhete(sessao, "HORDA", dificuldade, numero, resposta);
+    }
+
+    private void pedirBilhete(Sessao sessao, String modo, Dificuldade dificuldade, Long horda,
+                              Resposta<Bilhete> resposta) {
         JsonValue corpo = objeto();
-        corpo.addChild("modo", new JsonValue(modo.name()));
+        corpo.addChild("modo", new JsonValue(modo));
+        if (horda != null) {
+            corpo.addChild("horda", new JsonValue(horda));
+        }
         corpo.addChild("dificuldade", new JsonValue(dificuldade.name()));
         enviar(HttpMethods.POST, "/api/partidas/inicio", sessao, corpo,
                 json -> new Bilhete(json.getString("bilhete"), Instant.parse(json.getString("validoAte"))), resposta);
@@ -109,7 +122,8 @@ public final class ServidorHttp implements ServidorDoJogo {
     @Override
     public void registrarPartidaComMoedas(Sessao sessao, PartidaParaEnviar p, Resposta<RegistroDePartida> resposta) {
         enviarPartida(sessao, p, json -> json != null && json.has("moedasGanhas") && json.has("saldo")
-                ? new RegistroDePartida(json.getInt("moedasGanhas"), json.getInt("saldo")) : null, resposta);
+                ? new RegistroDePartida(json.getInt("moedasGanhas"), json.getInt("saldo"),
+                        json.has("colocacao") && !json.get("colocacao").isNull() ? json.getInt("colocacao") : null) : null, resposta);
     }
 
     private <T> void enviarPartida(Sessao sessao, PartidaParaEnviar p, Function<JsonValue, T> ler, Resposta<T> resposta) {
@@ -121,6 +135,9 @@ public final class ServidorHttp implements ServidorDoJogo {
         corpo.addChild("movimentos", new JsonValue(p.movimentos()));
         corpo.addChild("tempoSegundos", new JsonValue(p.tempoSegundos()));
         corpo.addChild("modo", new JsonValue(p.modo()));   // Fase 7 (um servidor antigo ignora o campo)
+        if (p.horda() != null) {
+            corpo.addChild("horda", new JsonValue(p.horda()));
+        }
         if (p.bilhete() != null) {
             corpo.addChild("bilhete", new JsonValue(p.bilhete()));
         }
@@ -163,7 +180,29 @@ public final class ServidorHttp implements ServidorDoJogo {
 
     @Override
     public void ranking(Modo modo, Resposta<List<PosicaoGlobal>> resposta) {
-        enviar(HttpMethods.GET, "/api/ranking?modo=" + modo.name(), null, null, json -> lista(json, item -> new PosicaoGlobal(
+        consultarRanking("/api/ranking?modo=" + modo.name(), resposta);
+    }
+
+    @Override
+    public void hordaAtual(Resposta<HordaAtual> resposta) {
+        enviar(HttpMethods.GET, "/api/hordas/atual", null, null, LeitorDaHorda::atual, resposta);
+    }
+
+    @Override
+    public void rankingDaHorda(Long numero, Resposta<List<PosicaoGlobal>> resposta) {
+        consultarRanking("/api/ranking?modo=HORDA" + (numero == null ? "" : "&horda=" + numero), resposta);
+    }
+
+    @Override
+    public void rankingSemanal(Resposta<RankingSemanal> resposta) {
+        enviar(HttpMethods.GET, "/api/ranking/semanal", null, null, json -> new RankingSemanal(
+                json.getString("semana"), lista(json.get("posicoes"), p -> new RankingSemanal.Posicao(
+                        p.getInt("posicao"), p.getString("nome"), p.getInt("pontos"), p.getInt("hordas"),
+                        p.getInt("eventos")))), resposta);
+    }
+
+    private void consultarRanking(String rota, Resposta<List<PosicaoGlobal>> resposta) {
+        enviar(HttpMethods.GET, rota, null, null, json -> lista(json, item -> new PosicaoGlobal(
                 item.getInt("posicao"), item.getString("nome"), item.getInt("pontos"), item.getString("dificuldade"),
                 item.getInt("passageiros"), item.getLong("tempoSegundos"), item.getString("registradaEm"))), resposta);
     }
@@ -309,7 +348,7 @@ public final class ServidorHttp implements ServidorDoJogo {
         return new JsonValue(JsonValue.ValueType.object);
     }
 
-    private static <T> List<T> lista(JsonValue json, Function<JsonValue, T> item) {
+    static <T> List<T> lista(JsonValue json, Function<JsonValue, T> item) {
         if (json == null || !json.isArray()) {
             throw new IllegalArgumentException("esperava uma lista");
         }

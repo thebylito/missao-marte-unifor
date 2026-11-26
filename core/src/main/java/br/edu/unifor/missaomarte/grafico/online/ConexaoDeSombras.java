@@ -22,6 +22,15 @@ public interface ConexaoDeSombras {
     /** Abre a conexão com o token do jogador (fecha antes a anterior, se houver). */
     void abrir(String token, Ouvinte ouvinte);
 
+    /** Abre a sala da partida. Os adaptadores anteriores à Horda continuam atendendo o voo livre. */
+    default void abrir(String token, String sala, Ouvinte ouvinte) {
+        if ("livre".equals(sala)) {
+            abrir(token, ouvinte);
+        } else {
+            ouvinte.fechada("Sala indisponível");
+        }
+    }
+
     /** Manda um texto, se a conexão estiver aberta; senão, descarta (uma posição perdida não faz falta). */
     void enviar(String texto);
 

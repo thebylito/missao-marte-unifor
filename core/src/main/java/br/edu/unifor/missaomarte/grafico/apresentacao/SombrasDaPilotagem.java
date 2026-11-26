@@ -4,6 +4,8 @@ import br.edu.unifor.missaomarte.grafico.online.ConexaoDeSombras;
 import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import br.edu.unifor.missaomarte.pilotagem.Caverna;
 import br.edu.unifor.missaomarte.pilotagem.NaveEmVoo;
+import br.edu.unifor.missaomarte.pilotagem.EventoDeVoo;
+import br.edu.unifor.missaomarte.pilotagem.PartidaDePilotagem;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import java.util.ArrayList;
@@ -85,6 +87,8 @@ public final class SombrasDaPilotagem {
     private final Map<Integer, Vista> vistas = new LinkedHashMap<>();
     private final List<Explodindo> explosoes = new ArrayList<>();
     private final JsonReader leitor = new JsonReader();
+    private final String sala;
+    private EventosAoVivo eventos;
     private Situacao situacao;
     private boolean iniciadas;
     private boolean fechadas;
@@ -92,6 +96,11 @@ public final class SombrasDaPilotagem {
     private float paraReconectar;
 
     public SombrasDaPilotagem(Optional<Sessao> sessao, Optional<ConexaoDeSombras> conexao) {
+        this(sessao, conexao, "livre");
+    }
+
+    public SombrasDaPilotagem(Optional<Sessao> sessao, Optional<ConexaoDeSombras> conexao, String sala) {
+        this.sala = sala;
         this.sessao = sessao;
         this.conexao = conexao;
         this.situacao = conexao.isEmpty() ? Situacao.DESLIGADAS
@@ -104,6 +113,28 @@ public final class SombrasDaPilotagem {
     }
 
     // ------------------------------------------------------------------ tempo
+
+    public void atualizar(float delta, PartidaDePilotagem partida) {
+        if (!fechadas && eventos == null && sessao.isPresent() && conexao.isPresent()) {
+            eventos = new EventosAoVivo(partida, texto -> {
+                if (situacao == Situacao.CONECTADAS) conexao.get().enviar(texto);
+            });
+        }
+        if (eventos != null) eventos.atualizar(delta);
+        atualizar(delta, partida.getNave(), partida.getCaverna());
+    }
+
+    public void tratarEventos(List<EventoDeVoo> ocorrencias) {
+        if (eventos != null) eventos.tratar(ocorrencias);
+    }
+
+    public boolean consumirAlerta() {
+        return eventos != null && eventos.consumirAlerta();
+    }
+
+    public Optional<String> mensagemDoEvento() {
+        return eventos == null ? Optional.empty() : eventos.mensagem();
+    }
 
     /** Chamado a cada quadro: conecta na primeira vez, manda a posição e move as sombras. */
     public void atualizar(float delta, NaveEmVoo nave, Caverna caverna) {
@@ -135,7 +166,7 @@ public final class SombrasDaPilotagem {
             return;
         }
         situacao = Situacao.CONECTANDO;
-        conexao.get().abrir(sessao.get().token(), new ConexaoDeSombras.Ouvinte() {
+        conexao.get().abrir(sessao.get().token(), sala, new ConexaoDeSombras.Ouvinte() {
             @Override
             public void aberta() {
                 if (!fechadas) {
@@ -232,6 +263,8 @@ public final class SombrasDaPilotagem {
                 }
                 vistas.remove(piloto);   // quando renascer, a próxima posição traz a sombra de volta, já na base
                 explosoes.add(new Explodindo(x, y));
+            } else if (eventos != null && situacao == Situacao.CONECTADAS) {
+                eventos.receber(tipo, m);
             }
         } catch (RuntimeException e) {
             // campo faltando ou de outro tipo: ignora a mensagem
@@ -280,6 +313,7 @@ public final class SombrasDaPilotagem {
         conexao.ifPresent(ConexaoDeSombras::fechar);
         vistas.clear();
         explosoes.clear();
+        eventos = null;
     }
 
     // ------------------------------------------------------------------ leitura
