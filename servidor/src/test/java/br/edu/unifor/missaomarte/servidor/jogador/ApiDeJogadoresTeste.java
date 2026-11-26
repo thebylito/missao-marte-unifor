@@ -117,9 +117,18 @@ class ApiDeJogadoresTeste extends ApiTeste {
     }
 
     @Test
+    void tokenAindaValeDiasDepoisDoLogin() throws Exception {
+        // DA-38: o celular guarda a sessão; com 2 h, ela vencia antes de o jogador voltar ao jogo
+        String token = novoJogador("Ana");
+        relogio.avancar(Duration.ofDays(29));
+        mvc.perform(get("/api/jogadores/eu").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void tokenExpiradoDevolve401() throws Exception {
         String token = novoJogador("Ana");
-        relogio.avancar(Duration.ofHours(2).plusMinutes(5));      // validade de 2 h (+ 1 min de tolerância)
+        relogio.avancar(Duration.ofDays(30).plusMinutes(5));      // validade de 30 dias (+ 1 min de tolerância)
         mvc.perform(get("/api/jogadores/eu").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
     }

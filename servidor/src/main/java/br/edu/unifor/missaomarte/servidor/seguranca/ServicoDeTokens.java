@@ -24,7 +24,7 @@ public class ServicoDeTokens {
     private final Duration validade;
 
     public ServicoDeTokens(JwtEncoder codificador, Clock relogio,
-                           @Value("${missaomarte.jwt.validade:PT2H}") Duration validade) {
+                           @Value("${missaomarte.jwt.validade:P30D}") Duration validade) {
         this.codificador = codificador;
         this.relogio = relogio;
         this.validade = validade;
