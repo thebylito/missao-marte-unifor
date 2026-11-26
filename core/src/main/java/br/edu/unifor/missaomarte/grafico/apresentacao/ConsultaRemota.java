@@ -14,6 +14,7 @@ public final class ConsultaRemota<T> implements Resposta<T> {
     private Estado estado = Estado.CARREGANDO;
     private T valor;
     private String mensagem = "";
+    private boolean sessaoRecusada;
 
     @Override
     public void sucesso(T valor) {
@@ -25,7 +26,11 @@ public final class ConsultaRemota<T> implements Resposta<T> {
     public void falha(Falha falha) {
         this.mensagem = falha.mensagem();
         this.estado = Estado.FALHOU;
+        this.sessaoRecusada = falha.motivo() == Falha.Motivo.NAO_AUTORIZADO;
     }
+
+    /** O servidor recusou o token (vencido ou inválido): a tela avisa o jogo, que desconecta o piloto. */
+    public boolean isSessaoRecusada() { return sessaoRecusada; }
 
     public Estado getEstado() { return estado; }
     /** Presente só quando PRONTA. */

@@ -33,9 +33,10 @@ com GitHub Actions, está na [seção 10](#10-publicação-no-dokploy-com-github
 Regras:
 - **Nunca** ponha o segredo no Git, na imagem ou num `docker-compose` versionado. O `.env` desta pasta é só para
   desenvolvimento e está no `.gitignore`.
-- **Trocar o segredo** invalida todos os tokens: cada jogador só precisa entrar de novo. As contas e as partidas
-  continuam.
-- Os tokens valem 2 horas (`missaomarte.jwt.validade=PT2H` em `application.properties`).
+- **Trocar o segredo** invalida todos os tokens: cada jogador só precisa entrar de novo (o jogo recebe 401, apaga a
+  sessão guardada e volta ao modo convidado). As contas e as partidas continuam.
+- Os tokens valem 30 dias (`missaomarte.jwt.validade=P30D` em `application.properties`), porque o jogo guarda a
+  sessão no aparelho (DA-38).
 
 ## 3. Persistência e cópia de segurança
 

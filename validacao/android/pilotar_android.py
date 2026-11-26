@@ -14,6 +14,10 @@ Roteiros:
   pilotagem  - (Fase 7) Modo Pilotagem no Fácil: segura MOTOR e a nave sobe e pousa de volta; sobe, gira e cai torta
                (explode); gira a tela e vai ao segundo plano no meio do voo; aborta e abre o ranking da pilotagem.
                O adb só segura um dedo por vez: girar e acelerar juntos fica para a partida jogada à mão.
+  sessao     - (DA-38) cadastra, o Android mata o jogo em segundo plano e ele reabre ainda conectado; troca o tema
+               escuro e o tamanho da fonte sem reiniciar o jogo; trocar de piloto apaga a sessão guardada
+  sessao-vencida - (DA-38) contra um servidor de token curto: token vencido com o jogo fechado abre na entrada;
+               com o jogo aberto, o histórico recebe 401 e o piloto volta a ser convidado (--espera segundos)
 """
 import argparse
 import re
@@ -299,16 +303,97 @@ def convidado(a, _endereco, _nome):
     a.print('menu-depois-do-voltar')
 
 
+def cadastrar(a, endereco, nome):
+    """Grava o endereço do servidor (opção 4) e cria a conta, que já entra (vai ao menu)."""
+    a.tocar(*opcao_entrada(3))
+    a.caixa_de_texto(endereco)
+    a.tocar(*opcao_entrada(1))
+    a.tocar(*CAMPO_NOME)
+    a.caixa_de_texto(nome)
+    a.tocar(*CAMPO_SENHA)
+    a.caixa_de_texto('senha-de-teste-' + nome.lower())
+    a.tocar(*BOTAO_CONFIRMAR, espera=2.5)
+
+
+def android_mata_e_reabre(a):
+    """O que o celular faz com um jogo em segundo plano quando falta memória (exit-info LOW_MEMORY)."""
+    a.adb('shell', 'input', 'keyevent', 'KEYCODE_HOME')
+    time.sleep(2)
+    a.adb('shell', 'am', 'kill', PACOTE)   # só mata processo em segundo plano, como o sistema
+    time.sleep(1)
+    print('processo depois do kill:', a.adb('shell', 'pidof', PACOTE).strip() or 'nenhum', flush=True)
+    a.adb('shell', 'am', 'start', '-n', ATIVIDADE)
+    time.sleep(6)
+
+
+def sessao(a, endereco, nome):
+    """DA-38: a sessão sobrevive ao Android matar o jogo e às trocas de tema e de fonte; trocar de piloto a apaga."""
+    a.girar(False)
+    a.abrir()
+    cadastrar(a, endereco, nome)
+    a.print('menu-conectado')
+    android_mata_e_reabre(a)
+    a.print('menu-depois-do-android-matar-o-jogo')
+    a.adb('shell', 'cmd', 'uimode', 'night', 'yes')
+    time.sleep(4)
+    a.print('menu-depois-do-tema-escuro')
+    a.adb('shell', 'cmd', 'uimode', 'night', 'no')
+    a.adb('shell', 'settings', 'put', 'system', 'font_scale', '1.3')
+    time.sleep(4)
+    a.print('menu-depois-da-fonte-maior')
+    a.adb('shell', 'settings', 'put', 'system', 'font_scale', '1.0')
+    time.sleep(2)
+    a.tocar(*opcao_menu(5), espera=1.5)                 # 6. trocar de piloto
+    a.print('entrada-depois-de-trocar-de-piloto')
+    android_mata_e_reabre(a)
+    a.print('entrada-depois-de-reabrir')
+
+
+def sessao_vencida(a, endereco, nome, espera):
+    """
+    Servidor com token curto (ex.: --missaomarte.jwt.validade=PT2M). Vencido com o jogo fechado: o jogo abre na
+    entrada. Vencido com o jogo aberto: o histórico recebe 401 e o piloto volta a ser convidado.
+    """
+    a.girar(False)
+    a.abrir()
+    cadastrar(a, endereco, nome + 'a')
+    a.print('menu-conectado')
+    a.adb('shell', 'input', 'keyevent', 'KEYCODE_HOME')
+    time.sleep(espera)
+    android_mata_e_reabre(a)
+    a.print('entrada-com-o-token-vencido-no-aparelho')
+    a.tocar(*opcao_entrada(1))                           # outra conta (a tela de entrada já tem o endereço)
+    a.tocar(*CAMPO_NOME)
+    a.caixa_de_texto(nome + 'b')
+    a.tocar(*CAMPO_SENHA)
+    a.caixa_de_texto('senha-de-teste-' + nome.lower() + 'b')
+    a.tocar(*BOTAO_CONFIRMAR, espera=2.5)
+    a.print('menu-conectado-de-novo')
+    time.sleep(espera)
+    a.tocar(*opcao_menu(4), espera=3)                   # 5. histórico: o servidor recusa o token
+    a.print('historico-com-o-token-vencido')
+    a.tocar(400, 300, espera=1.5)                       # volta ao menu
+    a.print('menu-como-convidado')
+    android_mata_e_reabre(a)
+    a.print('entrada-depois-de-reabrir')
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--dispositivo', required=True)
     p.add_argument('--saida', required=True)
-    p.add_argument('--roteiro', choices=['completo', 'convidado', 'pilotagem'], default='completo')
+    p.add_argument('--roteiro', choices=['completo', 'convidado', 'pilotagem', 'sessao', 'sessao-vencida'],
+                   default='completo')
     p.add_argument('--servidor', default='http://10.0.2.2:8080', help='endereço digitado na opção 4 da entrada')
     p.add_argument('--nome', default='Bia', help='piloto cadastrado no roteiro completo (precisa ser novo no servidor)')
+    p.add_argument('--espera', type=int, default=200,
+                   help='sessao-vencida: segundos até o token vencer. Para PT2M, 200: 120 s de validade, mais os 60 s '
+                        'de tolerância de relógio do Spring, mais folga')
     a = p.parse_args()
     android = Android(a.dispositivo, a.saida)
-    {'completo': completo, 'convidado': convidado, 'pilotagem': pilotagem}[a.roteiro](android, a.servidor, a.nome)
+    roteiros = {'completo': completo, 'convidado': convidado, 'pilotagem': pilotagem, 'sessao': sessao,
+                'sessao-vencida': lambda andr, end, nome: sessao_vencida(andr, end, nome, a.espera)}
+    roteiros[a.roteiro](android, a.servidor, a.nome)
     (Path(a.saida) / 'logcat.txt').write_text(android.log())
     (Path(a.saida) / 'logcat-do-app.txt').write_text(android.log_do_app())
     print('fim do roteiro')

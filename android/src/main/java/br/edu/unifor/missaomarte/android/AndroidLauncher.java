@@ -10,6 +10,7 @@ import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
 import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.PreferenciasLibgdx;
 import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
+import br.edu.unifor.missaomarte.grafico.online.SessaoGuardada;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
@@ -40,7 +41,9 @@ public class AndroidLauncher extends AndroidApplication {
     @Override
     protected void onCreate(Bundle estado) {
         super.onCreate(estado);
-        ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(new PreferenciasLibgdx("missao-marte"),
+        // as SharedPreferences privadas do app guardam o endereço do servidor e a sessão do piloto (DA-38)
+        PreferenciasLibgdx preferencias = new PreferenciasLibgdx("missao-marte");
+        ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(preferencias,
                 ConfiguracaoDoServidor.padraoDoBuild(SERVIDOR_DO_EMULADOR), null);
         Relogio relogio = Relogio.DO_SISTEMA;
         ServicosDoJogo servicos = new ServicosDoJogo(
@@ -53,6 +56,7 @@ public class AndroidLauncher extends AndroidApplication {
 
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
         config.useImmersiveMode = true;      // esconde as barras do sistema durante o jogo
-        initialize(new MissaoMarteGame(servicos, new Plataforma(true, servidor)), config);
+        initialize(new MissaoMarteGame(servicos, new Plataforma(true, servidor, new SessaoGuardada(preferencias))),
+                config);
     }
 }

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -95,7 +96,8 @@ class ServidorHttpTeste {
                 + "\"jogador\":{\"id\":1,\"nome\":\"Ana\",\"criadoEm\":\"2026-11-18T12:00:00Z\"}}");
         Retorno<Sessao> r = esperar(resposta -> cliente.entrar("ana", "segredo1", resposta));
 
-        assertEquals(new Sessao("Ana", "abc.def.ghi"), r.valor());
+        // a validade vem junto: a sessão guardada no aparelho sabe quando deixa de servir
+        assertEquals(new Sessao("Ana", "abc.def.ghi", Instant.parse("2026-11-18T14:00:00Z")), r.valor());
         Pedido p = pedidos.get(0);
         assertEquals("POST", p.metodo());
         assertEquals("/api/sessoes", p.rota());                  // a barra no fim do endereço não duplica
@@ -248,6 +250,14 @@ class ServidorHttpTeste {
     @Test
     void sessaoNaoMostraOTokenEmTexto() {
         assertEquals("Sessao[nome=Ana, token=***]", new Sessao("Ana", "segredo-do-token").toString());
+    }
+
+    @Test
+    void entrarSemValidadeLegivelAindaDevolveASessao() throws Exception {
+        responder(200, "{\"token\":\"abc.def.ghi\",\"tipo\":\"Bearer\",\"expiraEm\":\"logo mais\","
+                + "\"jogador\":{\"id\":1,\"nome\":\"Ana\",\"criadoEm\":\"2026-11-18T12:00:00Z\"}}");
+        Retorno<Sessao> r = esperar(resposta -> cliente.entrar("ana", "segredo1", resposta));
+        assertEquals(new Sessao("Ana", "abc.def.ghi", null), r.valor());
     }
 
     @Test

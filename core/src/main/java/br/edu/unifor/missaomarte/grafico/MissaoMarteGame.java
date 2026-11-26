@@ -57,7 +57,7 @@ public class MissaoMarteGame extends Game {
     private BitmapFont fonte;
     private Recursos recursos;
     private Sons sons = Sons.NENHUM;
-    /** Jogador conectado ao servidor (Fase 5); vazio no modo convidado. Só na memória. */
+    /** Jogador conectado ao servidor (Fase 5); vazio no modo convidado. Guardado também no aparelho (DA-38). */
     private Sessao sessao;
 
     public MissaoMarteGame(ServicosDoJogo servicos) {
@@ -138,16 +138,49 @@ public class MissaoMarteGame extends Game {
         trocarTela(new TelaMenu(this));
     }
 
-    /** Fase 5: a primeira tela depois do carregamento. Entrar, cadastrar ou jogar como convidado. */
+    /**
+     * Depois do carregamento. DA-38: se o aparelho guardou uma sessão que ainda vale para este servidor, o piloto
+     * continua conectado e vai direto ao menu (o Android pode ter matado o jogo em segundo plano). Senão, a entrada.
+     */
+    public void irParaInicio() {
+        Optional<Sessao> guardada = plataforma.sessaoGuardada().recuperar(plataforma.servidor().endereco());
+        if (guardada.isEmpty()) {
+            irParaEntrada();
+            return;
+        }
+        sessao = guardada.get();
+        Diario.registrar("sessão recuperada do aparelho: " + sessao.nome());   // o nome, nunca o token
+        irParaMenu();
+    }
+
+    /** Fase 5: entrar, cadastrar ou jogar como convidado. Chegar aqui ("Trocar de piloto") desconecta o piloto. */
     public void irParaEntrada() {
-        sessao = null;
+        esquecerSessao();
         trocarTela(new TelaEntrada(this));
     }
 
     public void entrarComo(Sessao novaSessao) {
         Diario.registrar("conectado ao servidor como " + novaSessao.nome());   // o nome, nunca o token
         sessao = novaSessao;
+        plataforma.sessaoGuardada().guardar(novaSessao, plataforma.servidor().endereco());
         irParaMenu();
+    }
+
+    /**
+     * O servidor recusou o token (vencido, ou assinado com outro segredo): o piloto volta a ser convidado, e a
+     * mensagem da tela já pede para entrar de novo. Chamado a cada quadro enquanto a tela mostra a falha, por isso
+     * só age uma vez.
+     */
+    public void sessaoRecusada() {
+        if (sessao != null) {
+            Diario.registrar("o servidor recusou a sessão de " + sessao.nome() + ": modo convidado até entrar de novo");
+            esquecerSessao();
+        }
+    }
+
+    private void esquecerSessao() {
+        sessao = null;
+        plataforma.sessaoGuardada().esquecer();
     }
 
     public void jogarComoConvidado() {

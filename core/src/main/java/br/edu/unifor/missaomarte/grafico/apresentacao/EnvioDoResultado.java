@@ -18,6 +18,7 @@ public final class EnvioDoResultado implements Resposta<Void> {
 
     private Estado estado;
     private String motivo = "";
+    private boolean sessaoRecusada;
 
     private EnvioDoResultado(Estado estado) {
         this.estado = estado;
@@ -41,10 +42,16 @@ public final class EnvioDoResultado implements Resposta<Void> {
     public void falha(Falha falha) {
         estado = Estado.FALHOU;
         motivo = falha.mensagem();
+        sessaoRecusada = falha.motivo() == Falha.Motivo.NAO_AUTORIZADO;
     }
 
     public Estado getEstado() {
         return estado;
+    }
+
+    /** O servidor recusou o token (vencido ou inválido): a tela avisa o jogo, que desconecta o piloto. */
+    public boolean isSessaoRecusada() {
+        return sessaoRecusada;
     }
 
     /** A linha que a tela de fim mostra. */

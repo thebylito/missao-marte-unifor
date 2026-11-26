@@ -40,6 +40,9 @@ public class TelaFimDePartida extends TelaBase {
     @Override
     protected void atualizar(float delta) {
         tempo += delta;
+        if (envio != null && envio.isSessaoRecusada()) {
+            jogo.sessaoRecusada();   // token vencido: a mensagem pede para entrar de novo, e o menu mostra convidado
+        }
     }
 
     private static final Retangulo BOTAO_VOLTAR =
