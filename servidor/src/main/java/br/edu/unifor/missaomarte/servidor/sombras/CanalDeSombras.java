@@ -1,15 +1,25 @@
 package br.edu.unifor.missaomarte.servidor.sombras;
 
 import br.edu.unifor.missaomarte.pilotagem.Caverna;
+import br.edu.unifor.missaomarte.pilotagem.horda.PassageiroNaHorda;
+import br.edu.unifor.missaomarte.pilotagem.horda.PontoDePouso;
+import br.edu.unifor.missaomarte.servidor.horda.CatalogoDeCavernas;
+import br.edu.unifor.missaomarte.servidor.horda.Horda;
+import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.jogador.RepositorioDeJogadores;
 import br.edu.unifor.missaomarte.servidor.loja.Skin;
 import br.edu.unifor.missaomarte.servidor.seguranca.ServicoDeTokens;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -19,6 +29,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -62,17 +73,22 @@ public class CanalDeSombras extends TextWebSocketHandler {
     static final long INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS = 1000;
     static final int PILOTOS_MAXIMOS = 50;
     /**
-     * O tamanho da caverna da pilotagem: posições fora dela são recusadas. Desde a Fase 8 (DA-39) vem do próprio
-     * jogo ({@code nucleo}), não de uma cópia dos números; quando houver salas, cada sala terá o tamanho da sua.
+     * A sala livre usa os limites da Marciana do nucleo (DA-39). Cada sala de horda usa os dados publicados.
      */
-    static final double LARGURA_DA_CAVERNA = Caverna.marciana().getLargura();
-    static final double ALTURA_DA_CAVERNA = Caverna.marciana().getAltura();
+    private static final Caverna MARCIANA = Caverna.marciana();
+    static final double LARGURA_DA_CAVERNA = MARCIANA.getLargura();
+    static final double ALTURA_DA_CAVERNA = MARCIANA.getAltura();
     private static final int ESPERA_DE_ENVIO_MS = 1000;
     private static final int FILA_DE_ENVIO_BYTES = 16 * 1024;
 
     /** Um piloto conectado; {@code ultimoRepasseMs} guarda, por tipo (sombra, explosão), quando ele foi repassado. */
-    private record Piloto(int numero, String nome, String skin, WebSocketSession sessao,
-                          Map<String, Long> ultimoRepasseMs) {
+    record Piloto(int numero, long jogadorId, String nome, String skin, WebSocketSession sessao,
+                  Sala sala, Instant conectadoEm, Map<String, Long> ultimoRepasseMs) {}
+
+    record Sala(String nome, double largura, double altura, List<PontoDePouso> pontosVip, Instant fechaEm) {
+        boolean fechadaEm(Instant agora) {
+            return fechaEm != null && !agora.isBefore(fechaEm);
+        }
     }
 
     private final Map<String, Piloto> pilotos = new ConcurrentHashMap<>();
@@ -80,14 +96,25 @@ public class CanalDeSombras extends TextWebSocketHandler {
     private final JsonMapper json = JsonMapper.builder().build();
     private final Clock relogio;
     private final RepositorioDeJogadores jogadores;
+    private final ServicoDeHordas hordas;
+    private final EventosNoCanal eventos;
+    private final Sala livre;
 
-    public CanalDeSombras(Clock relogio, RepositorioDeJogadores jogadores) {
+    public CanalDeSombras(Clock relogio, RepositorioDeJogadores jogadores, ServicoDeHordas hordas,
+                          CatalogoDeCavernas catalogo, EventosNoCanal eventos) {
         this.relogio = relogio;
         this.jogadores = jogadores;
+        this.hordas = hordas;
+        this.eventos = eventos;
+        var ocupados = MARCIANA.getPlataformas().stream()
+                .map(p -> new PontoDePouso(p.getX(), p.getSuperficie())).collect(Collectors.toSet());
+        var pontosLivres = catalogo.porId("marciana").orElseThrow().pontosDePouso().stream()
+                .filter(p -> !ocupados.contains(p)).toList();
+        livre = new Sala("livre", LARGURA_DA_CAVERNA, ALTURA_DA_CAVERNA, pontosLivres, null);
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession sessao) throws IOException {
+    public synchronized void afterConnectionEstablished(WebSocketSession sessao) throws IOException {
         if (!(sessao.getPrincipal() instanceof JwtAuthenticationToken token)) {
             sessao.close(CloseStatus.POLICY_VIOLATION);   // não acontece: a segurança barra antes do aperto de mão
             return;
@@ -96,13 +123,21 @@ public class CanalDeSombras extends TextWebSocketHandler {
             sessao.close(CloseStatus.SERVICE_OVERLOAD);
             return;
         }
+        Instant agora = relogio.instant();
+        Sala sala = salaPedida(sessao.getUri(), agora);
+        if (sala == null) {
+            sessao.close(CloseStatus.POLICY_VIOLATION.withReason("sala desconhecida ou encerrada"));
+            return;
+        }
         sessao.setTextMessageSizeLimit(TAMANHO_MAXIMO);
         WebSocketSession segura = new ConcurrentWebSocketSessionDecorator(sessao, ESPERA_DE_ENVIO_MS,
                 FILA_DE_ENVIO_BYTES);
         String nome = String.valueOf(token.getToken().getClaims().getOrDefault("nome", "Piloto"));
         // a skin equipada no momento da conexão; uma troca no Hangar vale na próxima conexão
-        String skin = jogadores.skinDe(ServicoDeTokens.idDoJogador(token.getToken())).orElse(Skin.PADRAO);
-        Piloto piloto = new Piloto(proximoNumero.getAndIncrement(), nome, skin, segura, new HashMap<>());
+        long jogadorId = ServicoDeTokens.idDoJogador(token.getToken());
+        String skin = jogadores.skinDe(jogadorId).orElse(Skin.PADRAO);
+        Piloto piloto = new Piloto(proximoNumero.getAndIncrement(), jogadorId, nome, skin, segura, sala,
+                relogio.instant(), new HashMap<>());
         pilotos.put(sessao.getId(), piloto);
         LOG.info("sombras: {} entrou (piloto {}); {} conectado(s)", nome, piloto.numero(), pilotos.size());
     }
@@ -117,11 +152,29 @@ public class CanalDeSombras extends TextWebSocketHandler {
             sessao.close(CloseStatus.TOO_BIG_TO_PROCESS);
             return;
         }
-        long agora = relogio.millis();
-        ObjectNode repasse = repasseDe(piloto, mensagem.getPayload());
+        Instant instante = relogio.instant();
+        if (piloto.sala().fechadaEm(instante)) {
+            sessao.close(CloseStatus.POLICY_VIOLATION.withReason("sala encerrada"));
+            return;
+        }
+        JsonNode pedido = lerObjeto(mensagem.getPayload());
+        if (pedido == null) {
+            return;
+        }
+        String tipoPedido = pedido.path("tipo").asString();
+        if (tipoPedido.equals("evento-resultado") || tipoPedido.equals("vip")) {
+            eventos.receber(piloto, tipoPedido, pedido, instante, pilotos.values());
+            return;
+        }
+        ObjectNode repasse = switch (tipoPedido) {
+            case "posicao" -> sombraDe(piloto, pedido);
+            case "explodiu" -> explosaoDe(piloto, pedido);
+            default -> null;
+        };
         if (repasse == null) {
             return;   // mensagem inválida: ignorada, sem derrubar a conexão
         }
+        long agora = instante.toEpochMilli();
         String tipo = repasse.get("tipo").asString();
         long intervalo = tipo.equals("explosao") ? INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS : INTERVALO_MINIMO_MS;
         synchronized (piloto) {
@@ -134,29 +187,61 @@ public class CanalDeSombras extends TextWebSocketHandler {
         }
     }
 
-    /** O que repassar aos outros, ou null se a mensagem não for uma posição nem uma explosão válida. */
-    private ObjectNode repasseDe(Piloto piloto, String texto) {
-        JsonNode m;
+    private JsonNode lerObjeto(String texto) {
         try {
-            m = json.readTree(texto);
+            JsonNode m = json.readTree(texto);
+            return m != null && m.isObject() ? m : null;
         } catch (JacksonException e) {
             return null;
         }
-        if (m == null || !m.isObject()) {
+    }
+
+    private Sala salaPedida(URI uri, Instant agora) {
+        List<String> salas = UriComponentsBuilder.fromUri(uri).build().getQueryParams().get("sala");
+        if (salas == null) {
+            return livre;
+        }
+        if (salas.size() != 1 || salas.get(0) == null) {
             return null;
         }
-        return switch (m.path("tipo").asString()) {
-            case "posicao" -> sombraDe(piloto, m);
-            case "explodiu" -> explosaoDe(piloto, m);
-            default -> null;
-        };
+        String sala = salas.get(0);
+        if (sala.equals("livre")) {
+            return livre;
+        }
+        if (!sala.startsWith("horda-")) {
+            return null;
+        }
+        try {
+            long numero = Long.parseLong(sala.substring("horda-".length()));
+            if (!sala.equals("horda-" + numero)) {
+                return null;
+            }
+            return hordas.sala(numero, agora).map(CanalDeSombras::salaDaHorda).orElse(null);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static Sala salaDaHorda(Horda horda) {
+        var descricao = horda.descricao();
+        var caverna = descricao.caverna();
+        var pontos = caverna.pontosDePouso();
+        var ocupados = descricao.passageiros().stream().map(PassageiroNaHorda::ponto).collect(Collectors.toSet());
+        var livres = IntStream.range(0, pontos.size()).filter(i -> !ocupados.contains(i)).mapToObj(pontos::get).toList();
+        return new Sala("horda-" + horda.numero(), caverna.largura(), caverna.altura(),
+                livres.isEmpty() ? pontos : livres, horda.fim().plus(ServicoDeHordas.TOLERANCIA));
+    }
+
+    public void verificarEventos(Instant agora) {
+        var ativos = pilotos.values().stream().filter(p -> !p.sala().fechadaEm(agora)).toList();
+        eventos.verificar(agora, ativos);
     }
 
     /** A explosão da nave de um piloto, no ponto da caverna em que ela bateu (as vidas e o renascer são do jogo). */
     private ObjectNode explosaoDe(Piloto piloto, JsonNode m) {
         JsonNode x = m.get("x");
         JsonNode y = m.get("y");
-        if (!numero(x, 0, LARGURA_DA_CAVERNA) || !numero(y, 0, ALTURA_DA_CAVERNA)) {
+        if (!numero(x, 0, piloto.sala().largura()) || !numero(y, 0, piloto.sala().altura())) {
             return null;
         }
         ObjectNode explosao = json.createObjectNode();
@@ -173,8 +258,8 @@ public class CanalDeSombras extends TextWebSocketHandler {
         JsonNode y = m.get("y");
         JsonNode angulo = m.get("angulo");
         JsonNode motor = m.get("motor");
-        if (!numero(x, 0, LARGURA_DA_CAVERNA) || !numero(y, 0, ALTURA_DA_CAVERNA) || !numero(angulo, -180, 180)
-                || motor == null || !motor.isBoolean()) {
+        if (!numero(x, 0, piloto.sala().largura()) || !numero(y, 0, piloto.sala().altura())
+                || !numero(angulo, -180, 180) || motor == null || !motor.isBoolean()) {
             return null;
         }
         ObjectNode sombra = json.createObjectNode();
@@ -207,18 +292,24 @@ public class CanalDeSombras extends TextWebSocketHandler {
         LOG.info("sombras: {} saiu (piloto {}); {} conectado(s)", piloto.nome(), piloto.numero(), pilotos.size());
     }
 
-    /** Para todos os outros pilotos. Quem não consegue receber (conexão caindo) é simplesmente pulado. */
+    /** Para os outros pilotos da mesma sala. */
     private void repassar(Piloto de, String texto) {
         TextMessage mensagem = new TextMessage(texto);
         for (Piloto outro : pilotos.values()) {
-            if (outro.numero() == de.numero() || !outro.sessao().isOpen()) {
-                continue;
+            if (outro.numero() != de.numero() && outro.sala().nome().equals(de.sala().nome())) {
+                enviar(outro, mensagem);
             }
-            try {
-                outro.sessao().sendMessage(mensagem);
-            } catch (IOException | IllegalStateException e) {
-                LOG.debug("sombras: não deu para enviar ao piloto {}", outro.numero());
-            }
+        }
+    }
+
+    static void enviar(Piloto piloto, TextMessage mensagem) {
+        if (!piloto.sessao().isOpen()) {
+            return;
+        }
+        try {
+            piloto.sessao().sendMessage(mensagem);
+        } catch (IOException | IllegalStateException e) {
+            LOG.debug("sombras: não deu para enviar ao piloto {}", piloto.numero());
         }
     }
 

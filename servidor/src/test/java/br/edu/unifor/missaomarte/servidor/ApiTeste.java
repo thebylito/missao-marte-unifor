@@ -42,7 +42,7 @@ public abstract class ApiTeste {
 
     /** Relógio que só anda quando o teste manda. */
     public static final class RelogioDeTeste extends Clock {
-        public Instant agora;
+        public volatile Instant agora;
 
         @Override public ZoneId getZone() { return ZoneOffset.UTC; }
         @Override public Clock withZone(ZoneId zona) { return this; }
