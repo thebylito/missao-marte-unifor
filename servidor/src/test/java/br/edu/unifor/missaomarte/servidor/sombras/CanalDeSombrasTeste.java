@@ -2,7 +2,11 @@ package br.edu.unifor.missaomarte.servidor.sombras;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -10,10 +14,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDeCaverna;
 import br.edu.unifor.missaomarte.pilotagem.horda.PontoDePouso;
+import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
 import br.edu.unifor.missaomarte.servidor.Agendador;
 import br.edu.unifor.missaomarte.servidor.ApiTeste;
 import br.edu.unifor.missaomarte.servidor.ApiTeste.RelogioDeTeste;
 import br.edu.unifor.missaomarte.servidor.evento.AgendaDeEventos;
+import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
 import br.edu.unifor.missaomarte.servidor.horda.CatalogoDeCavernas;
 import br.edu.unifor.missaomarte.servidor.horda.Horda;
 import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
@@ -136,6 +142,9 @@ class CanalDeSombrasTeste {
 
     @MockitoSpyBean
     CatalogoDeCavernas catalogo;
+
+    @MockitoSpyBean
+    ServicoDeEventos eventos;
 
     private final List<Cliente> abertos = new ArrayList<>();
 
@@ -468,12 +477,20 @@ class CanalDeSombrasTeste {
         conferirInicioVip(livre.proxima(), evento, catalogo.porId("marciana").orElseThrow());
         conferirInicioVip(rival.proxima(), evento, horda.descricao().caverna());
 
-        livre.enviar("{\"tipo\":\"vip\",\"evento\":\"" + evento + "\"}");
+        String pedidoVip = "{\"tipo\":\"vip\",\"evento\":\"" + evento + "\"}";
+        relogio.avancar(Duration.ofSeconds(3));
+        livre.enviar(pedidoVip);
         Map<String, Object> pego = Map.of("tipo", "vip-pego", "evento", evento, "nome", vencedor);
         assertThat(JsonPath.<Map<String, Object>>read(livre.proxima(), "$")).isEqualTo(pego);
         assertThat(JsonPath.<Map<String, Object>>read(rival.proxima(), "$")).isEqualTo(pego);
-        rival.enviar("{\"tipo\":\"vip\",\"evento\":\"" + evento + "\"}");
-        rival.nadaChegou();
+        for (int i = 0; i < 1000; i++) {
+            rival.enviar(pedidoVip);
+        }
+        Cliente outraSombra = conectar(token(nomeUnico("Sombra")), "?sala=horda-" + horda.numero());
+        esperarConectados(3);
+        rival.enviar(posicao(100, 100, 0, false)); // confirma que a fila do rival foi processada
+        assertThat(JsonPath.<String>read(outraSombra.proxima(), "$.tipo")).isEqualTo("sombra");
+        verify(eventos, times(1)).pegarVip(any(), anyLong(), any());
         assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, evento))
                 .containsExactly(5);
     }
@@ -490,7 +507,12 @@ class CanalDeSombrasTeste {
         agendador.verificar();
         String evento = JsonPath.read(a.proxima(), "$.evento");
         assertThat(JsonPath.<String>read(explodiu.proxima(), "$.evento")).isEqualTo(evento);
-        relogio.avancar(Duration.ofSeconds(15));
+        relogio.avancar(Duration.ofSeconds(13));
+        a.enviar(posicao(100, 100, 0, false));
+        explodiu.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(a.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(JsonPath.<String>read(explodiu.proxima(), "$.tipo")).isEqualTo("sombra");
+        relogio.avancar(Duration.ofSeconds(2));
         agendador.verificar();
         Map<String, Object> inicio = JsonPath.read(a.proxima(), "$");
         assertThat(inicio).containsEntry("tipo", "evento-inicio").containsEntry("evento", evento)
@@ -509,14 +531,20 @@ class CanalDeSombrasTeste {
         explodiu.enviar(posicao(100, 100, 0, false));
         assertThat(JsonPath.<String>read(a.proxima(), "$.tipo")).isEqualTo("sombra");
         assertThat(JsonPath.<String>read(atrasado.proxima(), "$.tipo")).isEqualTo("sombra");
-        a.enviar(resultado);
-        a.enviar(resultado);
+        for (int i = 0; i < 1000; i++) {
+            a.enviar(resultado);
+        }
         a.enviar(posicao(100, 100, 0, false));
         assertThat((String) JsonPath.read(atrasado.proxima(), "$.tipo")).isEqualTo("sombra");
+        relogio.avancar(Duration.ofSeconds(2));
+        a.enviar(resultado); // a deduplicação vale mesmo depois de passar o limite por segundo
+        a.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(atrasado.proxima(), "$.tipo")).isEqualTo("sombra");
         atrasado.enviar(resultado);
         atrasado.enviar(posicao(100, 100, 0, false));
         assertThat((String) JsonPath.read(a.proxima(), "$.tipo")).isEqualTo("sombra");
 
+        verify(eventos, times(1)).sobreviver(any(), anyLong(), any());
         assertThat(jdbc.queryForList("""
                 select j.nome, p.pontos from pontos_de_evento p join jogadores j on j.id = p.jogador_id
                 where p.evento = ?
@@ -524,10 +552,157 @@ class CanalDeSombrasTeste {
     }
 
     @Test
+    void quemEntraComAvisoEmAndamentoRecebeOTempoRestante() throws Exception {
+        relogio.agora = Instant.parse("2026-11-24T15:00:00Z");
+        Cliente primeiro = conectar(token(nomeUnico("Primeiro")));
+        esperarConectados(1);
+        eventos.solicitar(TipoDeEvento.TEMPESTADE, relogio.instant());
+        agendador.verificar();
+        String id = JsonPath.read(primeiro.proxima(), "$.evento");
+
+        relogio.avancar(Duration.ofMillis(7200));
+        Cliente chegou = conectar(token(nomeUnico("Chegou")));
+        esperarConectados(2);
+        assertThat(JsonPath.<Map<String, Object>>read(chegou.proxima(), "$"))
+                .containsExactlyInAnyOrderEntriesOf(Map.of("tipo", "evento-aviso", "evento", id,
+                        "nome", "TEMPESTADE", "em", 8));
+        agendador.verificar();
+        chegou.nadaChegou();
+        primeiro.nadaChegou();
+    }
+
+    @Test
+    void posicaoAntigaOuPosteriorAoInicioNaoQualificaParaPontuar() throws Exception {
+        relogio.agora = Instant.parse("2026-11-24T17:00:00Z");
+        Cliente parado = conectar(token(nomeUnico("Parado")));
+        String nomeAtivo = nomeUnico("Ativo");
+        Cliente ativo = conectar(token(nomeAtivo));
+        esperarConectados(2);
+        eventos.solicitar(TipoDeEvento.CHUVA_DE_METEOROS, relogio.instant());
+        agendador.verificar();
+        String id = JsonPath.read(ativo.proxima(), "$.evento");
+        parado.proxima();
+        relogio.avancar(Duration.ofMillis(11999));
+        parado.enviar(posicao(100, 100, 0, false));
+        ativo.proxima();
+        relogio.avancar(Duration.ofMillis(1));
+        ativo.enviar(posicao(100, 100, 0, false)); // exatamente três segundos antes
+        parado.proxima();
+        relogio.avancar(Duration.ofMillis(3100));
+        parado.enviar(posicao(100, 100, 0, false)); // antes do ciclo, mas depois do início
+        ativo.proxima();
+        agendador.verificar();
+        assertThat(JsonPath.<String>read(parado.proxima(), "$.tipo")).isEqualTo("evento-inicio");
+        assertThat(JsonPath.<String>read(ativo.proxima(), "$.tipo")).isEqualTo("evento-inicio");
+
+        relogio.avancar(Duration.ofSeconds(20));
+        String resultado = "{\"tipo\":\"evento-resultado\",\"evento\":\"" + id + "\",\"sobreviveu\":true}";
+        parado.enviar(resultado);
+        parado.enviar(posicao(100, 100, 0, false));
+        ativo.proxima();
+        ativo.enviar(resultado);
+        ativo.enviar(posicao(100, 100, 0, false));
+        parado.proxima();
+        assertThat(jdbc.queryForList("""
+                select j.nome, p.pontos from pontos_de_evento p join jogadores j on j.id = p.jogador_id
+                where p.evento = ?
+                """, id)).containsExactly(Map.of("nome", nomeAtivo, "pontos", 3));
+    }
+
+    @Test
+    void vipSoPodeSerPegoTresSegundosDepoisDoInicio() throws Exception {
+        relogio.agora = Instant.parse("2026-11-24T19:00:00Z");
+        Cliente piloto = conectar(token(nomeUnico("Vip")));
+        Cliente testemunha = conectar(token(nomeUnico("Testemunha")));
+        esperarConectados(2);
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        agendador.verificar();
+        String id = JsonPath.read(piloto.proxima(), "$.evento");
+        testemunha.proxima();
+        relogio.avancar(Duration.ofSeconds(15));
+        agendador.verificar();
+        piloto.proxima();
+        testemunha.proxima();
+        String pedido = "{\"tipo\":\"vip\",\"evento\":\"" + id + "\"}";
+        relogio.avancar(Duration.ofMillis(2999));
+        piloto.enviar(pedido);
+        piloto.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, id))
+                .isEmpty();
+        relogio.avancar(Duration.ofMillis(1));
+        piloto.enviar(pedido);
+        assertThat(JsonPath.<String>read(piloto.proxima(), "$.tipo")).isEqualTo("vip-pego");
+        assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, id))
+                .containsExactly(5);
+    }
+
+    @Test
+    void vipsComAMesmaSementePublicaUsamPontosDasRespectivasSementesPrivadas() throws Exception {
+        relogio.agora = Instant.parse("2026-11-25T17:00:00Z");
+        Cliente piloto = conectar(token(nomeUnico("VipPrivado")));
+        esperarConectados(1);
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        var ids = eventos.ativos(relogio.instant()).stream().map(e -> e.id()).toList();
+        jdbc.update("update eventos_ao_vivo set semente = 73, semente_vip = ? where evento = ?",
+                "01".repeat(32), ids.get(0));
+        jdbc.update("update eventos_ao_vivo set semente = 73, semente_vip = ? where evento = ?",
+                "02".repeat(32), ids.get(1));
+        agendador.verificar();
+        piloto.proxima();
+        piloto.proxima();
+
+        relogio.avancar(Duration.ofSeconds(15));
+        agendador.verificar();
+        String primeiro = piloto.proxima();
+        String segundo = piloto.proxima();
+        assertThat(JsonPath.<Number>read(primeiro, "$.semente").longValue()).isEqualTo(73);
+        assertThat(JsonPath.<Number>read(segundo, "$.semente").longValue()).isEqualTo(73);
+        assertThat(JsonPath.<Number>read(primeiro, "$.vip.x").doubleValue()).isEqualTo(2790.0);
+        assertThat(JsonPath.<Number>read(segundo, "$.vip.x").doubleValue()).isEqualTo(3050.0);
+    }
+
+    @Test
+    void limitePorPilotoTambemValeQuandoOsPedidosSaoDeEventosDiferentes() throws Exception {
+        relogio.agora = Instant.parse("2026-11-25T15:00:00Z");
+        Cliente piloto = conectar(token(nomeUnico("Piloto")));
+        Cliente testemunha = conectar(token(nomeUnico("Testemunha")));
+        esperarConectados(2);
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        agendador.verificar();
+        String primeiro = JsonPath.read(piloto.proxima(), "$.evento");
+        String segundo = JsonPath.read(piloto.proxima(), "$.evento");
+        testemunha.proxima();
+        testemunha.proxima();
+
+        relogio.avancar(Duration.ofSeconds(15));
+        agendador.verificar();
+        piloto.proxima();
+        piloto.proxima();
+        testemunha.proxima();
+        testemunha.proxima();
+        relogio.avancar(Duration.ofSeconds(3));
+        piloto.enviar("{\"tipo\":\"vip\",\"evento\":\"" + primeiro + "\"}");
+        String outroPedido = "{\"tipo\":\"vip\",\"evento\":\"" + segundo + "\"}";
+        piloto.enviar(outroPedido);
+        piloto.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.evento")).isEqualTo(primeiro);
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(jdbc.queryForList("select evento from pontos_de_evento", String.class))
+                .contains(primeiro).doesNotContain(segundo);
+
+        relogio.avancar(Duration.ofSeconds(1));
+        piloto.enviar(outroPedido);
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.evento")).isEqualTo(segundo);
+    }
+
+    @Test
     void agendaAutomaticaSoPublicaQuandoHaPilotosNoAviso() throws Exception {
         relogio.agora = Instant.parse("2026-11-23T15:00:00Z");
         Horda horda = hordas.atual(relogio.instant());
-        var agenda = AgendaDeEventos.daHorda(horda.numero(), horda.inicio(), horda.semente());
+        var agenda = AgendaDeEventos.daHorda(horda);
         var primeiro = agenda.get(0);
         var segundo = agenda.get(1);
         relogio.agora = primeiro.aviso();

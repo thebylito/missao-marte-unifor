@@ -1,7 +1,9 @@
 package br.edu.unifor.missaomarte.servidor.evento;
 
 import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
+import br.edu.unifor.missaomarte.servidor.horda.Horda;
 import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
+import br.edu.unifor.missaomarte.servidor.seguranca.Sementes;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +17,21 @@ public final class AgendaDeEventos {
 
     private AgendaDeEventos() {}
 
+    public static List<EventoAoVivo> daHorda(Horda horda) {
+        if (horda.sementeAgenda() == null) {
+            return daHorda(horda.numero(), horda.inicio(), horda.semente());
+        }
+        byte[] chave = Sementes.deHex(horda.sementeAgenda());
+        long horarios = Sementes.comoLong(Sementes.derivar(chave, "horarios"));
+        return sortear(horda.numero(), horda.inicio(), horarios, chave);
+    }
+
+    /** Mantém os eventos das hordas publicadas antes da V5. */
     public static List<EventoAoVivo> daHorda(long numero, Instant inicio, long semente) {
+        return sortear(numero, inicio, semente, null);
+    }
+
+    private static List<EventoAoVivo> sortear(long numero, Instant inicio, long semente, byte[] chave) {
         var sorteio = new SplittableRandom(semente);
         var tipos = TipoDeEvento.values();
         int quantidade = sorteio.nextInt(2, 4);
@@ -27,7 +43,16 @@ public final class AgendaDeEventos {
         var eventos = new ArrayList<EventoAoVivo>(quantidade);
         for (int i = 0; i < quantidade; i++) {
             Instant hora = inicio.plusSeconds(segundos[i] + (long) i * INTERVALO_MINIMO);
-            eventos.add(EventoAoVivo.novo(numero, i + 1, tipos[sorteio.nextInt(tipos.length)], sorteio.nextLong(), hora));
+            int indice = i + 1;
+            TipoDeEvento tipo = tipos[sorteio.nextInt(tipos.length)];
+            if (chave == null) {
+                eventos.add(EventoAoVivo.novo(numero, indice, tipo, sorteio.nextLong(), hora));
+            } else {
+                long publica = Sementes.comoLong(Sementes.derivar(chave, "evento:" + indice));
+                String vip = tipo == TipoDeEvento.PASSAGEIRO_VIP
+                        ? Sementes.emHex(Sementes.derivar(chave, "vip:" + indice)) : null;
+                eventos.add(EventoAoVivo.novo(numero, indice, tipo, publica, hora, vip));
+            }
         }
         return List.copyOf(eventos);
     }

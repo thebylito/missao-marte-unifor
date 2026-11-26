@@ -84,16 +84,25 @@ public class ServicoDeBilhetes {
         return valeMoedas(bilhete, partida, agora);
     }
 
-    /** Na Horda, a validação vem antes da gravação. Quem chama já travou o jogador. */
-    BilheteDePartida conferirParaHorda(long jogadorId, String codigo, Partida partida) {
-        return ativoDoJogador(jogadorId, codigo)
-                .filter(b -> valeMoedas(b, partida, partida.getRegistradaEm()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda exige um bilhete válido"));
+    /** A consulta vem depois da trava do jogador, inclusive quando o bilhete já foi usado. */
+    Optional<BilheteDePartida> daHorda(long jogadorId, RegistroDePartida dados) {
+        return doJogador(jogadorId, dados.bilhete()).filter(b -> b.getModo() == Modo.HORDA
+                && Objects.equals(b.getHordaNumero(), dados.horda()));
+    }
+
+    void conferirParaHorda(BilheteDePartida bilhete, Partida partida, Instant agora) {
+        if (bilhete == null || bilhete.getEstado() != EstadoDoBilhete.ATIVO
+                || !valeMoedas(bilhete, partida, agora)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda exige um bilhete válido");
+        }
     }
 
     private Optional<BilheteDePartida> ativoDoJogador(long jogadorId, String codigo) {
-        return ler(codigo).flatMap(bilhetes::findByCodigo)
-                .filter(b -> b.getJogador().getId() == jogadorId && b.getEstado() == EstadoDoBilhete.ATIVO);
+        return doJogador(jogadorId, codigo).filter(b -> b.getEstado() == EstadoDoBilhete.ATIVO);
+    }
+
+    private Optional<BilheteDePartida> doJogador(long jogadorId, String codigo) {
+        return ler(codigo).flatMap(bilhetes::findByCodigo).filter(b -> b.getJogador().getId() == jogadorId);
     }
 
     private static boolean valeMoedas(BilheteDePartida bilhete, Partida partida, Instant agora) {

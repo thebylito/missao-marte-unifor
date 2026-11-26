@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.servidor.moedas;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,8 @@ public interface RepositorioDeMoedas extends JpaRepository<MovimentoDeMoedas, Lo
     @Query("select coalesce(sum(m.valor), 0) from MovimentoDeMoedas m where m.jogador.id = :jogadorId "
             + "and m.origem = :origem and m.registradoEm >= :desde and m.registradoEm < :ate")
     long somaNoPeriodo(long jogadorId, Origem origem, Instant desde, Instant ate);
+
+    Optional<MovimentoDeMoedas> findByJogadorIdAndOrigemAndReferencia(long jogadorId, Origem origem, String referencia);
 
     @Modifying(flushAutomatically = true)
     @Query(value = """

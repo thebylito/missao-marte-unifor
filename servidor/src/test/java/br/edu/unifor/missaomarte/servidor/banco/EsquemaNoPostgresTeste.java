@@ -61,7 +61,7 @@ class EsquemaNoPostgresTeste extends ApiTeste {
     @Test
     void oBancoEOPostgresComAsMigracoesDoFlyway() {
         assertEquals("PostgreSQL", jdbc.queryForObject("select split_part(version(), ' ', 1)", String.class));
-        assertEquals(List.of("1", "2", "3", "4"), jdbc.queryForList(
+        assertEquals(List.of("1", "2", "3", "4", "5"), jdbc.queryForList(
                 "select version from flyway_schema_history where version is not null and success order by installed_rank",
                 String.class));
     }
@@ -144,12 +144,18 @@ class EsquemaNoPostgresTeste extends ApiTeste {
                                 """.formatted(dificuldade, horda.numero())))
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
         String bilhete = JsonPath.read(emissao, "$.bilhete");
-        relogio.avancar(Duration.ofSeconds(45));
-        registrar(token, """
+        relogio.avancar(Duration.ofSeconds(45).plusNanos(123));
+        String partida = """
                 {"modo":"HORDA","dificuldade":"%s","horda":%d,"bilhete":"%s","resultado":"VITORIA",
                  "pontos":75,"passageiros":3,"movimentos":0,"tempoSegundos":45}
-                """.formatted(dificuldade, horda.numero(), bilhete)).andExpect(status().isCreated())
-                .andExpect(jsonPath("$.moedasGanhas").value(5)).andExpect(jsonPath("$.colocacao").value(1));
+                """.formatted(dificuldade, horda.numero(), bilhete);
+        Callable<String> registrarHorda = () -> registrar(token, partida).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.moedasGanhas").value(5)).andExpect(jsonPath("$.colocacao").value(1))
+                .andReturn().getResponse().getContentAsString();
+        var registros = emParalelo(registrarHorda, registrarHorda);
+        assertThat(registros.get(0)).isEqualTo(registros.get(1));
+        assertThat(jdbc.queryForObject("select count(*) from partidas where horda_numero = ?", Integer.class,
+                horda.numero())).isEqualTo(1);
 
         relogio.agora = Instant.parse("2026-11-30T03:30:00Z");
         Callable<Boolean> fechar = () -> {
@@ -157,6 +163,7 @@ class EsquemaNoPostgresTeste extends ApiTeste {
             return true;
         };
         emParalelo(fechar, fechar);
+        assertThat(registrarHorda.call()).isEqualTo(registros.get(0));
         assertThat(jdbc.queryForList("select posicao from top_da_horda where horda_numero = ?",
                 Integer.class, horda.numero())).containsExactly(1);
         assertThat(jdbc.queryForList("select valor from moedas m join jogadores j on j.id = m.jogador_id "
@@ -175,8 +182,9 @@ class EsquemaNoPostgresTeste extends ApiTeste {
                 evento.fim().atOffset(ZoneOffset.UTC));
         long primeiro = jogadorSemSenha("PretendenteA");
         long segundo = jogadorSemSenha("PretendenteB");
-        var resultados = emParalelo(() -> eventos.pegarVip(evento, primeiro, inicio),
-                () -> eventos.pegarVip(evento, segundo, inicio));
+        Instant podePegar = inicio.plusSeconds(3);
+        var resultados = emParalelo(() -> eventos.pegarVip(evento, primeiro, podePegar),
+                () -> eventos.pegarVip(evento, segundo, podePegar));
 
         assertThat(resultados.stream().flatMap(java.util.Optional::stream).toList()).hasSize(1);
         assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, evento.id()))

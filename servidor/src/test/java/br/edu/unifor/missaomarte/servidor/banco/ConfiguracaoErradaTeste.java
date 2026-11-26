@@ -31,6 +31,19 @@ class ConfiguracaoErradaTeste {
     }
 
     @Test
+    void comSegredoDaHordaCurtoOServidorNaoSobe() {
+        Exception erro = assertThrows(Exception.class, () -> new SpringApplicationBuilder(ServidorApplication.class)
+                .run("--MISSAOMARTE_DB_URL=jdbc:h2:mem:segredo-curto;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
+                        "--server.port=0", "--MISSAOMARTE_HORDA_SEGREDO=curto").close());
+        Throwable causa = erro;
+        while (causa.getCause() != null) {
+            causa = causa.getCause();
+        }
+        assertTrue(causa.getMessage().contains("MISSAOMARTE_HORDA_SEGREDO"), causa.getMessage());
+        assertTrue(causa.getMessage().contains("32 bytes"), causa.getMessage());
+    }
+
+    @Test
     void naImagemSemOBancoConfiguradoOH2ArquivoNaoEhUsado() {
         IllegalStateException erro = assertThrows(IllegalStateException.class,
                 () -> GuardaDoBanco.verificar(Map.of("MISSAOMARTE_PERMITIR_H2", "false")));

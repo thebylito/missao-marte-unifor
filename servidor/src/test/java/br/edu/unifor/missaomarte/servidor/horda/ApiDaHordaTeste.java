@@ -8,10 +8,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.edu.unifor.missaomarte.servidor.ApiTeste;
+import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
+import br.edu.unifor.missaomarte.servidor.evento.AgendaDeEventos;
+import br.edu.unifor.missaomarte.servidor.evento.EventoAoVivo;
+import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
 import com.jayway.jsonpath.JsonPath;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -25,10 +31,11 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@TestPropertySource(properties = "missaomarte.hordas.segredo=horas-pares-segredo-de-teste")
+@TestPropertySource(properties = "missaomarte.hordas.segredo=horas-pares-segredo-de-teste-com-32-bytes")
 class ApiDaHordaTeste extends ApiTeste {
 
     @Autowired JdbcTemplate jdbc;
+    @Autowired ServicoDeEventos eventos;
     @MockitoSpyBean CatalogoDeCavernas catalogo;
 
     @Test
@@ -48,7 +55,7 @@ class ApiDaHordaTeste extends ApiTeste {
                 .andExpect(jsonPath("$.descricao.fasesDosAsteroides").isArray())
                 .andReturn().getResponse().getContentAsString();
         assertThat(jdbc.queryForObject("select semente from hordas where numero = ?", Long.class, numero(antes)))
-                .isEqualTo(1698919437302238174L);
+                .isEqualTo(-8087644188306387133L);
         relogio.avancar(Duration.ofSeconds(1));
         String depois = atual();
         assertThat(numero(depois)).isEqualTo(numero(antes) + 1);
@@ -103,9 +110,115 @@ class ApiDaHordaTeste extends ApiTeste {
                 .andExpect(jsonPath("$.colocacao").value(1))
                 .andExpect(jsonPath("$.moedasGanhas").value(5))
                 .andExpect(jsonPath("$.saldo").value(5));
-        registrar(ana, partidaHorda(dificuldade, 75, numero, bilhete)).andExpect(status().isBadRequest());
+        registrar(ana, partidaHorda(dificuldade, 74, numero, bilhete)).andExpect(status().isBadRequest());
         assertThat(jdbc.queryForObject("select origem from moedas", String.class)).isEqualTo("VITORIA_HORDA");
         assertThat(jdbc.queryForObject("select horda_numero from partidas", Long.class)).isEqualTo(numero);
+    }
+
+    @Test
+    void agendaAutomaticaNaoSegueOSorteioDaDescricaoPublicada() throws Exception {
+        relogio.agora = Instant.parse("2026-11-26T21:00:00Z");
+        String resposta = atual();
+        long numero = numero(resposta);
+        Instant inicio = Instant.parse(JsonPath.read(resposta, "$.inicio"));
+        assertThat(JsonPath.<List<Number>>read(resposta, "$.descricao.roteiro[*].semente")).isNotEmpty();
+        assertThat(resposta).doesNotContain("sementeAgenda", "semente_agenda");
+        // Semente conhecida da descrição pública desta fixture.
+        var previsao = AgendaDeEventos.daHorda(numero, inicio, -8087644188306387133L);
+        for (int segundo = 0; segundo < 7200; segundo += 10) {
+            eventos.publicarAutomaticos(inicio.plusSeconds(segundo));
+        }
+
+        var gravados = jdbc.query("""
+                select evento, tipo, semente, inicio, fim from eventos_ao_vivo order by inicio
+                """, (r, i) -> new EventoAoVivo(r.getString("evento"),
+                TipoDeEvento.valueOf(r.getString("tipo")),
+                r.getLong("semente"), r.getObject("inicio", OffsetDateTime.class).toInstant(),
+                r.getObject("fim", OffsetDateTime.class).toInstant(), null, null));
+        assertThat(gravados).hasSizeBetween(2, 3);
+        assertThat(gravados.stream().map(e -> List.of(e.inicio(), e.tipo())).toList())
+                .isNotEqualTo(previsao.stream().map(e -> List.of(e.inicio(), e.tipo())).toList());
+        assertThat(gravados.stream().map(e -> e.semente()).toList())
+                .doesNotContainAnyElementsOf(previsao.stream().map(e -> e.semente()).toList());
+    }
+
+    @Test
+    void hordaPublicadaPelaVersaoAnteriorConservaAgendaEEventos() throws Exception {
+        relogio.agora = Instant.parse("2026-11-28T15:00:00Z");
+        String resposta = atual();
+        long numero = numero(resposta);
+        long semente = jdbc.queryForObject("select semente from hordas where numero = ?", Long.class, numero);
+        jdbc.update("update hordas set semente_agenda = null where numero = ?", numero);
+        var esperado = AgendaDeEventos.daHorda(numero, relogio.instant(), semente).get(0);
+
+        eventos.publicarAutomaticos(esperado.aviso());
+        assertThat(eventos.ativos(esperado.inicio())).containsExactly(esperado);
+        assertThat(jdbc.queryForObject("select semente_agenda from hordas where numero = ?", String.class, numero))
+                .isNull();
+    }
+
+    @Test
+    void repetirOMesmoBilheteDevolveARespostaOriginalMesmoDepoisDaHorda() throws Exception {
+        relogio.agora = Instant.parse("2026-11-26T22:00:00Z");
+        String atual = atual();
+        long numero = numero(atual);
+        String dificuldade = JsonPath.read(atual, "$.dificuldade");
+        String ana = novoJogador("Ana");
+        String registro = partidaHorda(dificuldade, 70, numero, bilhete(ana, dificuldade, numero));
+        relogio.avancar(Duration.ofSeconds(45));
+        String original = respostaAoRegistrar(ana, registro);
+        assertThat(respostaAoRegistrar(ana, registro)).isEqualTo(original);
+
+        String bia = novoJogador("Bia");
+        String melhor = partidaHorda(dificuldade, 75, numero, bilhete(bia, dificuldade, numero));
+        registrar(bia, registro).andExpect(status().isBadRequest());
+        String segundaDaAna = partidaHorda(dificuldade, 69, numero, bilhete(ana, dificuldade, numero));
+        relogio.avancar(Duration.ofSeconds(45));
+        respostaAoRegistrar(bia, melhor);
+        registrar(ana, segundaDaAna).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.saldo").value(10)).andExpect(jsonPath("$.colocacao").value(2));
+        relogio.avancar(Duration.ofHours(3));
+        assertThat(respostaAoRegistrar(ana, registro)).isEqualTo(original);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void duasChamadasSimultaneasComMesmoBilheteGravamUmaPartidaECreditamUmaVez() throws Exception {
+        relogio.agora = Instant.parse("2026-10-04T10:00:00Z");
+        String atual = atual();
+        long numero = numero(atual);
+        String dificuldade = JsonPath.read(atual, "$.dificuldade");
+        String nome = "PilotoSimultaneo";
+        String token = novoJogador(nome);
+        String registro = partidaHorda(dificuldade, 75, numero, bilhete(token, dificuldade, numero));
+        relogio.avancar(Duration.ofSeconds(45));
+        var barreira = new CyclicBarrier(2);
+        var executor = Executors.newFixedThreadPool(2);
+        Callable<String> chamada = () -> {
+            barreira.await(5, TimeUnit.SECONDS);
+            return respostaAoRegistrar(token, registro);
+        };
+        try {
+            var primeira = executor.submit(chamada);
+            var segunda = executor.submit(chamada);
+            assertThat(primeira.get(10, TimeUnit.SECONDS)).isEqualTo(segunda.get(10, TimeUnit.SECONDS));
+            assertThat(jdbc.queryForObject("select count(*) from partidas where horda_numero = ?",
+                    Integer.class, numero)).isEqualTo(1);
+            assertThat(jdbc.queryForList("select valor from moedas m join jogadores j on j.id = m.jogador_id "
+                    + "where j.nome = ?", Integer.class, nome)).containsExactly(5);
+        } finally {
+            executor.shutdownNow();
+            jdbc.update("delete from moedas where jogador_id in (select id from jogadores where nome = ?)", nome);
+            jdbc.update("delete from bilhetes where jogador_id in (select id from jogadores where nome = ?)", nome);
+            jdbc.update("delete from partidas where horda_numero = ?", numero);
+            jdbc.update("delete from jogadores where nome = ?", nome);
+            jdbc.update("delete from hordas where numero = ?", numero);
+        }
+    }
+
+    private String respostaAoRegistrar(String token, String registro) throws Exception {
+        return registrar(token, registro).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
     }
 
     @Test

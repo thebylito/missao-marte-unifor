@@ -16,6 +16,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -71,6 +73,7 @@ public class CanalDeSombras extends TextWebSocketHandler {
      * as posições. Uma por segundo basta, porque a nave leva segundos para renascer.
      */
     static final long INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS = 1000;
+    static final long INTERVALO_MINIMO_ENTRE_EVENTOS_MS = 1000;
     static final int PILOTOS_MAXIMOS = 50;
     /**
      * A sala livre usa os limites da Marciana do nucleo (DA-39). Cada sala de horda usa os dados publicados.
@@ -81,9 +84,31 @@ public class CanalDeSombras extends TextWebSocketHandler {
     private static final int ESPERA_DE_ENVIO_MS = 1000;
     private static final int FILA_DE_ENVIO_BYTES = 16 * 1024;
 
-    /** Um piloto conectado; {@code ultimoRepasseMs} guarda, por tipo (sombra, explosão), quando ele foi repassado. */
-    record Piloto(int numero, long jogadorId, String nome, String skin, WebSocketSession sessao,
-                  Sala sala, Instant conectadoEm, Map<String, Long> ultimoRepasseMs) {}
+    /** Um piloto conectado, com limites e posições recebidas próprios da sua sessão. */
+    record Piloto(int numero, long jogadorId, String nome, String skin, WebSocketSession sessao, Sala sala,
+                  Instant conectadoEm, Map<String, Long> ultimoRepasseMs, NavigableSet<Instant> posicoes) {
+
+        synchronized boolean liberarRepasse(String tipo, Instant instante, long intervalo) {
+            long agora = instante.toEpochMilli();
+            Long ultimo = ultimoRepasseMs.get(tipo);
+            if (ultimo != null && agora - ultimo < intervalo) {
+                return false;
+            }
+            ultimoRepasseMs.put(tipo, agora);
+            return true;
+        }
+
+        synchronized boolean estavaAtivoEm(Instant inicio) {
+            Instant ultima = posicoes.lower(inicio);
+            return ultima != null && !ultima.isBefore(inicio.minusSeconds(EventosNoCanal.ATIVIDADE_SEGUNDOS));
+        }
+
+        synchronized void registrarPosicao(Instant instante) {
+            posicoes.add(instante);
+            // Retém posições anteriores ao início mesmo se o ciclo que anuncia o perigo acordar atrasado.
+            posicoes.headSet(instante.minusSeconds(EventosNoCanal.HISTORICO_SEGUNDOS), false).clear();
+        }
+    }
 
     record Sala(String nome, double largura, double altura, List<PontoDePouso> pontosVip, Instant fechaEm) {
         boolean fechadaEm(Instant agora) {
@@ -138,8 +163,9 @@ public class CanalDeSombras extends TextWebSocketHandler {
         long jogadorId = ServicoDeTokens.idDoJogador(token.getToken());
         String skin = jogadores.skinDe(jogadorId).orElse(Skin.PADRAO);
         Piloto piloto = new Piloto(proximoNumero.getAndIncrement(), jogadorId, nome, skin, segura, sala,
-                relogio.instant(), new HashMap<>());
+                relogio.instant(), new HashMap<>(), new TreeSet<>());
         pilotos.put(sessao.getId(), piloto);
+        eventos.avisar(piloto, relogio.instant());
         LOG.info("sombras: {} entrou (piloto {}); {} conectado(s)", nome, piloto.numero(), pilotos.size());
     }
 
@@ -175,18 +201,18 @@ public class CanalDeSombras extends TextWebSocketHandler {
         if (repasse == null) {
             return;   // mensagem inválida: ignorada, sem derrubar a conexão
         }
-        long agora = instante.toEpochMilli();
         String tipo = repasse.get("tipo").asString();
         if (tipo.equals("explosao")) {
             eventos.registrarExplosao(piloto, instante);
         }
         long intervalo = tipo.equals("explosao") ? INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS : INTERVALO_MINIMO_MS;
         synchronized (piloto) {
-            Long ultimo = piloto.ultimoRepasseMs().get(tipo);
-            if (ultimo != null && agora - ultimo < intervalo) {
+            if (!piloto.liberarRepasse(tipo, instante, intervalo)) {
                 return;   // rápido demais: descarta (10 posições por segundo bastam para uma sombra suave)
             }
-            piloto.ultimoRepasseMs().put(tipo, agora);
+            if (tipoPedido.equals("posicao")) {
+                piloto.registrarPosicao(instante);
+            }
             repassar(piloto, json.writeValueAsString(repasse));
         }
     }

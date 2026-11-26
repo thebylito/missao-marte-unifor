@@ -1,6 +1,7 @@
 package br.edu.unifor.missaomarte.servidor.loja;
 
 import br.edu.unifor.missaomarte.servidor.seguranca.ServicoDeTokens;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ public class ControladorDaLoja {
     }
 
     @GetMapping
+    @SecurityRequirements
     public List<Skin> catalogo() {
         return loja.catalogo();
     }
