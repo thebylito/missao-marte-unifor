@@ -36,7 +36,10 @@ body {
 }
 
 a { color: var(--ouro); }
-a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--ouro); outline-offset: 3px; }
+a:focus-visible, button:focus-visible, summary:focus-visible, [role="tabpanel"]:focus-visible {
+  outline: 2px solid var(--ouro);
+  outline-offset: 3px;
+}
 
 .topo {
   background:
@@ -126,7 +129,7 @@ code, kbd {
 }
 
 .cabecalho-ranking { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; }
-.abas { display: inline-flex; border: 1px solid var(--painel-borda); border-radius: 8px; overflow: hidden; }
+.abas { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--painel-borda); border-radius: 8px; overflow: hidden; }
 .abas button {
   font: inherit;
   font-weight: 600;
@@ -137,6 +140,8 @@ code, kbd {
   cursor: pointer;
 }
 .abas button[aria-selected="true"] { background: var(--destaque); color: #1c1417; }
+.abas button:focus-visible { outline-color: currentColor; outline-offset: -4px; }
+#horda-atual { color: var(--ouro); overflow-wrap: anywhere; }
 
 .tabela-rolagem { overflow-x: auto; border: 1px solid var(--painel-borda); border-radius: 10px; background: var(--painel); }
 table { width: 100%; border-collapse: collapse; min-width: 560px; }
@@ -169,5 +174,6 @@ footer p { margin: 0 0 6px; }
   .topo-conteudo { flex-direction: column; text-align: center; gap: 12px; }
   .nave { width: 128px; height: 128px; }
   .acoes { justify-content: center; }
+  .abas button { padding-inline: 12px; }
   .tripulacao { gap: 20px; }
 }
