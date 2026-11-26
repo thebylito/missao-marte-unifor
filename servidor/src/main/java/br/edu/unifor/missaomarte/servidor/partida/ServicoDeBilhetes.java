@@ -39,13 +39,15 @@ public class ServicoDeBilhetes {
     private final RepositorioDeJogadores jogadores;
     private final Clock relogio;
     private final ServicoDeHordas hordas;
+    private final AjustesDeVoo ajustes;
 
     public ServicoDeBilhetes(RepositorioDeBilhetes bilhetes, RepositorioDeJogadores jogadores, Clock relogio,
-                             ServicoDeHordas hordas) {
+                             ServicoDeHordas hordas, AjustesDeVoo ajustes) {
         this.bilhetes = bilhetes;
         this.jogadores = jogadores;
         this.relogio = relogio;
         this.hordas = hordas;
+        this.ajustes = ajustes;
     }
 
     /** O tempo real mínimo de uma partida, mesmo curta: a vitória mais rápida no Fácil leva de 8 a 10 s. */
@@ -68,8 +70,10 @@ public class ServicoDeBilhetes {
         Jogador jogador = jogadores.travar(jogadorId).orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
         Instant agora = horda ? admitidaEm : relogio.instant();
         bilhetes.findByJogadorIdAndEstado(jogadorId, EstadoDoBilhete.ATIVO).forEach(b -> b.anular(agora));
-        BilheteDePartida novo = bilhetes.save(new BilheteDePartida(UUID.randomUUID(), jogador, pedido.modo(),
-                pedido.dificuldade(), agora, agora.plus(VALIDADE), horda ? pedido.horda() : null));
+        BilheteDePartida bilhete = new BilheteDePartida(UUID.randomUUID(), jogador, pedido.modo(),
+                pedido.dificuldade(), agora, agora.plus(VALIDADE), horda ? pedido.horda() : null);
+        bilhete.guardarSeOsAjustesEramOPadrao(ajustes.equals(AjustesDeVoo.PADRAO));
+        BilheteDePartida novo = bilhetes.save(bilhete);
         return new BilheteResposta(novo.getCodigo(), novo.getValidoAte());
     }
 
@@ -87,6 +91,18 @@ public class ServicoDeBilhetes {
         Instant agora = relogio.instant();
         bilhete.usar(partida, agora);
         return valeMoedas(bilhete, partida, agora);
+    }
+
+    /**
+     * DA-48: o jogo que não segue os ajustes começou esta partida quando eles ainda eram o padrão? Vale só um bilhete
+     * da Pilotagem, do jogador, ativo, dentro da validade e emitido com o padrão.
+     */
+    public boolean comecouComOPadrao(long jogadorId, String codigo) {
+        Instant agora = relogio.instant();
+        return codigo != null && ativoDoJogador(jogadorId, codigo)
+                .filter(b -> b.getModo() == Modo.PILOTAGEM && b.isAjustesPadrao()
+                        && !agora.isAfter(b.getValidoAte()))
+                .isPresent();
     }
 
     /** A consulta vem depois da trava do jogador, inclusive quando o bilhete já foi usado. */
@@ -128,8 +144,12 @@ public class ServicoDeBilhetes {
      * ajustes, ele ficaria com outra regra no mesmo Top 10.
      */
     private static ResponseStatusException jogoDesatualizado() {
-        var erro = new ResponseStatusException(HttpStatus.CONFLICT,
-                "Esta horda usa ajustes novos. Atualize o jogo pelo site para jogar.");
+        return jogoDesatualizado("Esta horda usa ajustes novos. Atualize o jogo pelo site para jogar.");
+    }
+
+    /** 409 com o motivo {@code JOGO_DESATUALIZADO}: o jogo antigo mostra a mensagem na tela. */
+    static ResponseStatusException jogoDesatualizado(String mensagem) {
+        var erro = new ResponseStatusException(HttpStatus.CONFLICT, mensagem);
         erro.getBody().setProperty("motivo", "JOGO_DESATUALIZADO");
         return erro;
     }

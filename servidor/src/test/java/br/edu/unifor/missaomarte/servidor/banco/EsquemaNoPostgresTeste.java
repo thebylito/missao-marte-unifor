@@ -61,7 +61,7 @@ class EsquemaNoPostgresTeste extends ApiTeste {
     @Test
     void oBancoEOPostgresComAsMigracoesDoFlyway() {
         assertEquals("PostgreSQL", jdbc.queryForObject("select split_part(version(), ' ', 1)", String.class));
-        assertEquals(List.of("1", "2", "3", "4", "5"), jdbc.queryForList(
+        assertEquals(List.of("1", "2", "3", "4", "5", "6"), jdbc.queryForList(
                 "select version from flyway_schema_history where version is not null and success order by installed_rank",
                 String.class));
     }

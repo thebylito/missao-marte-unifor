@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.servidor.partida;
 
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
 import br.edu.unifor.missaomarte.servidor.erro.NaoEncontrado;
 import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.jogador.Jogador;
@@ -34,10 +35,12 @@ public class ServicoDePartidas {
     private final Clock relogio;
     private final ServicoDeHordas hordas;
     private final ServicoDeRanking ranking;
+    private final AjustesDeVoo ajustes;
 
     public ServicoDePartidas(RepositorioDePartidas partidas, RepositorioDeJogadores jogadores,
                              ServicoDeBilhetes bilhetes, ServicoDeMoedas moedas, Clock relogio,
-                             ServicoDeHordas hordas, ServicoDeRanking ranking) {
+                             ServicoDeHordas hordas, ServicoDeRanking ranking, AjustesDeVoo ajustes) {
+        this.ajustes = ajustes;
         this.partidas = partidas;
         this.jogadores = jogadores;
         this.bilhetes = bilhetes;
@@ -56,14 +59,28 @@ public class ServicoDePartidas {
         if (dados.modo() == Modo.HORDA) {
             return registrarNaHorda(jogadorId, dados);
         }
-
         boolean citaBilhete = dados.bilhete() != null;
         var encontrado = citaBilhete ? jogadores.travar(jogadorId) : jogadores.findById(jogadorId);
         Jogador jogador = encontrado.orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
+        // Depois da trava: lido antes dela, o bilhete ficaria em cache como ativo, e dois envios simultâneos o
+        // usariam duas vezes (revisão do PR #35).
+        if (comRegraAntiga(jogadorId, dados)) {
+            throw ServicoDeBilhetes.jogoDesatualizado(
+                    "Esta partida usou as regras antigas. Atualize o jogo pelo site para entrar no ranking.");
+        }
         Partida partida = partidas.save(new Partida(jogador, dados, relogio.instant()));
         boolean valeMoedas = citaBilhete && bilhetes.consumir(jogadorId, dados.bilhete(), partida);
         int ganhas = valeMoedas ? moedas.creditarVitoria(partida) : 0;
         return PartidaRegistrada.de(partida, ganhas, moedas.saldo(jogadorId), null);
+    }
+
+    /**
+     * DA-48: na Pilotagem Livre, com ajustes diferentes do padrão, o jogo que não os segue (o publicado antes deles)
+     * jogou com a regra velha. Só vale se começou a partida quando os ajustes ainda eram o padrão (o bilhete diz).
+     */
+    private boolean comRegraAntiga(long jogadorId, RegistroDePartida dados) {
+        return dados.modo() == Modo.PILOTAGEM && !Boolean.TRUE.equals(dados.comAjustes())
+                && !ajustes.equals(AjustesDeVoo.PADRAO) && !bilhetes.comecouComOPadrao(jogadorId, dados.bilhete());
     }
 
     private PartidaRegistrada registrarNaHorda(long jogadorId, RegistroDePartida dados) {

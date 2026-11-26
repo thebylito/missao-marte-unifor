@@ -382,7 +382,11 @@ Quando cada mudança vale:
 - **Eventos ao vivo:** a duração é a da horda em andamento, inclusive nos eventos disparados pelo painel.
 - **Jogo publicado antes da DA-48:** continua com os números da Fase 8 até a pessoa instalar o jogo novo. Numa
   horda com ajustes diferentes do padrão, ele não recebe o bilhete e mostra "Atualize o jogo pelo site". Na
-  Pilotagem Livre ele continua jogando, com o padrão, e entra no mesmo ranking.
+  Pilotagem Livre ele joga com o padrão, e o servidor só aceita o resultado se a partida começou antes da mudança
+  (o bilhete guarda isso). Senão, a tela de fim mostra "Esta partida usou as regras antigas. Atualize o jogo pelo
+  site", e a partida fica só no ranking local do aparelho. Com os ajustes de volta ao padrão, ele volta a entrar.
+  O APK da Fase 7 não pede bilhete e é recusado sempre que há ajustes. Durante a troca de contêineres de um deploy,
+  o servidor anterior ainda atende por alguns segundos com as regras dele.
 
 Se algo estiver errado, o servidor novo não sobe e o log diz o quê, por exemplo:
 `Ajuste do jogo inválido em MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO: inclinacaoMaxima precisa estar entre 5 e 45 (veio 46)`.

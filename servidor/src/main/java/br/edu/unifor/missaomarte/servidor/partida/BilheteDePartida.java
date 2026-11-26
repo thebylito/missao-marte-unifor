@@ -83,6 +83,10 @@ public class BilheteDePartida {
     @Column(name = "colocacao_no_registro")
     private Integer colocacaoNoRegistro;
 
+    /** DA-48: os ajustes do servidor eram o padrão quando o bilhete foi emitido. */
+    @Column(name = "ajustes_padrao", nullable = false)
+    private boolean ajustesPadrao = true;
+
     protected BilheteDePartida() {
         // exigido pelo JPA
     }
@@ -115,6 +119,10 @@ public class BilheteDePartida {
                 : PartidaRegistrada.de(partida, moedasGanhasNoRegistro, saldoNoRegistro, colocacaoNoRegistro);
     }
 
+    void guardarSeOsAjustesEramOPadrao(boolean padrao) {
+        this.ajustesPadrao = padrao;
+    }
+
     void anular(Instant agora) {
         this.estado = EstadoDoBilhete.ANULADO;
         this.encerradoEm = agora;
@@ -131,4 +139,5 @@ public class BilheteDePartida {
     public EstadoDoBilhete getEstado() { return estado; }
     public Instant getEncerradoEm() { return encerradoEm; }
     public Partida getPartida() { return partida; }
+    public boolean isAjustesPadrao() { return ajustesPadrao; }
 }

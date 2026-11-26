@@ -25,6 +25,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 class ApiDeBilhetesTeste extends ApiComMoedasTeste {
 
+    /** DA-48: sem variáveis de ajuste, o bilhete guarda que os ajustes eram o padrão (vale para o jogo antigo). */
+    @Test
+    void oBilheteGuardaQueOsAjustesEramOPadrao() throws Exception {
+        String codigo = bilhete(novoJogador("Bia"), "PILOTAGEM", "MEDIO");
+
+        assertEquals(Boolean.TRUE, jdbc.queryForObject("select ajustes_padrao from bilhetes where codigo = ?",
+                Boolean.class, UUID.fromString(codigo)));
+    }
+
+
     @Autowired
     private JdbcTemplate jdbc;
 
