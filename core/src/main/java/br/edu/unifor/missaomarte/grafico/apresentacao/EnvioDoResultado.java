@@ -2,40 +2,51 @@ package br.edu.unifor.missaomarte.grafico.apresentacao;
 
 import br.edu.unifor.missaomarte.grafico.online.Falha;
 import br.edu.unifor.missaomarte.grafico.online.PartidaParaEnviar;
+import br.edu.unifor.missaomarte.grafico.online.RegistroDePartida;
 import br.edu.unifor.missaomarte.grafico.online.Resposta;
 import br.edu.unifor.missaomarte.grafico.online.ServidorDoJogo;
 import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Envio do resultado ao servidor no fim da partida, em segundo plano. A tela de fim já aparece com o resultado
  * local e só acompanha este estado: se o servidor estiver fora do ar, aparece um aviso e nada mais (a partida já
  * acabou e o ranking local já foi gravado). O convidado não envia nada.
  */
-public final class EnvioDoResultado implements Resposta<Void> {
+public final class EnvioDoResultado implements Resposta<RegistroDePartida> {
 
     public enum Estado { CONVIDADO, ENVIANDO, ENVIADO, FALHOU }
 
     private Estado estado;
     private String motivo = "";
     private boolean sessaoRecusada;
+    private RegistroDePartida registro;
+    private final Consumer<RegistroDePartida> aoRegistrar;
+    private final Consumer<Falha> aoFalhar;
 
-    private EnvioDoResultado(Estado estado) {
+    EnvioDoResultado(Estado estado, Consumer<RegistroDePartida> aoRegistrar, Consumer<Falha> aoFalhar) {
         this.estado = estado;
+        this.aoRegistrar = aoRegistrar;
+        this.aoFalhar = aoFalhar;
     }
 
     public static EnvioDoResultado iniciar(Optional<Sessao> sessao, ServidorDoJogo servidor, PartidaParaEnviar partida) {
-        if (sessao.isEmpty()) {
-            return new EnvioDoResultado(Estado.CONVIDADO);
-        }
-        EnvioDoResultado envio = new EnvioDoResultado(Estado.ENVIANDO);
-        servidor.registrarPartida(sessao.get(), partida, envio);
-        return envio;
+        return InicioDaPartida.semBilhete(sessao, servidor).enviar(partida, registro -> { }, falha -> { });
     }
 
     @Override
-    public void sucesso(Void nada) {
+    public void sucesso(RegistroDePartida registro) {
         estado = Estado.ENVIADO;
+        this.registro = registro;
+        if (registro != null) {
+            aoRegistrar.accept(registro);
+        }
+    }
+
+    public Optional<String> textoDasMoedas() {
+        return Optional.ofNullable(registro)
+                .map(r -> "+" + r.moedasGanhas() + " moedas  |  Saldo: " + r.saldo());
     }
 
     @Override
@@ -43,6 +54,7 @@ public final class EnvioDoResultado implements Resposta<Void> {
         estado = Estado.FALHOU;
         motivo = falha.mensagem();
         sessaoRecusada = falha.motivo() == Falha.Motivo.NAO_AUTORIZADO;
+        aoFalhar.accept(falha);
     }
 
     public Estado getEstado() {

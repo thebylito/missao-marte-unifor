@@ -32,7 +32,7 @@ public final class SombrasDaPilotagem {
     public enum Situacao { DESLIGADAS, SEM_LOGIN, CONECTANDO, CONECTADAS, SEM_CONEXAO }
 
     /** Uma sombra, já na posição de desenho. */
-    public record Sombra(int piloto, String nome, double x, double y, double angulo, boolean motor) {
+    public record Sombra(int piloto, String nome, double x, double y, double angulo, boolean motor, String skin) {
     }
 
     /** A explosão da nave de outro piloto, com o tempo desde que começou (a tela escolhe o quadro por ele). */
@@ -60,6 +60,7 @@ public final class SombrasDaPilotagem {
         double alvoY;
         double alvoAngulo;
         boolean motor;
+        String skin;
         float semNoticia;
 
         Vista(int piloto) {
@@ -218,6 +219,7 @@ public final class SombrasDaPilotagem {
                 v.alvoY = y;
                 v.alvoAngulo = angulo;
                 v.motor = m.getBoolean("motor", false);
+                v.skin = m.getString("skin", Sessao.SKIN_PADRAO);
                 v.semNoticia = 0;
             } else if (tipo.equals("saiu")) {
                 vistas.remove(m.getInt("piloto"));
@@ -285,7 +287,7 @@ public final class SombrasDaPilotagem {
     public List<Sombra> getSombras() {
         List<Sombra> lista = new ArrayList<>(vistas.size());
         for (Vista v : vistas.values()) {
-            lista.add(new Sombra(v.piloto, v.nome, v.x, v.y, v.angulo, v.motor));
+            lista.add(new Sombra(v.piloto, v.nome, v.x, v.y, v.angulo, v.motor, v.skin));
         }
         return lista;
     }

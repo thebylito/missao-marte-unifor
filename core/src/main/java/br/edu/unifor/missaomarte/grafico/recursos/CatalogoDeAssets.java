@@ -1,6 +1,8 @@
 package br.edu.unifor.missaomarte.grafico.recursos;
 
 import br.edu.unifor.missaomarte.grafico.audio.Som;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,13 @@ public final class CatalogoDeAssets {
 
     /** Todos os arquivos usados pelo jogo, com caminho relativo a {@code assets/}. */
     public static List<String> arquivos() {
+        String pasta = System.getProperty("missaomarte.assets");
+        FileHandle assets = pasta != null ? new FileHandle(pasta)
+                : Gdx.files == null ? new FileHandle("../assets") : Gdx.files.internal("");
+        return arquivos(assets);
+    }
+
+    public static List<String> arquivos(FileHandle assets) {
         List<String> todos = new ArrayList<>();
         for (Folha f : Folha.values()) {
             todos.add(f.getCaminho());
@@ -32,6 +41,16 @@ public final class CatalogoDeAssets {
         todos.add(FONTE_TEXTO);
         todos.add(FONTE_TITULO);
         todos.add(ICONE);
+        for (String caminho : List.of(CatalogoDeNaves.ARQUIVO, CatalogoDeNaves.PREVIAS, CatalogoDeNaves.SOMBRAS)) {
+            if (assets.child(caminho).exists()) {
+                todos.add(caminho);
+            }
+        }
+        for (CatalogoDeNaves.Nave nave : CatalogoDeNaves.carregar(assets).naves()) {
+            if (!todos.contains(nave.folha())) {
+                todos.add(nave.folha());
+            }
+        }
         return todos;
     }
 }
