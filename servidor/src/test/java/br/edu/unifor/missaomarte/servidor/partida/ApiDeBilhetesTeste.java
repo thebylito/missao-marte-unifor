@@ -11,9 +11,12 @@ import br.edu.unifor.missaomarte.servidor.ApiComMoedasTeste;
 import com.jayway.jsonpath.JsonPath;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Fase 8 (CT-13): o bilhete de partida. Uma vitória só rende moedas se a partida começou com um bilhete do
@@ -21,6 +24,9 @@ import org.springframework.http.MediaType;
  * bilhete (clientes 7.x) ou com um bilhete inválido, a partida entra como sempre, sem moedas e sem erro.
  */
 class ApiDeBilhetesTeste extends ApiComMoedasTeste {
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     @Test
     void oBilheteTemCodigoEValeDuasHoras() throws Exception {                       // CT-13
@@ -225,5 +231,18 @@ class ApiDeBilhetesTeste extends ApiComMoedasTeste {
                 UUID.randomUUID().toString())));
         assertEquals(0, moedasGanhas(ana, partida("VITORIA", "PILOTAGEM", "MEDIO", 40, "nao-e-um-bilhete")));
         assertEquals(0, moedasGanhas(ana, partida("VITORIA", "PILOTAGEM", "MEDIO", 40, "")));
+    }
+
+    @Test
+    void asColunasDeEnumDoBilheteSaoTextoSemListaFechada() {                       // DA-40
+        for (String coluna : List.of("MODO", "DIFICULDADE", "ESTADO")) {
+            assertEquals("CHARACTER VARYING", jdbc.queryForObject("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                    + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'BILHETES' AND COLUMN_NAME = ?",
+                    String.class, coluna), coluna);
+        }
+        Integer restricoes = jdbc.queryForObject("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS "
+                + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'BILHETES' AND CONSTRAINT_TYPE = 'CHECK'",
+                Integer.class);
+        assertEquals(0, restricoes);
     }
 }

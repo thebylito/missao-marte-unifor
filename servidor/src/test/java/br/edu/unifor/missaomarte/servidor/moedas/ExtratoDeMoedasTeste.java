@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Fase 8 (CT-14): o extrato de moedas. O saldo é a soma dos movimentos, e o mesmo crédito (jogador, origem e
@@ -35,6 +36,9 @@ class ExtratoDeMoedasTeste extends ApiTeste {
 
     @Autowired
     private DataSource banco;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     private long idDe(String token) throws Exception {
         String corpo = mvc.perform(get("/api/jogadores/eu").header("Authorization", "Bearer " + token))
@@ -98,5 +102,18 @@ class ExtratoDeMoedasTeste extends ApiTeste {
             assertEquals("CHARACTER VARYING", r.getString(1));
             assertEquals(20, r.getInt(2));
         }
+    }
+
+    @Test
+    void oExtratoNaoTemListaFechadaDeOrigens() throws Exception {                   // DA-40
+        Integer restricoes = jdbc.queryForObject("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS "
+                + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'MOEDAS' AND CONSTRAINT_TYPE = 'CHECK'",
+                Integer.class);
+        assertEquals(0, restricoes);
+
+        // uma origem que o enum ainda não conhece cabe na coluna (quem valida é o Java)
+        long ana = idDe(novoJogador("Ana"));
+        assertEquals(1, jdbc.update("INSERT INTO MOEDAS(JOGADOR_ID, ORIGEM, REFERENCIA, VALOR, REGISTRADO_EM) "
+                + "VALUES (?, 'EVENTO_FUTURO', 'teste:1', 1, CURRENT_TIMESTAMP)", ana));
     }
 }
