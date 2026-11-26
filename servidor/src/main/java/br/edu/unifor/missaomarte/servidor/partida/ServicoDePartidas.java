@@ -1,15 +1,19 @@
 package br.edu.unifor.missaomarte.servidor.partida;
 
 import br.edu.unifor.missaomarte.servidor.erro.NaoEncontrado;
+import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.jogador.Jogador;
 import br.edu.unifor.missaomarte.servidor.jogador.RepositorioDeJogadores;
 import br.edu.unifor.missaomarte.servidor.moedas.ServicoDeMoedas;
+import br.edu.unifor.missaomarte.servidor.ranking.ServicoDeRanking;
 import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Registrar partidas e consultar o histórico. O jogador vem sempre do token, nunca do corpo do pedido. Fase 8: a
@@ -26,14 +30,19 @@ public class ServicoDePartidas {
     private final ServicoDeBilhetes bilhetes;
     private final ServicoDeMoedas moedas;
     private final Clock relogio;
+    private final ServicoDeHordas hordas;
+    private final ServicoDeRanking ranking;
 
     public ServicoDePartidas(RepositorioDePartidas partidas, RepositorioDeJogadores jogadores,
-                             ServicoDeBilhetes bilhetes, ServicoDeMoedas moedas, Clock relogio) {
+                             ServicoDeBilhetes bilhetes, ServicoDeMoedas moedas, Clock relogio,
+                             ServicoDeHordas hordas, ServicoDeRanking ranking) {
         this.partidas = partidas;
         this.jogadores = jogadores;
         this.bilhetes = bilhetes;
         this.moedas = moedas;
         this.relogio = relogio;
+        this.hordas = hordas;
+        this.ranking = ranking;
     }
 
     /**
@@ -42,13 +51,34 @@ public class ServicoDePartidas {
      */
     @Transactional
     public PartidaRegistrada registrar(long jogadorId, RegistroDePartida dados) {
+        boolean horda = dados.modo() == Modo.HORDA;
         boolean citaBilhete = dados.bilhete() != null;
+        if (horda) {
+            if (!citaBilhete) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda exige um bilhete válido");
+            }
+            if (dados.pontos() > 75) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda vale no máximo 75 pontos");
+            }
+            hordas.conferirPartida(dados.horda(), dados.dificuldade());
+        }
         Optional<Jogador> encontrado = citaBilhete ? jogadores.travar(jogadorId) : jogadores.findById(jogadorId);
         Jogador jogador = encontrado.orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
-        Partida partida = partidas.save(new Partida(jogador, dados, relogio.instant()));
-        boolean valeMoedas = citaBilhete && bilhetes.consumir(jogadorId, dados.bilhete(), partida);
+        Partida partida = new Partida(jogador, dados, relogio.instant());
+        BilheteDePartida bilheteDaHorda = horda ? bilhetes.conferirParaHorda(jogadorId, dados.bilhete(), partida) : null;
+        partida = partidas.save(partida);
+        boolean valeMoedas;
+        if (bilheteDaHorda != null) {
+            bilheteDaHorda.usar(partida, partida.getRegistradaEm());
+            valeMoedas = true;
+        } else {
+            valeMoedas = citaBilhete && bilhetes.consumir(jogadorId, dados.bilhete(), partida);
+        }
         int ganhas = valeMoedas ? moedas.creditarVitoria(partida) : 0;
-        return PartidaRegistrada.de(partida, ganhas, moedas.saldo(jogadorId));
+        Integer colocacao = horda ? ranking.melhores(Modo.HORDA, dados.horda()).stream()
+                .filter(v -> v.partida().getJogador().getId() == jogadorId)
+                .map(ServicoDeRanking.VitoriaNoRanking::posicao).findFirst().orElse(null) : null;
+        return PartidaRegistrada.de(partida, ganhas, moedas.saldo(jogadorId), colocacao);
     }
 
     @Transactional(readOnly = true)

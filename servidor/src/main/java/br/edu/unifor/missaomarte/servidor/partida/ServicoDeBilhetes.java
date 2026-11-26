@@ -1,15 +1,19 @@
 package br.edu.unifor.missaomarte.servidor.partida;
 
 import br.edu.unifor.missaomarte.servidor.erro.NaoEncontrado;
+import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.jogador.Jogador;
 import br.edu.unifor.missaomarte.servidor.jogador.RepositorioDeJogadores;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Fase 8: o bilhete de partida. Regras:
@@ -33,29 +37,35 @@ public class ServicoDeBilhetes {
     private final RepositorioDeBilhetes bilhetes;
     private final RepositorioDeJogadores jogadores;
     private final Clock relogio;
+    private final ServicoDeHordas hordas;
 
-    public ServicoDeBilhetes(RepositorioDeBilhetes bilhetes, RepositorioDeJogadores jogadores, Clock relogio) {
+    public ServicoDeBilhetes(RepositorioDeBilhetes bilhetes, RepositorioDeJogadores jogadores, Clock relogio,
+                             ServicoDeHordas hordas) {
         this.bilhetes = bilhetes;
         this.jogadores = jogadores;
         this.relogio = relogio;
+        this.hordas = hordas;
     }
 
     /** O tempo real mínimo de uma partida, mesmo curta: a vitória mais rápida no Fácil leva de 8 a 10 s. */
     public static Duration minimo(Modo modo) {
         return switch (modo) {
             case CLASSICO -> Duration.ofSeconds(5);
-            case PILOTAGEM -> Duration.ofSeconds(45);
+            case PILOTAGEM, HORDA -> Duration.ofSeconds(45);
         };
     }
 
     /** Emite um bilhete novo e anula o que estiver ativo. O jogador fica travado para não sobrarem dois ativos. */
     @Transactional
     public BilheteResposta emitir(long jogadorId, InicioDePartida pedido) {
+        if (pedido.modo() == Modo.HORDA) {
+            hordas.conferirPartida(pedido.horda(), pedido.dificuldade());
+        }
         Jogador jogador = jogadores.travar(jogadorId).orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
         Instant agora = relogio.instant();
         bilhetes.findByJogadorIdAndEstado(jogadorId, EstadoDoBilhete.ATIVO).forEach(b -> b.anular(agora));
         BilheteDePartida novo = bilhetes.save(new BilheteDePartida(UUID.randomUUID(), jogador, pedido.modo(),
-                pedido.dificuldade(), agora, agora.plus(VALIDADE)));
+                pedido.dificuldade(), agora, agora.plus(VALIDADE), pedido.modo() == Modo.HORDA ? pedido.horda() : null));
         return new BilheteResposta(novo.getCodigo(), novo.getValidoAte());
     }
 
@@ -65,22 +75,32 @@ public class ServicoDeBilhetes {
      */
     @Transactional
     public boolean consumir(long jogadorId, String codigo, Partida partida) {
-        Optional<BilheteDePartida> citado = ler(codigo).flatMap(bilhetes::findByCodigo);
+        var citado = ativoDoJogador(jogadorId, codigo).filter(b -> b.getModo() != Modo.HORDA);
         if (citado.isEmpty()) {
             return false;
         }
         BilheteDePartida bilhete = citado.get();
-        if (bilhete.getJogador().getId() != jogadorId || bilhete.getEstado() != EstadoDoBilhete.ATIVO) {
-            return false;
-        }
         Instant agora = relogio.instant();
         bilhete.usar(partida, agora);
         return valeMoedas(bilhete, partida, agora);
     }
 
+    /** Na Horda, a validação vem antes da gravação. Quem chama já travou o jogador. */
+    BilheteDePartida conferirParaHorda(long jogadorId, String codigo, Partida partida) {
+        return ativoDoJogador(jogadorId, codigo)
+                .filter(b -> valeMoedas(b, partida, partida.getRegistradaEm()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda exige um bilhete válido"));
+    }
+
+    private Optional<BilheteDePartida> ativoDoJogador(long jogadorId, String codigo) {
+        return ler(codigo).flatMap(bilhetes::findByCodigo)
+                .filter(b -> b.getJogador().getId() == jogadorId && b.getEstado() == EstadoDoBilhete.ATIVO);
+    }
+
     private static boolean valeMoedas(BilheteDePartida bilhete, Partida partida, Instant agora) {
         if (agora.isAfter(bilhete.getValidoAte()) || bilhete.getModo() != partida.getModo()
-                || bilhete.getDificuldade() != partida.getDificuldade()) {
+                || bilhete.getDificuldade() != partida.getDificuldade()
+                || !Objects.equals(bilhete.getHordaNumero(), partida.getHordaNumero())) {
             return false;
         }
         Duration exigido = Duration.ofSeconds(partida.getTempoSegundos()).minus(FOLGA);

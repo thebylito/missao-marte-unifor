@@ -1,6 +1,8 @@
 package br.edu.unifor.missaomarte.servidor.ranking;
 
+import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.partida.Modo;
+import java.time.Clock;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,13 +16,19 @@ public class ControladorDeRanking {
 
     private final ServicoDeRanking servico;
 
-    public ControladorDeRanking(ServicoDeRanking servico) {
+    private final Clock relogio;
+
+    public ControladorDeRanking(ServicoDeRanking servico, Clock relogio) {
+        this.relogio = relogio;
         this.servico = servico;
     }
 
     /** Sem o parâmetro, o modo clássico: os clientes das Fases 5 e 6 continuam recebendo o mesmo ranking. */
     @GetMapping
-    public List<PosicaoNoRanking> top10(@RequestParam(defaultValue = "CLASSICO") Modo modo) {
-        return servico.top10(modo);
+    public List<PosicaoNoRanking> top10(@RequestParam(defaultValue = "CLASSICO") Modo modo,
+                                        @RequestParam(required = false) Long horda) {
+        Long numero = modo == Modo.HORDA && horda == null ? Long.valueOf(ServicoDeHordas.numeroEm(relogio.instant()))
+                : horda;
+        return servico.top10(modo, numero);
     }
 }

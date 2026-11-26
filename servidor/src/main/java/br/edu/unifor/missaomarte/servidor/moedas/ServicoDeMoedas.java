@@ -92,6 +92,7 @@ public class ServicoDeMoedas {
                 int valor = Math.min(VITORIA_NO_CLASSICO, TETO_DIARIO_DO_CLASSICO - ganhasHojeNoClassico(jogadorId));
                 yield valor > 0 ? creditar(jogadorId, Origem.VITORIA_CLASSICO, referencia, valor) : 0;
             }
+            case HORDA -> creditar(jogadorId, Origem.VITORIA_HORDA, referencia, 5);
             case PILOTAGEM -> creditar(jogadorId, Origem.VITORIA_LIVRE, referencia, VITORIA_NO_LIVRE
                     + (partida.getDificuldade() == Dificuldade.DIFICIL ? BONUS_DO_DIFICIL_NO_LIVRE : 0));
         };

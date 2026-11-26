@@ -20,7 +20,8 @@ public record RegistroDePartida(
         @NotNull(message = "informe o tempo") @Min(value = 0, message = "o tempo não pode ser negativo")
         @Max(value = 86_400, message = "no máximo 86400 segundos") Long tempoSegundos,
         Modo modo,
-        String bilhete) {
+        String bilhete,
+        Long horda) {
 
     /**
      * Fase 7: o modo é opcional; sem ele (clientes das Fases 5 e 6), a partida é do modo clássico. Fase 8: o bilhete

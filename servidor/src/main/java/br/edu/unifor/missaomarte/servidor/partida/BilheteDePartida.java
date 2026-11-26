@@ -71,18 +71,22 @@ public class BilheteDePartida {
     @JoinColumn(name = "partida_id")
     private Partida partida;
 
+    @Column(name = "horda_numero")
+    private Long hordaNumero;
+
     protected BilheteDePartida() {
         // exigido pelo JPA
     }
 
     public BilheteDePartida(UUID codigo, Jogador jogador, Modo modo, Dificuldade dificuldade, Instant emitidoEm,
-                            Instant validoAte) {
+                            Instant validoAte, Long hordaNumero) {
         this.codigo = codigo;
         this.jogador = jogador;
         this.modo = modo;
         this.dificuldade = dificuldade;
         this.emitidoEm = emitidoEm;
         this.validoAte = validoAte;
+        this.hordaNumero = hordaNumero;
     }
 
     void usar(Partida partida, Instant agora) {
@@ -100,6 +104,7 @@ public class BilheteDePartida {
     public UUID getCodigo() { return codigo; }
     public Jogador getJogador() { return jogador; }
     public Modo getModo() { return modo; }
+    public Long getHordaNumero() { return hordaNumero; }
     public Dificuldade getDificuldade() { return dificuldade; }
     public Instant getEmitidoEm() { return emitidoEm; }
     public Instant getValidoAte() { return validoAte; }
