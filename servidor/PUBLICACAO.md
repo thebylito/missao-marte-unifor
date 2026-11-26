@@ -24,8 +24,8 @@ com GitHub Actions, está na [seção 10](#10-publicação-no-dokploy-com-github
 | Variável | Obrigatória | Para quê | Padrão |
 |---|---|---|---|
 | `MISSAOMARTE_JWT_SEGREDO` | **sim** | segredo que assina os tokens (HS256), com 32 bytes ou mais. Gere com `openssl rand -base64 48` e guarde só nos segredos da plataforma | temporário a cada início (os tokens deixam de valer quando o servidor reinicia) |
-| `MISSAOMARTE_HORDA_SEGREDO` | recomendada | segredo HMAC para o sorteio das próximas hordas. Gere um valor independente do JWT com `openssl rand -base64 48` e use o mesmo nas réplicas | temporário a cada subida, com aviso no log. Hordas já publicadas são relidas do banco |
-| `MISSAOMARTE_ADMINS` | para usar o painel | nomes dos jogadores autorizados, separados por vírgula, sem distinguir maiúsculas. É o nome cadastrado no banco que vale | vazio: nenhum administrador |
+| `MISSAOMARTE_HORDA_SEGREDO` | recomendada | segredo HMAC de 32 bytes ou mais para o sorteio das próximas hordas e agendas. Gere um valor independente do JWT com `openssl rand -base64 48` e use o mesmo nas réplicas | temporário a cada subida, com aviso no log. Hordas já publicadas são relidas do banco |
+| `MISSAOMARTE_ADMINS` | para usar o painel | nomes dos jogadores autorizados, separados por vírgula, sem distinguir maiúsculas. Cadastre as contas antes de incluir os nomes na variável. Enquanto um nome estiver livre, qualquer pessoa pode cadastrá-lo | vazio: nenhum administrador |
 | `MISSAOMARTE_URL_PUBLICA` | recomendada | endereço público, por exemplo `https://ranking.exemplo.com`. É o que o "Try it out" do Swagger usa | `http://localhost:8080` |
 | `MISSAOMARTE_DB_URL` | **sim** | o PostgreSQL, `jdbc:postgresql://<host-interno-do-postgres>:5432/missaomarte` (seção 10) | vazia: H2 em `MISSAOMARTE_DADOS` |
 | `MISSAOMARTE_DB_USUARIO` | **sim** | o usuário do banco do jogo (`missaomarte`), nunca o administrador da instância | `sa` (o do H2) |
@@ -332,6 +332,9 @@ se ficar, é o único caminho para uma reimportação antiga num banco recriado 
   CREATE DATABASE missaomarte OWNER missaomarte; REVOKE ALL ON DATABASE missaomarte FROM PUBLIC;`). Sem isso, a nova
   subida vê o PostgreSQL com dados, pula a importação sem aviso, e o que os jogadores gravaram no H2 durante a volta
   atrás se perde (e os ids podem colidir).
+
+**Voltar à imagem anterior à Horda no mesmo banco.** Essa imagem não lê partidas com modo `HORDA`. Se o banco já
+contiver essas partidas, `GET /api/partidas/minhas` retorna 500 para os jogadores cujo histórico inclui uma delas.
 
 **Cópia de segurança do PostgreSQL:** `pg_dump` do banco `missaomarte`, no servidor que roda o `postgres-br`, como
 na seção 3 (`docker exec <contêiner-do-postgres-br> pg_dump -U missaomarte -d missaomarte -Fc > missaomarte-$(date +%F).dump`).

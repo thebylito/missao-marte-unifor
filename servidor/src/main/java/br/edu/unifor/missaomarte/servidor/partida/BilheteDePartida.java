@@ -74,6 +74,15 @@ public class BilheteDePartida {
     @Column(name = "horda_numero")
     private Long hordaNumero;
 
+    @Column(name = "moedas_ganhas_no_registro")
+    private Integer moedasGanhasNoRegistro;
+
+    @Column(name = "saldo_no_registro")
+    private Integer saldoNoRegistro;
+
+    @Column(name = "colocacao_no_registro")
+    private Integer colocacaoNoRegistro;
+
     protected BilheteDePartida() {
         // exigido pelo JPA
     }
@@ -93,6 +102,17 @@ public class BilheteDePartida {
         this.estado = EstadoDoBilhete.USADO;
         this.partida = partida;
         this.encerradoEm = agora;
+    }
+
+    void guardarResposta(PartidaRegistrada resposta) {
+        moedasGanhasNoRegistro = resposta.moedasGanhas();
+        saldoNoRegistro = resposta.saldo();
+        colocacaoNoRegistro = resposta.colocacao();
+    }
+
+    PartidaRegistrada respostaGuardada() {
+        return saldoNoRegistro == null ? null
+                : PartidaRegistrada.de(partida, moedasGanhasNoRegistro, saldoNoRegistro, colocacaoNoRegistro);
     }
 
     void anular(Instant agora) {

@@ -36,7 +36,10 @@ O jogo (etapas 5 e 6 no cliente) e o servidor (etapas 4 e 6 no servidor) seguem 
   do registro, ou `null` se ficou fora do Top 10. Os campos `moedasGanhas` e `saldo` continuam vindo.
 - A horda é aceita até 30 min depois do fim, enquanto seu Top 10 ainda está aberto. Passado o prazo ou concluído
   o fechamento, a resposta é 409 com `"motivo":"HORDA_ENCERRADA"`.
-- Sem bilhete na Horda, a resposta é 400.
+- Reenviar os mesmos dados com o mesmo bilhete devolve 201 com o registro existente, mesmo depois do fechamento.
+  O servidor credita as moedas uma vez. Para bilhetes usados antes da V5, o primeiro reenvio consulta o crédito do
+  extrato e guarda o saldo e a colocação desse momento.
+- Sem bilhete na Horda ou ao mudar os dados de uma partida já registrada com ele, a resposta é 400.
 
 ### `GET /api/ranking?modo=HORDA&horda=123` (público)
 - Sem `horda`, vale a horda atual.
@@ -56,13 +59,14 @@ válido, responde 401. Se o jogador do token não estiver na lista de administra
 - Sem `sala`, vale `livre`: os clientes antigos continuam funcionando.
 - As sombras só circulam dentro da mesma sala. A mensagem `sombra` leva `skin`. Para uma sala desconhecida
   ou fora da janela, o servidor fecha a conexão com código 1008.
-- Os eventos chegam a todas as salas, mas a posição do VIP é calculada para a caverna de cada sala.
+- Os eventos chegam a todas as salas. O VIP leva uma semente própria no início, e `vip.x` e `vip.superficie`
+  são números que admitem casas decimais. O ponto de pouso é calculado para a caverna de cada sala.
 
 | Direção | Mensagem |
 |---|---|
 | servidor → jogo | `{"tipo":"evento-aviso","evento":"e-123-1","nome":"CHUVA_DE_METEOROS","em":15}` (15 s antes) |
 | servidor → jogo | `{"tipo":"evento-inicio","evento":"e-123-1","nome":"CHUVA_DE_METEOROS","semente":987654321,"duracao":20}` |
-| servidor → jogo | `{"tipo":"evento-inicio","evento":"e-123-2","nome":"PASSAGEIRO_VIP","semente":0,"duracao":45,"vip":{"x":2000,"superficie":116}}` |
+| servidor → jogo | `{"tipo":"evento-inicio","evento":"e-123-2","nome":"PASSAGEIRO_VIP","semente":734729831,"duracao":45,"vip":{"x":2000.0,"superficie":116.0}}` |
 | servidor → jogo | `{"tipo":"vip-pego","evento":"e-123-2","nome":"Ana"}` |
 | jogo → servidor | `{"tipo":"evento-resultado","evento":"e-123-1","sobreviveu":true}` (no fim de cada perigo) |
 | jogo → servidor | `{"tipo":"vip","evento":"e-123-2"}` (o jogo marcou o VIP; o servidor decide quem foi o primeiro) |
@@ -71,5 +75,8 @@ válido, responde 401. Se o jogador do token não estiver na lista de administra
   `PASSAGEIRO_VIP`.
 - Quem só está no menu não recebe eventos: o canal só fica aberto durante o voo.
 
-- O campo `em` é a contagem de segundos até o início. No horário do aviso é 15, e um aviso entregue com atraso
-  leva o tempo restante.
+- O campo `em` é a contagem de segundos até o início, arredondada para cima. Quem conecta durante os 15 segundos
+  de aviso recebe o tempo restante.
+- Para pontuar ao sobreviver, o piloto precisa ter enviado uma posição válida nos três segundos anteriores ao início
+  do perigo. O servidor aceita um resultado por piloto e perigo. O VIP pode ser pego a partir de três segundos
+  depois do início. Pedidos de VIP e resultados compartilham o limite de uma mensagem válida por segundo por piloto.

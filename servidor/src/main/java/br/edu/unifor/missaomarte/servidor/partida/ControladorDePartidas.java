@@ -43,7 +43,9 @@ public class ControladorDePartidas {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @ApiResponse(responseCode = "201", description = "Partida registrada", useReturnTypeSchema = true)
+    @ApiResponse(responseCode = "201",
+            description = "Partida registrada. Na Horda, repetir a mesma partida com o mesmo bilhete devolve o registro existente.",
+            useReturnTypeSchema = true)
     @ApiResponse(responseCode = "400", description = "Dados ou bilhete inválidos", content = @Content(
             mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "409", description = "HORDA_ENCERRADA", content = @Content(

@@ -793,6 +793,7 @@ mesmo durante um deploy.
 - O sorteio usa as cavernas liberadas no catálogo e, quando gravada, a caverna da horda anterior.
   O ensaio local força a caverna indicada, inclusive uma que ainda esteja em avaliação.
 - A API envia a descrição como JSON e os segundos relativos até a virada.
+- Novas hordas guardam a semente secreta da agenda, derivada por HMAC-SHA256 de `agenda:N`. Sementes públicas de eventos e pontos de VIP por sala usam derivações independentes.
 
 **Consequências.** Uma alteração no catálogo, no segredo ou na versão do servidor só afeta as próximas
 gerações. O ensaio ignora a linha publicada e não a altera. O fechamento trava a mesma linha usada no
@@ -806,9 +807,10 @@ nas duas modalidades. Esta decisão revisa a DA-31 e mantém a autenticação e 
 **Decisão.**
 - O WebSocket recebe `sala=livre` ou `sala=horda-N`. Sem o parâmetro, usa `livre`. Cada sala valida as
   posições com sua própria caverna e recebe apenas as sombras dela.
-- A agenda automática deriva da semente da horda. Uma instância com pilotos conectados publica o evento no
-  horário do aviso. O banco distribui o evento às instâncias durante o start-first. Cada uma repassa para suas
-  sessões, com um ponto de pouso de VIP por sala.
+- Uma instância com pilotos conectados publica o evento da agenda secreta no horário do aviso. O banco distribui
+  o evento às instâncias durante o start-first. Cada uma repassa para suas sessões, com um ponto de pouso de VIP
+  por sala.
+- O canal limita pedidos de VIP e resultados a um por segundo por piloto, descarta resultados repetidos e ignora pedidos de VIP após o anúncio do vencedor.
 - O painel valida a conta no banco pelo `sub` do JWT e usa a lista `MISSAOMARTE_ADMINS`.
 
 **Consequências.** Os clientes antigos continuam na sala Livre e podem ignorar os tipos novos. O agendador
@@ -820,11 +822,12 @@ entrega os avisos e inícios nas conexões abertas e retoma os fechamentos que v
 cada evento começa. O Top 10 da horda compara as melhores vitórias sob o desafio da horda.
 
 **Decisão.**
-- Sobreviver rende +3 no placar da semana por jogador e perigo, para uma sessão presente no início.
-  Uma explosão informada durante o perigo invalida a participação daquela sessão. O servidor aceita o resultado
+- Sobreviver rende +3 no placar da semana por jogador e perigo, para uma sessão que enviou uma posição válida
+  nos três segundos anteriores ao início. Uma explosão informada durante o perigo invalida a participação
+  daquela sessão. O servidor aceita o resultado
   ao fim do evento, com 15 segundos de folga de rede.
-- Um `UPDATE` condicional arbitra o VIP para todas as salas e instâncias. O primeiro pedido válido rende
-  +5 no placar da semana e gera `vip-pego` para as salas.
+- Um `UPDATE` condicional arbitra o VIP para todas as salas e instâncias. A partir de três segundos depois do início,
+  o primeiro pedido válido rende +5 no placar da semana e gera `vip-pego` para as salas.
 - O placar atribui a horda à semana em que ela foi jogada. A de domingo às 22h integra a semana que acaba na
   virada. Os eventos entram na semana de seu início. Empates no total semanal seguem a ordem dos ids de jogador.
 

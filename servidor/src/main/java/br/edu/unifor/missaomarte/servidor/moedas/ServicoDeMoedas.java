@@ -96,6 +96,12 @@ public class ServicoDeMoedas {
         };
     }
 
+    /** Crédito efetivo de uma partida da Horda registrada antes de a resposta ser guardada no bilhete. */
+    public int ganhasNaHorda(Partida partida) {
+        return extrato.findByJogadorIdAndOrigemAndReferencia(partida.getJogador().getId(), Origem.VITORIA_HORDA,
+                "partida:" + partida.getId()).map(MovimentoDeMoedas::getValor).orElse(0);
+    }
+
     /** As moedas do Clássico já ganhas hoje, no dia civil de Fortaleza (não no fuso do relógio do servidor). */
     private int ganhasHojeNoClassico(long jogadorId) {
         LocalDate hoje = ZonedDateTime.ofInstant(relogio.instant(), FORTALEZA).toLocalDate();

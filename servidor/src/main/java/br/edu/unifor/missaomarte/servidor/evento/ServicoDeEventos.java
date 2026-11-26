@@ -7,6 +7,8 @@ import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
 import br.edu.unifor.missaomarte.servidor.horda.Horda;
 import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.ranking.PlacarSemanal;
+import br.edu.unifor.missaomarte.servidor.seguranca.Sementes;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -15,7 +17,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ServicoDeEventos {
 
+    private final SecureRandom sorteioManual = new SecureRandom();
     private final JdbcTemplate jdbc;
     private final ServicoDeHordas hordas;
 
@@ -40,7 +42,7 @@ public class ServicoDeEventos {
         long numero = ServicoDeHordas.numeroEm(agora);
         if (numeroDaAgenda == null || numeroDaAgenda != numero) {
             Horda horda = hordas.atual(agora);
-            agenda = AgendaDeEventos.daHorda(horda.numero(), horda.inicio(), horda.semente());
+            agenda = AgendaDeEventos.daHorda(horda);
             numeroDaAgenda = numero;
             publicados.clear();
         }
@@ -56,33 +58,37 @@ public class ServicoDeEventos {
     public void solicitar(TipoDeEvento tipo, Instant agora) {
         long indice = jdbc.queryForObject("select nextval('seq_evento_manual')", Long.class);
         Instant inicio = agora.truncatedTo(ChronoUnit.MICROS).plusSeconds(AVISO_SEGUNDOS);
-        gravar(EventoAoVivo.novo(ServicoDeHordas.numeroEm(agora), indice, tipo,
-                ThreadLocalRandom.current().nextLong(), inicio));
+        String vip = null;
+        if (tipo == TipoDeEvento.PASSAGEIRO_VIP) {
+            byte[] chave = new byte[32];
+            sorteioManual.nextBytes(chave);
+            vip = Sementes.emHex(chave);
+        }
+        gravar(EventoAoVivo.novo(ServicoDeHordas.numeroEm(agora), indice, tipo, sorteioManual.nextLong(), inicio, vip));
     }
 
     private void gravar(EventoAoVivo evento) {
         jdbc.update("""
-                insert into eventos_ao_vivo (evento, tipo, semente, inicio, fim) values (?, ?, ?, ?, ?)
+                insert into eventos_ao_vivo (evento, tipo, semente, inicio, fim, semente_vip) values (?, ?, ?, ?, ?, ?)
                 on conflict do nothing
-                """, evento.id(), evento.tipo().name(), evento.semente(), utc(evento.inicio()), utc(evento.fim()));
+                """, evento.id(), evento.tipo().name(), evento.semente(), utc(evento.inicio()), utc(evento.fim()), evento.sementeVip());
     }
 
     public List<EventoAoVivo> ativos(Instant agora) {
         return jdbc.query("""
-                select e.evento, e.tipo, e.semente, e.inicio, e.fim, j.nome as vencedor
+                select e.evento, e.tipo, e.semente, e.inicio, e.fim, e.semente_vip, j.nome as vencedor
                 from eventos_ao_vivo e left join jogadores j on j.id = e.vip_jogador_id
                 where e.inicio <= ? and e.fim >= ?
                 order by e.inicio, e.evento
                 """, (r, i) -> new EventoAoVivo(r.getString("evento"), TipoDeEvento.valueOf(r.getString("tipo")),
                 r.getLong("semente"), r.getObject("inicio", OffsetDateTime.class).toInstant(),
-                r.getObject("fim", OffsetDateTime.class).toInstant(), r.getString("vencedor")),
+                r.getObject("fim", OffsetDateTime.class).toInstant(), r.getString("vencedor"), r.getString("semente_vip")),
                 utc(agora.plusSeconds(AVISO_SEGUNDOS)), utc(agora.minusSeconds(FOLGA_RESULTADO_SEGUNDOS)));
     }
 
     /** O canal já conferiu que a sessão recebeu o início. A chave do extrato elimina reenvios e sessões duplicadas. */
     public void sobreviver(EventoAoVivo evento, long jogador, Instant agora) {
-        if (evento.tipo().perigo() && !agora.isBefore(evento.fim())
-                && agora.isBefore(evento.fim().plusSeconds(FOLGA_RESULTADO_SEGUNDOS))) {
+        if (evento.podeReceberResultado(agora)) {
             pontuar(evento, jogador, 3);
         }
     }
@@ -90,8 +96,7 @@ public class ServicoDeEventos {
     /** O UPDATE arbitra o primeiro VIP mesmo durante um deploy com duas instâncias. */
     @Transactional
     public Optional<String> pegarVip(EventoAoVivo evento, long jogador, Instant agora) {
-        if (evento.tipo() != TipoDeEvento.PASSAGEIRO_VIP || agora.isBefore(evento.inicio())
-                || !agora.isBefore(evento.fim())) {
+        if (!evento.podePegarVip(agora)) {
             return Optional.empty();
         }
         if (jdbc.update("""
