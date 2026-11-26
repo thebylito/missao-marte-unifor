@@ -16,6 +16,7 @@ import br.edu.unifor.missaomarte.grafico.apresentacao.InicioDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.SombrasDaPilotagem;
 import br.edu.unifor.missaomarte.grafico.audio.Sons;
 import br.edu.unifor.missaomarte.grafico.audio.SonsLibgdx;
+import br.edu.unifor.missaomarte.grafico.online.AjustesDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.Falha;
 import br.edu.unifor.missaomarte.grafico.online.Hangar;
 import br.edu.unifor.missaomarte.grafico.online.HordaAtual;
@@ -79,6 +80,8 @@ public class MissaoMarteGame extends Game {
     private long versaoDoPerfil;
     private InicioDaPartida inicioDaPartida;
     private FaixaDaHorda faixaDaHorda;
+    /** DA-48: os ajustes da Pilotagem Livre, pedidos ao servidor a cada volta ao menu. */
+    private final AjustesDoServidor ajustes = new AjustesDoServidor();
 
     public MissaoMarteGame(ServicosDoJogo servicos) {
         this(servicos, Plataforma.padrao());
@@ -161,6 +164,7 @@ public class MissaoMarteGame extends Game {
 
     public void irParaMenu() {
         trocarTela(new TelaMenu(this));
+        ajustes.atualizar(servicos.servidor());
         getSessao().ifPresent(piloto -> {
             long geracao = geracaoDaSessao;
             long versao = versaoDoPerfil;
@@ -292,7 +296,8 @@ public class MissaoMarteGame extends Game {
         inicioDaPartida = InicioDaPartida.pedir(getSessao(), servicos.servidor(), modo, formulario.getDificuldade());
         if (modo == Modo.PILOTAGEM) {
             Diario.registrar("pilotagem: " + formulario.getDificuldade());
-            PartidaDePilotagem voo = PartidaDePilotagem.nova(formulario.getPiloto(), formulario.getDificuldade());
+            PartidaDePilotagem voo = PartidaDePilotagem.nova(formulario.getPiloto(), formulario.getDificuldade(),
+                    ajustes.atuais());
             abrirPilotagem(new ControladorDaPilotagem(voo, servicos.rankingDaPilotagem()));
             return;
         }

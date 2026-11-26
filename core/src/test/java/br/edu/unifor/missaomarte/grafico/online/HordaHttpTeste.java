@@ -3,6 +3,7 @@ package br.edu.unifor.missaomarte.grafico.online;
 import static org.junit.jupiter.api.Assertions.*;
 
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
 import br.edu.unifor.missaomarte.pilotagem.horda.MontadorDaHorda;
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration;
 import com.badlogic.gdx.backends.headless.HeadlessNet;
@@ -77,6 +78,52 @@ class HordaHttpTeste {
         assertEquals(3, montada.caverna().getAsteroides().size());
         assertEquals(18.627877685732873, montada.ventoConstante());
         assertEquals(-5032694206115545595L, montada.roteiro().get(1).semente());
+    }
+
+    /** DA-48: o exemplo publicado de /api/ajustes é o padrão. */
+    @Test void leOsAjustesDoExemploCompartilhado() throws Exception {
+        resposta = Files.readString(Path.of("../docs/api/exemplos/ajustes.json"));
+        AjustesDeVoo ajustes = chamar(cliente::ajustes);
+        assertEquals("GET", metodo);
+        assertEquals("/api/ajustes", rota);
+        assertNull(token);
+        assertEquals(AjustesDeVoo.PADRAO, ajustes);
+    }
+
+    @Test void leAjustesDiferentesDoPadrao() throws Exception {
+        resposta = Files.readString(Path.of("../docs/api/exemplos/ajustes.json"))
+                .replace("\"inclinacaoMaxima\" : 20.0", "\"inclinacaoMaxima\" : 30")
+                .replace("\"duracaoDaChuva\" : 20.0", "\"duracaoDaChuva\" : 35");
+        AjustesDeVoo ajustes = chamar(cliente::ajustes);
+        assertEquals(30, ajustes.medio().inclinacaoMaxima());
+        assertEquals(25, ajustes.facil().inclinacaoMaxima());
+        assertEquals(35, ajustes.eventos().duracaoDaChuva());
+    }
+
+    @Test void ajustesForaDaFaixaSaoUmaFalha() throws Exception {
+        resposta = Files.readString(Path.of("../docs/api/exemplos/ajustes.json"))
+                .replace("\"inclinacaoMaxima\" : 20.0", "\"inclinacaoMaxima\" : 90");
+        assertThrows(java.util.concurrent.ExecutionException.class, () -> chamar(cliente::ajustes));
+    }
+
+    @Test void aHordaTrazOsAjustesGravadosNela() throws Exception {
+        String exemplo = Files.readString(Path.of("../docs/api/exemplos/horda.json"))
+                .replace("\"inclinacaoMaxima\" : 25.0", "\"inclinacaoMaxima\" : 28");
+        resposta = "{\"numero\":42,\"segundosParaAcabar\":7,\"segundosParaProxima\":9,\"proximaAs\":\"20:00\","
+                + "\"descricao\":" + exemplo + "}";
+        HordaAtual atual = chamar(cliente::hordaAtual);
+        assertEquals(28, atual.descricao().ajustes().facil().inclinacaoMaxima());
+        assertEquals(28, MontadorDaHorda.montar(atual.descricao()).config().inclinacaoMaxima());
+    }
+
+    @Test void aHordaSemAjustesUsaOPadrao() throws Exception {
+        String exemplo = Files.readString(Path.of("../docs/api/exemplos/horda.json"));
+        exemplo = exemplo.substring(0, exemplo.indexOf(",\n  \"ajustes\"")) + "\n}";
+        resposta = "{\"numero\":42,\"segundosParaAcabar\":7,\"segundosParaProxima\":9,\"proximaAs\":\"20:00\","
+                + "\"descricao\":" + exemplo + "}";
+        HordaAtual atual = chamar(cliente::hordaAtual);
+        assertEquals(AjustesDeVoo.PADRAO, atual.descricao().ajustes());
+        assertEquals(2, atual.descricao().roteiro().size());
     }
 
     @Test void pedeBilheteERegistraNaMesmaHordaComColocacaoOpcional() throws Exception {

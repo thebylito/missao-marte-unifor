@@ -1,6 +1,7 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
 import br.edu.unifor.missaomarte.aplicacao.Modo;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
@@ -186,6 +187,11 @@ public final class ServidorHttp implements ServidorDoJogo {
     @Override
     public void hordaAtual(Resposta<HordaAtual> resposta) {
         enviar(HttpMethods.GET, "/api/hordas/atual", null, null, LeitorDaHorda::atual, resposta);
+    }
+
+    @Override
+    public void ajustes(Resposta<AjustesDeVoo> resposta) {
+        enviar(HttpMethods.GET, "/api/ajustes", null, null, LeitorDeAjustes::ler, resposta);
     }
 
     @Override

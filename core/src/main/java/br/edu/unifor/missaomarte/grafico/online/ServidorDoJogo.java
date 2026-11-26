@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.grafico.online;
 
 import br.edu.unifor.missaomarte.aplicacao.Modo;
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +40,11 @@ public interface ServidorDoJogo {
     }
 
     default void hordaAtual(Resposta<HordaAtual> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    /** DA-48: os ajustes da Pilotagem Livre ({@code GET /api/ajustes}). */
+    default void ajustes(Resposta<AjustesDeVoo> resposta) {
         resposta.falha(Falha.semConexao());
     }
 

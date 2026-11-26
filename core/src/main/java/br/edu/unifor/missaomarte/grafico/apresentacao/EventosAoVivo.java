@@ -69,22 +69,32 @@ final class EventosAoVivo {
         TipoDeEvento tipo = TipoDeEvento.valueOf(m.getString("nome"));
         long semente = m.getLong("semente");
         if (id.isBlank() || iniciados.contains(id)) return;
+        double duracao = duracao(m, tipo);
         if (tipo.perigo()) {
             long passo = Math.round(partida.getTempo() / PartidaDePilotagem.PASSO) + 1;
             EventoAplicado aplicacao = new EventoAplicado(tipo, semente, passo);
             ids.computeIfAbsent(aplicacao, k -> new ArrayDeque<>()).addLast(id);
-            partida.iniciarEvento(tipo, semente);
+            partida.iniciarEvento(tipo, semente, duracao);
         } else {
             JsonValue local = m.require("vip");
             double x = local.getDouble("x");
             double superficie = local.getDouble("superficie");
             if (!Double.isFinite(x) || !Double.isFinite(superficie)) return;
-            partida.iniciarVip(x, superficie);
+            partida.iniciarVip(x, superficie, duracao);
             vip = id;
             vipEnviado = false;
         }
         iniciados.add(id);
-        mostrar(TextosDaInterface.nomeDoEvento(tipo), (float) tipo.duracaoSegundos());
+        mostrar(TextosDaInterface.nomeDoEvento(tipo), (float) duracao);
+    }
+
+    /**
+     * DA-48: a duração que o servidor mandou (a gravada na horda); o resultado só vale a partir do fim do evento
+     * dele. Sem ela (ou inválida), a dos ajustes desta partida.
+     */
+    private double duracao(JsonValue m, TipoDeEvento tipo) {
+        double anunciada = m.getDouble("duracao", 0);
+        return anunciada > 0 && Double.isFinite(anunciada) ? anunciada : partida.getConfig().eventos().duracao(tipo);
     }
 
     void tratar(List<EventoDeVoo> ocorrencias) {
