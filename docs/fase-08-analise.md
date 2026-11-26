@@ -140,7 +140,7 @@ joga sem eventos, como já joga sem sombras (DA-32).
 
 | Risco | Tratamento |
 |---|---|
-| Hibernate 7.4 cria `check (modo in ('CLASSICO','PILOTAGEM'))` e o `ddl-auto=update` não o refaz: toda partida da Horda falharia em produção | migrador explícito e idempotente na subida do servidor, e um teste que sobe o servidor sobre um H2 com o esquema da 7.x e grava uma partida da Horda |
+| O Hibernate 7.4 cria as colunas de enum como `ENUM` nativo do H2 (`"MODO" ENUM('CLASSICO', 'PILOTAGEM')`, conferido em 2026-11-26 num banco gerado pela versão da 7.x), e o `ddl-auto=update` não muda o tipo de uma coluna: toda partida da Horda falharia em produção | as colunas de enum passam a texto (`@JdbcTypeCode(SqlTypes.VARCHAR)`); um script SQL idempotente, que roda antes do Hibernate, converte as colunas do banco que já existe; um teste sobe o servidor sobre um H2 com o esquema exato da 7.x |
 | O servidor passa a compilar o `nucleo`, que hoje herda o toolchain e o JUnit do `build.gradle` da raiz | `include 'nucleo'` no `servidor/settings.gradle`, com o toolchain 17, os repositórios e o UTF-8 configurados no build do servidor; saída em `servidor/build/nucleo`; `:nucleo:test` desligado ali, porque a raiz já roda esses testes |
 | O contexto do Docker é `servidor/` e não vê o `../nucleo` | o contexto passa para a raiz, com `-f servidor/Dockerfile` e um `servidor/Dockerfile.dockerignore` |
 | O repositório é público: com a semente igual ao número da horda, dava para calcular as próximas | semente = HMAC-SHA256 com um segredo do servidor (`MISSAOMARTE_HORDA_SEGREDO`) |
@@ -257,21 +257,23 @@ execução real e evidência.
 
 ## 10. Decisões a registrar
 
-Estas decisões entram em `docs/decisoes-arquiteturais.md` na etapa 1, depois do merge da DA-38:
+Cada decisão entra em `docs/decisoes-arquiteturais.md` junto com a etapa que a implementa:
 
-- **DA-39 — O servidor inclui o `nucleo`.** Revoga em parte a DA-14 e a DA-16. O servidor passa a compilar o
-  `nucleo` (e só ele) para gerar e conferir as hordas, e mais tarde poderá refazer partidas. O contrato com o jogo
-  continua sendo a API. O contexto do Docker passa para a raiz.
-- **DA-40 — A horda é gerada no servidor e vai pronta como dados.** Semente HMAC com segredo, horda gravada na
-  primeira geração, cavernas em JSON no servidor (uma caverna nova não exige nova versão do jogo) e segundos
-  relativos na resposta.
-- **DA-41 — Canal das sombras com salas e eventos.** Revisa a DA-31. As salas são `livre` e `horda-N`, e o cliente
-  sem sala cai na `livre`. Os eventos vão a todas as salas. A sombra passa a levar a skin do perfil.
-- **DA-42 — Evento só atrapalha a partida.** O que ajuda vale no placar da semana, e o Top 10 da horda guarda a
-  melhor partida.
-- **DA-43 — Moedas por extrato e bilhete de partida.** O extrato tem crédito único por origem e referência, a
-  compra trava o jogador, e o bilhete é obrigatório na Horda.
-- **DA-44 — Skins só cosméticas.** O catálogo e os preços ficam no servidor, e a arte fica no jogo. A skin `padrao`
-  é a nave de sempre. As folhas ficam fora do enum `Folha`, e as sombras usam um atlas pequeno.
-- **DA-45 — Migração explícita das restrições de enum no H2.** O `ddl-auto=update` não refaz as restrições que o
-  Hibernate cria para enums.
+- **DA-39 — O servidor inclui o `nucleo`** (etapa 1). Revoga em parte a DA-14 e a DA-16. O servidor passa a
+  compilar o `nucleo` (e só ele) para gerar e conferir as hordas, e mais tarde poderá refazer partidas. O contrato
+  com o jogo continua sendo a API. O contexto do Docker passa para a raiz.
+- **DA-40 — Colunas de enum como texto** (etapa 1). O `ENUM` nativo do H2 não aceita valores novos, e o
+  `ddl-auto=update` não muda o tipo. As colunas de enum passam a texto, e um script idempotente converte o banco
+  que já existe antes do Hibernate subir.
+- **DA-41 — Moedas por extrato e bilhete de partida** (etapa 2a). O extrato tem crédito único por origem e
+  referência, a compra trava o jogador, e o bilhete é obrigatório na Horda.
+- **DA-42 — Skins só cosméticas** (etapa 2a). O catálogo e os preços ficam no servidor, e a arte fica no jogo. A
+  skin `padrao` é a nave de sempre. As folhas ficam fora do enum `Folha`, e as sombras usam um atlas pequeno.
+- **DA-43 — A horda é gerada no servidor e vai pronta como dados** (etapas 3 e 4). Semente HMAC com segredo, horda
+  gravada na primeira geração, cavernas em JSON no servidor (uma caverna nova não exige nova versão do jogo) e
+  segundos relativos na resposta.
+- **DA-44 — Canal das sombras com salas e eventos** (etapas 4 e 6). Revisa a DA-31. As salas são `livre` e
+  `horda-N`, e o cliente sem sala cai na `livre`. Os eventos vão a todas as salas. A sombra passa a levar a skin do
+  perfil.
+- **DA-45 — Evento só atrapalha a partida** (etapa 6). O que ajuda vale no placar da semana, e o Top 10 da horda
+  guarda a melhor partida.
