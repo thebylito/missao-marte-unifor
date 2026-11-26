@@ -3,6 +3,7 @@ package br.edu.unifor.missaomarte.servidor.banco;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.edu.unifor.missaomarte.servidor.ApiTeste;
@@ -126,17 +127,42 @@ class ImportadorDoH2Teste {
         assertEquals(BancoDaFase7.PARTIDAS, jdbc.queryForObject("select count(*) from partidas", Integer.class));
     }
 
+    /**
+     * Revisão da etapa 1b: com a variável definida e o arquivo ausente (erro de digitação, volume fora de /dados), a
+     * subida precisa FALHAR. Subir com o banco novo vazio daria os ids 1, 2, 3 a cadastros novos, e o token antigo de
+     * um jogador (que só guarda o id) entraria na conta de outra pessoa.
+     */
     @Test
-    void semOArquivoNaoFazNadaNemCriaUmBanco() throws Exception {
+    void semOArquivoEComOBancoNovoVazioASubidaFalhaSemCriarNada() throws Exception {
         Path inexistente = pasta.resolve("nao-existe").toAbsolutePath();
 
-        ImportadorDoH2.Resultado resultado = new ImportadorDoH2(destino).importar(inexistente);
+        IllegalStateException erro = assertThrows(IllegalStateException.class,
+                () -> new ImportadorDoH2(destino).importar(inexistente));
 
-        assertEquals(Situacao.ORIGEM_INEXISTENTE, resultado.situacao());
+        assertTrue(erro.getMessage().contains("nao-existe.mv.db"), erro.getMessage());
         try (Stream<Path> arquivos = Files.list(pasta)) {
             assertEquals(0, arquivos.count());
         }
         assertEquals(0, jdbc.queryForObject("select count(*) from jogadores", Integer.class));
+    }
+
+    @Test
+    void semOArquivoMasComOBancoNovoJaCheioNaoFazNada() {
+        jdbc.update("insert into jogadores(criado_em, nome, senha_hash) values (current_timestamp, 'Nova', 'x')");
+
+        ImportadorDoH2.Resultado resultado = new ImportadorDoH2(destino).importar(pasta.resolve("nao-existe"));
+
+        assertEquals(Situacao.DESTINO_COM_DADOS, resultado.situacao());
+    }
+
+    @Test
+    void aceitaOCaminhoComAExtensaoMvDb() throws Exception {
+        Path origem = BancoDaFase7.criar(pasta);
+
+        ImportadorDoH2.Resultado resultado = new ImportadorDoH2(destino).importar(Path.of(origem + ".mv.db"));
+
+        assertEquals(Situacao.IMPORTADO, resultado.situacao());
+        assertEquals(BancoDaFase7.JOGADORES, jdbc.queryForObject("select count(*) from jogadores", Integer.class));
     }
 
     @Test

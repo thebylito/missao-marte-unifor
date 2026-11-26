@@ -741,6 +741,15 @@ divergir. A DA-14 dizia que o servidor não inclui nenhum módulo do jogo, e a D
   - `BancoH2AntigoTeste` confere o banco antigo.
   Houve também um ensaio com a imagem que está em produção (`docs/evidencias/fase-08/etapa-1b-postgres-flyway.txt`):
   ranking, histórico e perfis iguais byte a byte depois da virada.
+- **Revisão antes da virada.** Uma configuração errada não sobe "com sucesso" no banco errado. Isso importa porque o
+  token só guarda o id do jogador: num banco vazio, o token antigo de alguém entraria na conta nova de outra pessoa.
+  Por isso o servidor não sobe em três casos:
+  - a URL do banco está vazia (`spring.datasource.embedded-database-connection=none`);
+  - na imagem, sem `MISSAOMARTE_DB_URL` (`MISSAOMARTE_PERMITIR_H2=false`, conferido no `main`, antes de qualquer
+    conexão);
+  - a importação aponta para um arquivo que não existe, com o banco novo vazio.
+- **Deploy start-first:** a versão antiga e a nova ficam no ar juntas por alguns segundos. Por isso toda migração
+  precisa ser compatível com a versão anterior (expandir antes, contrair depois).
 
 ## DA-42 — Moedas por extrato e bilhete de partida (Fase 8, 2026-11-26)
 

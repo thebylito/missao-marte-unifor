@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Missão Marte Unifor</title>
-  <meta name="description" content="Baixe o Missão Marte para Android ou computador e veja o ranking global dos dois modos de jogo.">
+  <meta name="description" content="Baixe o Missão Marte para Android ou computador e veja o ranking global da Pilotagem e do Clássico.">
   <link rel="icon" type="image/png" href="pagina/icone.png">
   <link rel="stylesheet" href="pagina/estilo.css">
   <script src="pagina/app.js" defer></script>
@@ -97,9 +97,9 @@
              download>Baixar o .zip com Java</a> <span class="tamanho" data-tamanho-de="missao-marte-desktop.zip"></span>.
           Descompacte e rode <code>bin/missao-marte</code>.</p>
       </details>
-      <p class="nota controles">Teclado no computador: no modo clássico, as setas ou <kbd>WASD</kbd> movem a nave,
-        <kbd>Espaço</kbd> embarca e <kbd>Esc</kbd> aborta. Na pilotagem, <kbd>←</kbd> e <kbd>→</kbd> giram e
-        <kbd>↑</kbd> liga o motor. Nas versões para Windows e Mac, o ranking local fica na pasta
+      <p class="nota controles">Teclado no computador: na pilotagem, <kbd>←</kbd> e <kbd>→</kbd> giram e
+        <kbd>↑</kbd> liga o motor. No modo clássico, as setas ou <kbd>WASD</kbd> movem a nave,
+        <kbd>Espaço</kbd> embarca e <kbd>Esc</kbd> aborta. Nas versões para Windows e Mac, o ranking local fica na pasta
         <code>.missao-marte</code> do seu usuário.</p>
     </section>
 
@@ -107,29 +107,48 @@
       <div class="cabecalho-ranking">
         <h2 id="titulo-ranking">Ranking global</h2>
         <div class="abas" role="tablist" aria-label="Modo de jogo">
-          <button type="button" role="tab" aria-selected="true" data-modo="CLASSICO">Clássico</button>
-          <button type="button" role="tab" aria-selected="false" data-modo="PILOTAGEM">Pilotagem</button>
+          <button type="button" role="tab" id="aba-horda" aria-controls="painel-ranking" aria-selected="false"
+                  tabindex="-1" data-modo="HORDA" hidden>Horda</button>
+          <button type="button" role="tab" id="aba-semana" aria-controls="painel-ranking" aria-selected="false"
+                  tabindex="-1" data-modo="SEMANA" hidden>Semana</button>
+          <button type="button" role="tab" id="aba-pilotagem" aria-controls="painel-ranking" aria-selected="true"
+                  tabindex="0" data-modo="PILOTAGEM">Pilotagem</button>
+          <button type="button" role="tab" id="aba-classico" aria-controls="painel-ranking" aria-selected="false"
+                  tabindex="-1" data-modo="CLASSICO">Clássico</button>
         </div>
       </div>
-      <p class="nota" id="descricao-modo">O jogo original, em turnos numa grade. Cada movimento custa 1 ponto, e
-        você perde se os pontos acabarem ou se bater 3 vezes em asteroides e inimigos.</p>
-      <div class="tabela-rolagem">
-        <table aria-describedby="descricao-modo">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Piloto</th>
-              <th scope="col" class="num">Pontos</th>
-              <th scope="col">Dificuldade</th>
-              <th scope="col" class="num">Passageiros</th>
-              <th scope="col" class="num">Tempo</th>
-              <th scope="col">Quando</th>
-            </tr>
-          </thead>
-          <tbody id="linhas"></tbody>
-        </table>
+      <div id="painel-ranking" role="tabpanel" aria-labelledby="aba-pilotagem" tabindex="0">
+        <p class="nota" id="descricao-modo">Na pilotagem, a gravidade puxa a nave para baixo e o motor gasta combustível.
+          Pouse devagar na plataforma, embarque até 2 passageiros e leve-os à base, que também reabastece.
+          O combustível que sobra no fim vale até 30 pontos de bônus. Com conta, você vê as naves de quem está
+          jogando ao mesmo tempo.</p>
+        <p class="nota" id="horda-atual" hidden></p>
+        <p class="nota" id="periodo-semana" hidden></p>
+        <div class="tabela-rolagem">
+          <table aria-describedby="descricao-modo">
+            <thead>
+              <tr id="colunas-ranking">
+                <th scope="col">#</th>
+                <th scope="col">Piloto</th>
+                <th scope="col" class="num">Pontos</th>
+                <th scope="col">Dificuldade</th>
+                <th scope="col" class="num">Passageiros</th>
+                <th scope="col" class="num">Tempo</th>
+                <th scope="col">Quando</th>
+              </tr>
+              <tr id="colunas-semana" hidden>
+                <th scope="col">#</th>
+                <th scope="col">Piloto</th>
+                <th scope="col" class="num">Pontos</th>
+                <th scope="col" class="num">Hordas</th>
+                <th scope="col" class="num">Eventos</th>
+              </tr>
+            </thead>
+            <tbody id="linhas"></tbody>
+          </table>
+        </div>
+        <p class="estado" id="estado" role="status">Carregando o ranking…</p>
       </div>
-      <p class="estado" id="estado" role="status">Carregando o ranking…</p>
     </section>
 
     <section class="tripulacao" aria-label="Pontos de cada passageiro">
