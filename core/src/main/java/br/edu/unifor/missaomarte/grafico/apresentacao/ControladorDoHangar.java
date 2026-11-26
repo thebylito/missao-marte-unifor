@@ -19,6 +19,9 @@ import java.util.function.Consumer;
 public final class ControladorDoHangar {
     public enum Estado { EQUIPADA, POSSUIDA, A_COMPRAR, INDISPONIVEL }
 
+    private static final List<String> NIVEIS_ROMANOS = List.of("I", "II", "III", "IV", "V");
+
+    private final Map<String, String> nomesDasLinhas = new LinkedHashMap<>();
     private final ServidorDoJogo servidor;
     private final Optional<Sessao> sessao;
     private final CatalogoDeNaves catalogo;
@@ -37,6 +40,11 @@ public final class ControladorDoHangar {
         this.servidor = servidor;
         this.sessao = sessao;
         this.catalogo = catalogo;
+        for (var nave : catalogo.naves()) {
+            if (Integer.valueOf(1).equals(nave.nivel()) && nave.linha() != null) {
+                nomesDasLinhas.put(nave.linha(), nave.nome());
+            }
+        }
         this.aoAtualizar = aoAtualizar;
         this.aoEquipar = aoEquipar;
         this.aoRecusarSessao = aoRecusarSessao;
@@ -72,6 +80,18 @@ public final class ControladorDoHangar {
             agrupadas.addAll(linha);
         }
         return List.copyOf(agrupadas);
+    }
+
+    public String rotuloDaLinha(SkinDaLoja skin) {
+        String linha = skin.linha();
+        String nome = nomesDasLinhas.get(linha);
+        if (nome == null || nome.isBlank()) {
+            nome = linha.isEmpty() ? linha : Character.toUpperCase(linha.charAt(0)) + linha.substring(1);
+        }
+        int nivel = skin.nivel();
+        String numero = nivel >= 1 && nivel <= NIVEIS_ROMANOS.size()
+                ? NIVEIS_ROMANOS.get(nivel - 1) : Integer.toString(nivel);
+        return "Linha " + nome + " · Nível " + numero;
     }
 
     public Estado estado(String skin) {
