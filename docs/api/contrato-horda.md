@@ -24,6 +24,13 @@ O jogo (etapas 5 e 6 no cliente) e o servidor (etapas 4 e 6 no servidor) seguem 
 - `proximaAs` é a hora local de Fortaleza, em texto.
 - A dificuldade no topo usa `FACIL`, `MEDIO` ou `DIFICIL`. Dentro de `descricao` vale a grafia do exemplo
   versionado, como `"Fácil"`.
+- `descricao.ajustes` traz os ajustes gravados no sorteio da horda (DA-48), no formato de `GET /api/ajustes`. Uma
+  horda gravada antes deles não tem o campo, e o jogo usa o padrão.
+
+### `GET /api/ajustes` (público, DA-48)
+Os ajustes da Pilotagem Livre, lidos das variáveis `MISSAOMARTE_AJUSTE_*` na subida do servidor
+(`servidor/PUBLICACAO.md`, seção 12). O formato está em [`exemplos/ajustes.json`](exemplos/ajustes.json), que é o
+padrão.
 
 ### `POST /api/partidas/inicio` (com token)
 - Na Horda, o corpo é `{"modo":"HORDA","dificuldade":"DIFICIL","horda":123}`. Ele devolve 201
@@ -75,6 +82,9 @@ válido, responde 401. Se o jogador do token não estiver na lista de administra
   `PASSAGEIRO_VIP`.
 - Quem só está no menu não recebe eventos: o canal só fica aberto durante o voo.
 
+- `duracao` é a duração do evento em segundos inteiros, a dos ajustes gravados na horda em andamento (DA-48). O
+  jogo usa esse valor: o resultado vale do fim do evento até 15 s depois. Num evento mais longo que o padrão, o
+  servidor aceita o resultado já a partir da duração padrão, que é quando o jogo antigo encerra o perigo.
 - O campo `em` é a contagem de segundos até o início, arredondada para cima. Quem conecta durante os 15 segundos
   de aviso recebe o tempo restante.
 - Para pontuar ao sobreviver, o piloto precisa ter enviado uma posição válida nos três segundos anteriores ao início

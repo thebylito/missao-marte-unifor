@@ -455,6 +455,29 @@
                 },
                 "security": []
             }
+        },
+        "/api/ajustes": {
+            "get": {
+                "tags": [
+                    "controlador-de-ajustes"
+                ],
+                "summary": "Ajustes da Pilotagem",
+                "description": "Tanque, limites de pouso e asteroides por dificuldade, velocidade dos meteoros e dura\u00e7\u00e3o dos eventos, lidos das vari\u00e1veis MISSAOMARTE_AJUSTE_* na subida do servidor. A horda usa os ajustes gravados nela (descricao.ajustes em /api/hordas/atual).",
+                "operationId": "ajustes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AjustesDeVoo"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
         }
     },
     "components": {
@@ -958,6 +981,77 @@
                     }
                 }
             },
+            "AjustesDaDificuldade": {
+                "type": "object",
+                "properties": {
+                    "tanque": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "quedaMaxima": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "deslizeMaximo": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "inclinacaoMaxima": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "velocidadeDosAsteroides": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "AjustesDeVoo": {
+                "type": "object",
+                "properties": {
+                    "facil": {
+                        "$ref": "#/components/schemas/AjustesDaDificuldade"
+                    },
+                    "medio": {
+                        "$ref": "#/components/schemas/AjustesDaDificuldade"
+                    },
+                    "dificil": {
+                        "$ref": "#/components/schemas/AjustesDaDificuldade"
+                    },
+                    "eventos": {
+                        "$ref": "#/components/schemas/AjustesDosEventos"
+                    }
+                }
+            },
+            "AjustesDosEventos": {
+                "type": "object",
+                "properties": {
+                    "velocidadeMinimaDosMeteoros": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "velocidadeMaximaDosMeteoros": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "duracaoDaChuva": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "duracaoDaTempestade": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "duracaoDaPane": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "duracaoDoVip": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
             "AsteroideDescrito": {
                 "type": "object",
                 "properties": {
@@ -1052,6 +1146,9 @@
                         "items": {
                             "$ref": "#/components/schemas/PerigoDoRoteiro"
                         }
+                    },
+                    "ajustes": {
+                        "$ref": "#/components/schemas/AjustesDeVoo"
                     }
                 }
             },

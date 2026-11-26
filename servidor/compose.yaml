@@ -35,6 +35,8 @@ services:
       MISSAOMARTE_JWT_SEGREDO: ${MISSAOMARTE_JWT_SEGREDO:-}
       MISSAOMARTE_HORDA_SEGREDO: ${MISSAOMARTE_HORDA_SEGREDO:-}
       MISSAOMARTE_ADMINS: ${MISSAOMARTE_ADMINS:-}
+      # Ajustes do jogo (DA-48): acrescente aqui as MISSAOMARTE_AJUSTE_* que quiser testar (PUBLICACAO.md, seção 12),
+      # por exemplo MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO: "22".
       MISSAOMARTE_URL_PUBLICA: ${MISSAOMARTE_URL_PUBLICA:-}
       MISSAOMARTE_DB_URL: jdbc:postgresql://postgres:5432/missaomarte
       MISSAOMARTE_DB_USUARIO: missaomarte
