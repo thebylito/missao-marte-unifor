@@ -1,0 +1,67 @@
+Fase 8, etapa 1b — PostgreSQL com o esquema no Flyway e a importação do H2 de produção (DA-41)
+Executado em 2026-11-26, macOS (Apple Silicon), JDK 17, Docker 29.9.2 (Docker Desktop). Branch fase-8-etapa-1b.
+Versões: Spring Boot 4.1.2, Flyway 12.4.0, driver PostgreSQL 42.7.14, H2 2.4.240, Testcontainers 2.0.5,
+PostgreSQL 18.7 (postgres:18 nos testes, postgres:18-alpine no compose).
+
+1) Build do servidor
+   cd servidor && ./gradlew --no-daemon build
+   -> BUILD SUCCESSFUL; 73 testes, 0 falhas, 0 pulados (antes: 54).
+      Saíram os 6 do MigracaoDoEsquemaTeste (convertia o H2 no lugar). O EsquemaNovoTeste foi de 2 para 5 testes.
+      Novos: EsquemaNoPostgresTeste 5, ImportadorDoH2Teste 10, ImportacaoDoH2NoPostgresTeste 6, BancoH2AntigoTeste 1.
+   -> Flyway no PostgreSQL 18.7: nenhum aviso de versão. No H2: "Using H2 2.4.240 which is newer than the version
+      Flyway has been verified with. The latest verified version of H2 is 2.3.232." (inofensivo).
+   -> Provas por reversão:
+      - sem ACCESS_MODE_DATA=r no importador, o ImportadorDoH2Teste.oArquivoDeOrigemNaoMuda falha;
+      - com a importação num ApplicationRunner, o ImportacaoDoH2NoPostgresTeste.aImportacaoTerminaAntesDeOServidorAtender
+        falha (o Tomcat atende com 0 jogadores no banco).
+
+2) Imagem
+   docker buildx build --load -f servidor/Dockerfile -t mm:1b .
+   -> sucesso; o jar tem db/migration/V1__esquema_inicial.sql, postgresql-42.7.14, flyway-core e
+      flyway-database-postgresql 12.4.0, h2 e nucleo.jar. Sem VOLUME declarado.
+
+3) Compose de desenvolvimento (projeto próprio: docker compose -p mm-1b, imagem mm:1b, PORTA=18090)
+   -> postgres (postgres:18-alpine) healthy; servidor healthy; GET /actuator/health = {"status":"UP"}.
+   -> log: "Database: jdbc:postgresql://postgres:5432/missaomarte (PostgreSQL 18.7)",
+      "Successfully applied 1 migration to schema "public", now at version v1", "Database dialect: PostgreSQLDialect".
+   -> cadastro 201, partida 201, ranking da pilotagem com a partida; depois de reiniciar o servidor, o mesmo ranking.
+   -> psql: flyway_schema_history (versão 1, success t), jogadores e partidas, todas do usuário missaomarte.
+   -> docker compose -p mm-1b down -v: volumes mm-1b_banco e mm-1b_dados removidos.
+
+4) Ensaio da virada com a imagem que está em produção
+   (ghcr.io/thebylito/missao-marte-unifor-servidor:latest, revisão 3880dcb, amd64 sob emulação)
+   a. A imagem da 7.x num volume novo (mm-1b_dados em /dados), pela API: 3 contas (Ana, Bia, Caio) e 8 partidas nos
+      dois modos, com empates, derrotas e um abandono. Guardados: os dois rankings, o histórico e o perfil de cada um.
+   b. O servidor novo com o antigo ainda no ar (como num deploy start-first): não sobe, com
+      "Importação do H2: não deu para abrir /dados/missaomarte.mv.db só para leitura. Se o arquivo está travado, o
+      servidor antigo ainda está rodando: o deploy da virada precisa ser stop-first"
+      (causa: "The file is locked: /dados/missaomarte.mv.db"); o PostgreSQL fica com 0 jogadores e 0 partidas.
+   c. Antigo parado (stop-first), servidor novo com MISSAOMARTE_IMPORTAR_H2=/dados/missaomarte:
+        03:50:13.712 Schema "public" is up to date. No migration necessary.
+        03:50:13.870 Importação do H2 /dados/missaomarte.mv.db: 3 jogadores e 8 partidas copiados, com os mesmos ids;
+                     próximos ids: jogador 4, partida 9
+        03:50:16.246 Tomcat started on port 8080 (http)
+      Comparação byte a byte com o que a 7.x respondia (login de novo com as senhas de sempre):
+        IGUAL classico, IGUAL pilotagem, IGUAL historico Ana/Bia/Caio, IGUAL perfil Ana/Bia/Caio
+      Cadastro novo: 201 {"id":4,...} (maior id + 1).
+   d. Servidor reiniciado com a variável ainda definida:
+        "Importação do H2: o banco novo já tem dados (12 linhas em jogadores e partidas); nada importado"
+      psql: 4 jogadores, 8 partidas, maior id 4. pg_dump -Fc do banco: ok (3 tabelas com dados no pg_restore -l).
+   e. docker compose -p mm-1b down -v e docker rm do contêiner da 7.x: nada sobrou.
+
+5) O SQL da instância geral (servidor/PUBLICACAO.md, passo 1), num postgres:18-alpine local com o usuário admin
+   CREATE ROLE missaomarte LOGIN PASSWORD '...'; CREATE DATABASE missaomarte OWNER missaomarte;
+   REVOKE ALL ON DATABASE missaomarte FROM PUBLIC;
+   -> a imagem mm:1b sobe com o usuário missaomarte (health UP), e as 3 tabelas ficam com esse dono;
+   -> o missaomarte não cria tabela no banco de outro projeto ("permission denied for schema public") e, depois do
+      REVOKE daquele banco, nem se conecta ("User does not have CONNECT privilege").
+
+6) Desenvolvimento só com o JDK (sem MISSAOMARTE_DB_URL)
+   PORT=18092 MISSAOMARTE_DADOS=<pasta temporária>/missaomarte ./gradlew bootRun
+   -> "Database: jdbc:h2:file:...", V1 aplicada, H2Dialect, health UP, cadastro 201.
+   Um H2 de antes da Fase 8 (o esquema-fase-7.sql) importado para um H2 novo, como o README ensina:
+   -> "Importação do H2 .../antigo/missaomarte.mv.db: 1 jogadores e 2 partidas copiados"; o ranking mostra a Veterana.
+
+7) Antes do merge (servidor/PUBLICACAO.md, seção 10, "Virada para o PostgreSQL")
+   Banco e usuário missaomarte criados no postgres-br; as variáveis MISSAOMARTE_DB_* e MISSAOMARTE_IMPORTAR_H2 no
+   serviço; uma cópia do volume /dados. O merge dispara o deploy.
