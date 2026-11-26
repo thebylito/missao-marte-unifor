@@ -30,6 +30,7 @@ com GitHub Actions, está na [seção 10](#10-publicação-no-dokploy-com-github
 | `MISSAOMARTE_DB_SENHA` | **sim** | a senha desse usuário. Guarde só nos segredos da plataforma | vazia |
 | `MISSAOMARTE_IMPORTAR_H2` | só na virada | o banco H2 da Fase 7, sem a extensão `.mv.db` (`/dados/missaomarte`). É copiado para o PostgreSQL na subida, se este estiver vazio (seção 10) | vazia: não importa nada |
 | `MISSAOMARTE_DADOS` | não | caminho do H2, sem a extensão `.mv.db`. Só vale sem `MISSAOMARTE_DB_URL` | `/dados/missaomarte` na imagem |
+| `MISSAOMARTE_PERMITIR_H2` | não | `false` na imagem: sem `MISSAOMARTE_DB_URL`, o servidor recusa subir, em vez de abrir ou criar um H2 (DA-41). Fora da imagem, o H2 continua permitido | `false` na imagem |
 | `PORT` | não | porta HTTP dentro do contêiner | `8080` |
 | `SPRINGDOC_APIDOCS_ENABLED` e `SPRINGDOC_SWAGGERUI_ENABLED` | não | `false` desliga a documentação (`/v3/api-docs` e `/swagger-ui.html` passam a dar 404). Ligada, ela não expõe dados, só o contrato | ligadas |
 | `JAVA_TOOL_OPTIONS` | não | opções da JVM, por exemplo `-XX:MaxRAMPercentage=75` para usar mais da memória do contêiner | padrão da JVM (25% da memória do contêiner) |
@@ -307,17 +308,24 @@ escolha **Order = Start First**. Com o PostgreSQL, a versão nova e a antiga pod
 os próximos deploys deixam de tirar o site do ar. Enquanto `MISSAOMARTE_IMPORTAR_H2` existir, cada subida vê o banco
 com dados e escreve no log `o banco novo já tem dados ...; nada importado`, sem abrir o H2.
 
-**6. Depois de alguns dias** com tudo certo:
-- remova `MISSAOMARTE_IMPORTAR_H2` e `MISSAOMARTE_DADOS`;
+**6. Logo depois da conferência do passo 4:** remova `MISSAOMARTE_IMPORTAR_H2`. Ela só serve na primeira subida e,
+se ficar, é o único caminho para uma reimportação antiga num banco recriado por engano.
+
+**7. Depois de alguns dias** com tudo certo:
+- remova `MISSAOMARTE_DADOS`;
 - desmonte o volume `/dados` (Advanced → Volumes);
 - guarde a cópia do passo 0;
 - só então apague o volume `missao-marte-api-dados`.
 
 **Voltar atrás.** Se algo der errado depois da virada:
-- reimplante a imagem anterior (`ghcr.io/thebylito/missao-marte-unifor-servidor:sha-<commit>` da 7.x), com o
-  stop-first, o volume `/dados` e as variáveis de antes;
+- reimplante a imagem que estava em produção **antes** da virada (anote a tag `sha-<commit>` no passo 0; não é a da
+  7.x), com o stop-first, o volume `/dados` e as variáveis de antes (sem `MISSAOMARTE_DB_*`);
 - o H2 está como estava, porque a importação só o leu;
-- o que foi gravado no PostgreSQL depois da virada não volta para o H2.
+- o que foi gravado no PostgreSQL depois da virada não volta para o H2;
+- **antes de repetir a virada, zere o banco do jogo** como `admin` (`DROP DATABASE missaomarte;
+  CREATE DATABASE missaomarte OWNER missaomarte; REVOKE ALL ON DATABASE missaomarte FROM PUBLIC;`). Sem isso, a nova
+  subida vê o PostgreSQL com dados, pula a importação sem aviso, e o que os jogadores gravaram no H2 durante a volta
+  atrás se perde (e os ids podem colidir).
 
 **Cópia de segurança do PostgreSQL:** `pg_dump` do banco `missaomarte`, no servidor que roda o `postgres-br`, como
 na seção 3 (`docker exec <contêiner-do-postgres-br> pg_dump -U missaomarte -d missaomarte -Fc > missaomarte-$(date +%F).dump`).

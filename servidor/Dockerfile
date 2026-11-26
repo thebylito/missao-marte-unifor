@@ -39,6 +39,7 @@ COPY servidor/downloads /app/downloads
 # contêiner. O /dados também é de onde a virada importa o H2 da Fase 7 (MISSAOMARTE_IMPORTAR_H2=/dados/missaomarte).
 # Sem VOLUME aqui: com o PostgreSQL, o /dados não é usado, e cada deploy criaria um volume anônimo à toa.
 ENV MISSAOMARTE_DADOS=/dados/missaomarte \
+    MISSAOMARTE_PERMITIR_H2=false \
     MISSAOMARTE_DOWNLOADS=/app/downloads \
     PORT=8080
 EXPOSE 8080

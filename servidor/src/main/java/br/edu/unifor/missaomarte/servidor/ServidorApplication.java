@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.servidor;
 
+import br.edu.unifor.missaomarte.servidor.banco.GuardaDoBanco;
 import java.time.Clock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 public class ServidorApplication {
 
     public static void main(String[] args) {
+        GuardaDoBanco.verificar(System.getenv());   // Fase 8: na imagem, só com o PostgreSQL configurado
         SpringApplication.run(ServidorApplication.class, args);
     }
 

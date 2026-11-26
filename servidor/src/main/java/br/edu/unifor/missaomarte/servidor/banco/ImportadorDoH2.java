@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public class ImportadorDoH2 {
 
     /** O que a importação fez. */
-    public enum Situacao { IMPORTADO, DESTINO_COM_DADOS, ORIGEM_INEXISTENTE }
+    public enum Situacao { IMPORTADO, DESTINO_COM_DADOS }
 
     /** A situação e quantas linhas foram copiadas. */
     public record Resultado(Situacao situacao, int jogadores, int partidas) {
@@ -50,22 +50,28 @@ public class ImportadorDoH2 {
     }
 
     /**
-     * @param origem o banco H2, sem a extensão {@code .mv.db} (o mesmo formato de {@code MISSAOMARTE_DADOS}, por
-     *               exemplo {@code /dados/missaomarte})
+     * Com o banco novo já com dados, não faz nada (a virada já aconteceu). Com o banco novo vazio, o arquivo PRECISA
+     * existir: se a variável aponta para um arquivo que não existe, a subida falha, em vez de subir com o banco vazio
+     * (cadastros novos ganhariam os ids 1, 2, 3, e o token antigo de um jogador, que só guarda o id, entraria na conta
+     * de outra pessoa). Achado na revisão da etapa 1b.
+     *
+     * @param origem o banco H2, com ou sem a extensão {@code .mv.db} (por exemplo {@code /dados/missaomarte})
      */
     public Resultado importar(Path origem) {
-        Path banco = origem.toAbsolutePath().normalize();
+        String caminho = origem.toAbsolutePath().normalize().toString();
+        Path banco = Path.of(caminho.endsWith(".mv.db") ? caminho.substring(0, caminho.length() - 6) : caminho);
         Path arquivo = Path.of(banco + ".mv.db");
-        if (!Files.isRegularFile(arquivo)) {
-            LOG.warn("Importação do H2: {} não existe; nada importado", arquivo);
-            return new Resultado(Situacao.ORIGEM_INEXISTENTE, 0, 0);
-        }
         try (Connection novo = destino.getConnection()) {
             long linhas = contar(novo, "jogadores") + contar(novo, "partidas");
             if (linhas > 0) {
                 LOG.info("Importação do H2: o banco novo já tem dados ({} linhas em jogadores e partidas); "
                         + "nada importado de {}", linhas, arquivo);
                 return new Resultado(Situacao.DESTINO_COM_DADOS, 0, 0);
+            }
+            if (!Files.isRegularFile(arquivo)) {
+                throw new IllegalStateException("Importação do H2: " + arquivo + " não existe, e o banco novo está "
+                        + "vazio. Confira MISSAOMARTE_IMPORTAR_H2 e o volume /dados; o servidor não sobe com o banco "
+                        + "vazio para não reaproveitar ids de jogadores");
             }
             try (Connection antigo = abrirSoParaLeitura(banco)) {
                 return copiar(antigo, novo, arquivo);
