@@ -1,0 +1,11 @@
+[
+  {"id": "padrao", "nome": "Padrão", "linha": "padrao", "nivel": 1, "preco": 0},
+  {"id": "padrao_2", "nome": "Padrão II", "linha": "padrao", "nivel": 2, "preco": 60},
+  {"id": "padrao_3", "nome": "Padrão III", "linha": "padrao", "nivel": 3, "preco": 120},
+  {"id": "padrao_4", "nome": "Padrão IV", "linha": "padrao", "nivel": 4, "preco": 200},
+  {"id": "padrao_5", "nome": "Padrão V", "linha": "padrao", "nivel": 5, "preco": 300},
+  {"id": "guara", "nome": "Guará", "linha": "guara", "nivel": 1, "preco": 60},
+  {"id": "guara_2", "nome": "Guará II", "linha": "guara", "nivel": 2, "preco": 120},
+  {"id": "guara_3", "nome": "Guará III", "linha": "guara", "nivel": 3, "preco": 200},
+  {"id": "guara_4", "nome": "Guará IV", "linha": "guara", "nivel": 4, "preco": 300}
+]

@@ -1,6 +1,9 @@
 package br.edu.unifor.missaomarte.servidor.sombras;
 
 import br.edu.unifor.missaomarte.pilotagem.Caverna;
+import br.edu.unifor.missaomarte.servidor.jogador.RepositorioDeJogadores;
+import br.edu.unifor.missaomarte.servidor.loja.Skin;
+import br.edu.unifor.missaomarte.servidor.seguranca.ServicoDeTokens;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.HashMap;
@@ -29,7 +32,8 @@ import tools.jackson.databind.node.ObjectNode;
  * <p>Regras:
  * <ul>
  *   <li>só entra quem tem token (o aperto de mão passa pela mesma segurança da API: {@code Authorization: Bearer});
- *   o nome mostrado vem do token, nunca da mensagem;</li>
+ *   o nome mostrado vem do token, nunca da mensagem; a skin (Fase 8) vem do perfil do jogador, lida na conexão,
+ *   também nunca da mensagem;</li>
  *   <li>a mensagem precisa caber em {@value #TAMANHO_MAXIMO} bytes (senão a conexão é fechada) e ter números
  *   dentro da caverna (senão é ignorada);</li>
  *   <li>no máximo uma posição a cada {@value #INTERVALO_MINIMO_MS} ms por piloto (as que chegam antes são
@@ -37,7 +41,8 @@ import tools.jackson.databind.node.ObjectNode;
  *   <li>no máximo {@value #PILOTOS_MAXIMOS} pilotos conectados ao mesmo tempo.</li>
  * </ul>
  * Mensagens (JSON): o cliente manda {@code {"tipo":"posicao","x":..,"y":..,"angulo":..,"motor":true}}; os outros
- * recebem {@code {"tipo":"sombra","piloto":7,"nome":"Ana","x":..,"y":..,"angulo":..,"motor":true}} e, quando alguém
+ * recebem {@code {"tipo":"sombra","piloto":7,"nome":"Ana","skin":"guara","x":..,"y":..,"angulo":..,"motor":true}}
+ * (os clientes 7.x ignoram o campo {@code skin}) e, quando alguém
  * sai, {@code {"tipo":"saiu","piloto":7}}. Quando a nave de alguém bate, o cliente dele manda
  * {@code {"tipo":"explodiu","x":..,"y":..}} e os outros recebem {@code {"tipo":"explosao","piloto":7,"x":..,"y":..}},
  * com as mesmas regras de tamanho e caverna da posição e um limite próprio (uma por segundo). O número do piloto
@@ -66,16 +71,19 @@ public class CanalDeSombras extends TextWebSocketHandler {
     private static final int FILA_DE_ENVIO_BYTES = 16 * 1024;
 
     /** Um piloto conectado; {@code ultimoRepasseMs} guarda, por tipo (sombra, explosão), quando ele foi repassado. */
-    private record Piloto(int numero, String nome, WebSocketSession sessao, Map<String, Long> ultimoRepasseMs) {
+    private record Piloto(int numero, String nome, String skin, WebSocketSession sessao,
+                          Map<String, Long> ultimoRepasseMs) {
     }
 
     private final Map<String, Piloto> pilotos = new ConcurrentHashMap<>();
     private final AtomicInteger proximoNumero = new AtomicInteger(1);
     private final JsonMapper json = JsonMapper.builder().build();
     private final Clock relogio;
+    private final RepositorioDeJogadores jogadores;
 
-    public CanalDeSombras(Clock relogio) {
+    public CanalDeSombras(Clock relogio, RepositorioDeJogadores jogadores) {
         this.relogio = relogio;
+        this.jogadores = jogadores;
     }
 
     @Override
@@ -92,7 +100,9 @@ public class CanalDeSombras extends TextWebSocketHandler {
         WebSocketSession segura = new ConcurrentWebSocketSessionDecorator(sessao, ESPERA_DE_ENVIO_MS,
                 FILA_DE_ENVIO_BYTES);
         String nome = String.valueOf(token.getToken().getClaims().getOrDefault("nome", "Piloto"));
-        Piloto piloto = new Piloto(proximoNumero.getAndIncrement(), nome, segura, new HashMap<>());
+        // a skin equipada no momento da conexão; uma troca no Hangar vale na próxima conexão
+        String skin = jogadores.skinDe(ServicoDeTokens.idDoJogador(token.getToken())).orElse(Skin.PADRAO);
+        Piloto piloto = new Piloto(proximoNumero.getAndIncrement(), nome, skin, segura, new HashMap<>());
         pilotos.put(sessao.getId(), piloto);
         LOG.info("sombras: {} entrou (piloto {}); {} conectado(s)", nome, piloto.numero(), pilotos.size());
     }
@@ -171,6 +181,7 @@ public class CanalDeSombras extends TextWebSocketHandler {
         sombra.put("tipo", "sombra");
         sombra.put("piloto", piloto.numero());
         sombra.put("nome", piloto.nome());
+        sombra.put("skin", piloto.skin());
         sombra.put("x", x.asDouble());
         sombra.put("y", y.asDouble());
         sombra.put("angulo", angulo.asDouble());

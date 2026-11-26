@@ -64,7 +64,9 @@ guarda nada: pode ser recriado à vontade.
   `docker exec -i <contêiner-do-postgres> pg_restore -U missaomarte -d missaomarte --clean --if-exists < arquivo.dump`.
   No compose de desenvolvimento: `docker compose exec -T postgres pg_dump -U missaomarte -d missaomarte -Fc > ...`.
 - **Atualizar uma versão já publicada:** as migrações novas rodam sozinhas na subida. Faça uma cópia antes de
-  publicar uma versão com migração nova.
+  publicar uma versão com migração nova. Na Fase 8 (etapa 2a), uma migração cria as tabelas `moedas`, `bilhetes` e
+  `skins_do_jogador` e a coluna `skin` dos jogadores, com o padrão `padrao`. Quem já tinha conta fica com a nave de
+  sempre e saldo zero, porque as vitórias antigas não rendem moedas.
 - **Sem `MISSAOMARTE_DB_URL`** (testes locais), o servidor usa um H2 em `/dados/missaomarte.mv.db`. Nesse caso:
   - monte um volume em `/dados`;
   - use uma instância só, porque o H2 trava o arquivo;

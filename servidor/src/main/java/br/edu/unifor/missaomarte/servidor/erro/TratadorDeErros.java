@@ -61,6 +61,15 @@ public class TratadorDeErros extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, erro.getMessage());
     }
 
+    /** Fase 8: 409 da loja, com o {@code motivo} (JA_POSSUI, SALDO_INSUFICIENTE ou NAO_POSSUI). */
+    @ExceptionHandler(RecusaDaLoja.class)
+    ProblemDetail recusaDaLoja(RecusaDaLoja erro) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, erro.getMessage());
+        problema.setProperty("motivo", erro.getMotivo().name());
+        erro.getExtras().forEach(problema::setProperty);
+        return problema;
+    }
+
     @ExceptionHandler(Exception.class)
     ProblemDetail inesperado(Exception erro) {
         LOG.error("erro inesperado", erro);

@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.ColumnDefault;
 
 /**
  * Entidade JPA de um jogador. Fica dentro do servidor: a API nunca a devolve (usa {@link JogadorResposta}), então o
@@ -30,6 +31,14 @@ public class Jogador {
     @Column(name = "criado_em", nullable = false)
     private Instant criadoEm;
 
+    /**
+     * Fase 8: o id da skin equipada (catálogo da loja). O valor padrão no banco faz os jogadores que já existiam
+     * ficarem com a nave de sempre quando a coluna é criada ({@code ddl-auto=update} num banco com dados).
+     */
+    @ColumnDefault("'padrao'")
+    @Column(nullable = false, length = 32)
+    private String skin = "padrao";
+
     protected Jogador() {
         // exigido pelo JPA
     }
@@ -44,4 +53,10 @@ public class Jogador {
     public String getNome() { return nome; }
     public String getSenhaHash() { return senhaHash; }
     public Instant getCriadoEm() { return criadoEm; }
+    public String getSkin() { return skin; }
+
+    /** Troca a skin equipada; quem chama já conferiu que o jogador tem essa skin. */
+    public void equipar(String skin) {
+        this.skin = skin;
+    }
 }

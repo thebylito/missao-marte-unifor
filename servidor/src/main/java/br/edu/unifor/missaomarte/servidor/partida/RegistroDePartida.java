@@ -19,9 +19,14 @@ public record RegistroDePartida(
         @Max(value = 1_000_000, message = "no máximo 1000000 movimentos") Integer movimentos,
         @NotNull(message = "informe o tempo") @Min(value = 0, message = "o tempo não pode ser negativo")
         @Max(value = 86_400, message = "no máximo 86400 segundos") Long tempoSegundos,
-        Modo modo) {
+        Modo modo,
+        String bilhete) {
 
-    /** Fase 7: o modo é opcional; sem ele (clientes das Fases 5 e 6), a partida é do modo clássico. */
+    /**
+     * Fase 7: o modo é opcional; sem ele (clientes das Fases 5 e 6), a partida é do modo clássico. Fase 8: o bilhete
+     * ({@code POST /api/partidas/inicio}) também é opcional; sem ele (clientes 7.x), ou com um bilhete inválido, a
+     * partida entra como sempre, mas não rende moedas.
+     */
     public RegistroDePartida {
         if (modo == null) {
             modo = Modo.CLASSICO;
