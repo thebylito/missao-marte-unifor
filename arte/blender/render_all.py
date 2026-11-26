@@ -5,10 +5,9 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE))
 import argparse, importlib, json, os, time
-import bpy
 import numpy as np
-from specs import SPECS
-from common import scene
+from specs import SPECS, SKINS
+from naves.atlas import gerar_atlas
 from verify import verify
 
 OUT=HERE.parent.parent/'assets'/'sprites'   # raiz do projeto: assets/sprites
@@ -19,8 +18,14 @@ def arguments():
     p.add_argument('--engine',choices=['eevee','cycles'],default='eevee')
     p.add_argument('--samples',type=int,default=16)
     p.add_argument('--only',nargs='+',choices=list(SPECS))
-    p.add_argument('--verify-only',action='store_true')
-    return p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument('--render-only',action='store_true',help='write sprite sheets only')
+    mode.add_argument('--atlas-only',action='store_true',help='compose atlases and metadata from disk sheets')
+    mode.add_argument('--verify-only',action='store_true',help='verify the full asset set on disk')
+    args = p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+    if args.only and (args.atlas_only or args.verify_only):
+        p.error('--only is for render modes')
+    return args
 
 
 def metadata():
@@ -28,11 +33,12 @@ def metadata():
           'frameOrder':'left-to-right, top-to-bottom','alphaMode':'straight',
           'camera':'orthographic XZ','lighting':'fixed upper-left key + subtle rim',
           'assets':{}}
-    for name,(w,h,n,c,r) in SPECS.items():
-        entry={'file':name+'.png','cellW':w,'cellH':h,'cols':c,'rows':r,'frames':n,
+    for name, spec in SPECS.items():
+        w,h,n,c,r = spec.grid
+        entry={'file':spec.output,'cellW':w,'cellH':h,'cols':c,'rows':r,'frames':n,
                'width':w*c,'height':h*r,'pivot':{'x':w/2,'y':0 if name=='chama' else h/2},
                'opaque':name in ('fundo','rocha_tile')}
-        if name=='nave':
+        if name=='nave' or name in SKINS:
             entry.update(frame0='nose up',rotationDirection='counterclockwise',degreesPerFrame=5.625)
         if name.startswith('plataforma_'):
             entry['landingY']=16 if name=='plataforma_base' else 12
@@ -49,7 +55,19 @@ def metadata():
     return data
 
 
+def write_manifest():
+    path = OUT/'manifest.json'
+    data = metadata()
+    if path.exists():
+        # Preserve entries for previously published sheets, even when retired.
+        previous = json.loads(path.read_text())
+        data['assets'] = {**previous['assets'], **data['assets']}
+    path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+
+
 def read_render(path,w,h):
+    import bpy
+
     im=bpy.data.images.load(str(path),check_existing=False)
     im.alpha_mode='STRAIGHT'
     a=np.empty(w*h*4,np.float32)
@@ -59,6 +77,8 @@ def read_render(path,w,h):
 
 
 def write_sheet(path,a):
+    import bpy
+
     h,w=a.shape[:2]
     im=bpy.data.images.new(path.stem,width=w,height=h,alpha=True,float_buffer=False)
     im.alpha_mode='STRAIGHT'
@@ -71,10 +91,14 @@ def write_sheet(path,a):
 
 
 def render_asset(name,args,frame_path):
+    import bpy
+    from common import scene
+
     start=time.perf_counter()
-    w,h,n,c,r=SPECS[name]
+    spec = SPECS[name]
+    w,h,n,c,r = spec.grid
     s=scene(w,h,opaque=name in ('fundo','rocha_tile'),engine=args.engine,samples=args.samples)
-    module=importlib.import_module(name)
+    module=importlib.import_module(spec.module)
     animate=module.build()
     sheet=np.zeros((r*h,c*w,4),np.float32)
     engines=set()
@@ -104,7 +128,9 @@ def render_asset(name,args,frame_path):
         x=(i%c)*w
         sheet[y:y+h,x:x+w]=a
         print(f'FRAME {name} {i+1}/{n}',flush=True)
-    write_sheet(OUT/(name+'.png'),sheet)
+    path = OUT/spec.output
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_sheet(path,sheet)
     elapsed=time.perf_counter()-start
     print(f'ASSET {name}: {c*w}x{r*h}; {elapsed:.2f}s',flush=True)
     return {'seconds':round(elapsed,3),'engines':sorted(engines),'frames':n}
@@ -117,6 +143,12 @@ def main():
     if args.verify_only:
         verify()
         return
+    if args.atlas_only:
+        gerar_atlas(OUT)
+        write_manifest()
+        return
+    import bpy
+
     start=time.perf_counter()
     OUT.mkdir(parents=True,exist_ok=True)
     frame_path=HERE/f'.render_frame_{os.getpid()}.png'  # um por processo: permite renders em paralelo
@@ -124,17 +156,20 @@ def main():
     try:
         for name in args.only or SPECS:
             report['assets'][name]=render_asset(name,args,frame_path)
-        (OUT/'manifest.json').write_text(json.dumps(metadata(),ensure_ascii=False,indent=2)+'\n')
+        if not args.render_only:
+            gerar_atlas(OUT)
+            write_manifest()
         report['renderSeconds']=round(time.perf_counter()-start,3)
         report['underTenMinutes']=report['renderSeconds']<600
-        # Full-set verification also runs after a partial rerender, catching stale/missing files.
-        verify()
+        if not args.render_only:
+            # Full-set verification also runs after a partial rerender by default.
+            verify()
         report['complete']=True
     finally:
         report['totalSeconds']=round(time.perf_counter()-start,3)
         (HERE/'render_report.json').write_text(json.dumps(report,indent=2)+'\n')
         frame_path.unlink(missing_ok=True)
-    print(f'TOTAL RENDER {report["renderSeconds"]:.2f}s; TOTAL + VERIFY {report["totalSeconds"]:.2f}s',flush=True)
+    print(f'TOTAL RENDER {report["renderSeconds"]:.2f}s; TOTAL {report["totalSeconds"]:.2f}s',flush=True)
     if not report['underTenMinutes']:
         print('DEVIATION: regeneration exceeded the 600-second target.',flush=True)
 

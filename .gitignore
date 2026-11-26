@@ -23,3 +23,5 @@ android/libs/
 
 # cache do Python (scripts de validação)
 __pycache__/
+
+/arte/blender/naves/contato.png
