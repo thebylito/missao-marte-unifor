@@ -5,11 +5,13 @@ import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
 import br.edu.unifor.missaomarte.grafico.Plataforma;
 import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
 import br.edu.unifor.missaomarte.grafico.apresentacao.Botao;
+import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida.ModoDaMissao;
 import br.edu.unifor.missaomarte.grafico.apresentacao.LayoutDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
 import br.edu.unifor.missaomarte.grafico.apresentacao.SombrasDaPilotagem;
 import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
+import br.edu.unifor.missaomarte.grafico.telas.TelaNovaPartida;
 import br.edu.unifor.missaomarte.grafico.telas.TelaPilotagem;
 import br.edu.unifor.missaomarte.pilotagem.Comandos;
 import br.edu.unifor.missaomarte.pilotagem.NaveEmVoo;
@@ -288,7 +290,8 @@ public class PilotoDaJanela extends MissaoMarteGame {
         tecla(Keys.ENTER, '\r');
         aguardar(1.5f);
         tecla(Keys.NUM_1, '1');
-        tecla(Keys.LEFT, (char) 0);           // Médio -> Fácil (a pilotagem já é o padrão)
+        selecionarModo(ModoDaMissao.PILOTAGEM);
+        tecla(Keys.LEFT, (char) 0);           // Médio -> Fácil
         tecla(Keys.ENTER, '\r');
         aguardar(0.5f);
         roteiro.add(() -> vigiando = true);
@@ -395,7 +398,7 @@ public class PilotoDaJanela extends MissaoMarteGame {
         aguardar(1.5f);                       // cadastro + login no servidor
         print("menu-conectado");
         tecla(Keys.NUM_1, '1');               // nova partida: o nome já vem preenchido com o da conta
-        tecla(Keys.TAB, '\t');                // modo: clássico (a pilotagem é o padrão)
+        selecionarModo(ModoDaMissao.CLASSICO);
         tecla(Keys.LEFT, (char) 0);
         tecla(Keys.DOWN, (char) 0); tecla(Keys.DOWN, (char) 0); print("nova-partida-conectado");
         tecla(Keys.ENTER, '\r');
@@ -506,14 +509,29 @@ public class PilotoDaJanela extends MissaoMarteGame {
     }
 
     private void tecla(int codigo, char caractere) {
+        roteiro.add(() -> apertarTecla(codigo, caractere));
+    }
+
+    /** Nos roteiros com conta, o modo inicial depende da publicação da Horda. */
+    private void selecionarModo(ModoDaMissao modo) {
         roteiro.add(() -> {
-            InputProcessor p = Gdx.input.getInputProcessor();
-            p.keyDown(codigo);
-            InputProcessor depois = Gdx.input.getInputProcessor();   // pode ter trocado de tela no keyDown
-            if (caractere != 0) depois.keyTyped(caractere);
-            depois.keyUp(codigo);
-            Gdx.app.log("Piloto", "tecla " + Keys.toString(codigo));
+            if (getScreen() instanceof TelaNovaPartida nova) {
+                for (int troca = 0; troca < 3; troca++) {
+                    apertarTecla(Keys.TAB, '\t');
+                    if (nova.getModo() == modo) return;
+                }
+            }
+            throw new IllegalStateException("Não foi possível selecionar " + modo.getNome());
         });
+    }
+
+    private void apertarTecla(int codigo, char caractere) {
+        InputProcessor p = Gdx.input.getInputProcessor();
+        p.keyDown(codigo);
+        InputProcessor depois = Gdx.input.getInputProcessor();   // pode ter trocado de tela no keyDown
+        if (caractere != 0) depois.keyTyped(caractere);
+        depois.keyUp(codigo);
+        Gdx.app.log("Piloto", "tecla " + Keys.toString(codigo));
     }
 
     private void print(String nome) {

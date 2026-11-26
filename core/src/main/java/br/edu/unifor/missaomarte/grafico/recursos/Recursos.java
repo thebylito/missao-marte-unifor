@@ -99,6 +99,7 @@ public final class Recursos implements Disposable {
         FreetypeFontLoader.FreeTypeFontLoaderParameter p = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
         p.fontFileName = arquivo;
         p.fontParameters.size = TAMANHO_GERADO;
+        if (fonte == Fonte.TITULO) p.fontParameters.characters = FreeTypeFontGenerator.DEFAULT_CHARS + "▶";
         p.fontParameters.genMipMaps = true;
         p.fontParameters.minFilter = TextureFilter.MipMapLinearLinear;
         p.fontParameters.magFilter = TextureFilter.Linear;
