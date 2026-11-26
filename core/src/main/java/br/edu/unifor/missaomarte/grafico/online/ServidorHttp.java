@@ -7,6 +7,8 @@ import com.badlogic.gdx.Net.HttpMethods;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.JsonWriter;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -76,7 +78,17 @@ public final class ServidorHttp implements ServidorDoJogo {
         corpo.addChild("nome", new JsonValue(nome));
         corpo.addChild("senha", new JsonValue(senha));
         enviar(HttpMethods.POST, "/api/sessoes", null, corpo,
-                json -> new Sessao(json.get("jogador").getString("nome"), json.getString("token")), resposta);
+                json -> new Sessao(json.get("jogador").getString("nome"), json.getString("token"),
+                        instante(json.getString("expiraEm", null))), resposta);
+    }
+
+    /** A validade do token, ou null se o servidor não a mandou num formato legível (a sessão vale até um 401). */
+    private static Instant instante(String texto) {
+        try {
+            return texto == null ? null : Instant.parse(texto);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     @Override

@@ -9,6 +9,7 @@ import br.edu.unifor.missaomarte.grafico.ServicosDoJogo;
 import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.PreferenciasLibgdx;
 import br.edu.unifor.missaomarte.grafico.online.ServidorHttp;
+import br.edu.unifor.missaomarte.grafico.online.SessaoGuardada;
 import br.edu.unifor.missaomarte.grafico.recursos.CatalogoDeAssets;
 import br.edu.unifor.missaomarte.infraestrutura.RankingArquivoJson;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
@@ -40,9 +41,12 @@ public final class Lwjgl3Launcher {
         if (ReinicioNoMacOS.reiniciarSeNecessario(Lwjgl3Launcher.class, args)) {
             return;   // a janela abriu (e já fechou) no processo filho
         }
-        ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(new PreferenciasLibgdx("missao-marte"),
+        // ~/.prefs/missao-marte guarda o endereço do servidor e a sessão do piloto (DA-38)
+        PreferenciasLibgdx preferencias = new PreferenciasLibgdx("missao-marte");
+        ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(preferencias,
                 ConfiguracaoDoServidor.padraoDoBuild(SERVIDOR_PADRAO), System.getProperty(PROPRIEDADE_SERVIDOR));
-        Plataforma plataforma = new Plataforma(Boolean.getBoolean(PROPRIEDADE_TOQUE), servidor);
+        Plataforma plataforma = new Plataforma(Boolean.getBoolean(PROPRIEDADE_TOQUE), servidor,
+                new SessaoGuardada(preferencias));
         new Lwjgl3Application(new MissaoMarteGame(montarServicos(servidor), plataforma), configuracao());
     }
 

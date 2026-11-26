@@ -1,6 +1,7 @@
 package br.edu.unifor.missaomarte.grafico.apresentacao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.edu.unifor.missaomarte.grafico.online.Falha;
@@ -42,5 +43,15 @@ class EnvioDoResultadoTeste {
         assertEquals(EnvioDoResultado.Estado.FALHOU, e.getEstado());
         assertEquals("Não foi possível registrar no servidor. Servidor indisponível. Você pode jogar como convidado.",
                 e.texto());
+        assertFalse(e.isSessaoRecusada(), "servidor fora do ar não desconecta o piloto");
+    }
+
+    @Test
+    void tokenRecusadoAvisaQueASessaoAcabou() {
+        EnvioDoResultado e = EnvioDoResultado.iniciar(Optional.of(new Sessao("Ana", "tok")), servidor, partida);
+        servidor.registro.falha(new Falha(Falha.Motivo.NAO_AUTORIZADO,
+                "Token ausente, inválido ou expirado. Entre novamente."));
+        assertEquals(EnvioDoResultado.Estado.FALHOU, e.getEstado());
+        assertTrue(e.isSessaoRecusada());
     }
 }

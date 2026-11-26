@@ -25,6 +25,13 @@ public class TelaHistorico extends TelaBase {
         }
     }
 
+    @Override
+    protected void atualizar(float delta) {
+        if (consulta != null && consulta.isSessaoRecusada()) {
+            jogo.sessaoRecusada();   // token vencido: a mensagem pede para entrar de novo, e o menu mostra convidado
+        }
+    }
+
     private static final Retangulo BOTAO_VOLTAR =
             new Retangulo(290, 36, 220, 64);
 
