@@ -17,6 +17,36 @@
         }
     ],
     "paths": {
+        "/api/jogadores/eu/skin": {
+            "put": {
+                "tags": [
+                    "controlador-do-hangar"
+                ],
+                "operationId": "equipar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PedidoDeSkin"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SkinEquipada"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/sessoes": {
             "post": {
                 "tags": [
@@ -69,7 +99,67 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PartidaResposta"
+                                    "$ref": "#/components/schemas/PartidaRegistrada"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/partidas/inicio": {
+            "post": {
+                "tags": [
+                    "controlador-de-partidas"
+                ],
+                "operationId": "iniciar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InicioDePartida"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BilheteResposta"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/loja/compras": {
+            "post": {
+                "tags": [
+                    "controlador-da-loja"
+                ],
+                "operationId": "comprar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PedidoDeSkin"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CompraResposta"
                                 }
                             }
                         }
@@ -168,6 +258,29 @@
                 }
             }
         },
+        "/api/loja": {
+            "get": {
+                "tags": [
+                    "controlador-da-loja"
+                ],
+                "operationId": "catalogo",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Skin"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/jogadores/eu": {
             "get": {
                 "tags": [
@@ -187,10 +300,50 @@
                     }
                 }
             }
+        },
+        "/api/jogadores/eu/hangar": {
+            "get": {
+                "tags": [
+                    "controlador-do-hangar"
+                ],
+                "operationId": "hangar",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Hangar"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "PedidoDeSkin": {
+                "type": "object",
+                "properties": {
+                    "skin": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "skin"
+                ]
+            },
+            "SkinEquipada": {
+                "type": "object",
+                "properties": {
+                    "equipada": {
+                        "type": "string"
+                    }
+                }
+            },
             "Credenciais": {
                 "type": "object",
                 "properties": {
@@ -291,6 +444,9 @@
                             "CLASSICO",
                             "PILOTAGEM"
                         ]
+                    },
+                    "bilhete": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -302,7 +458,7 @@
                     "tempoSegundos"
                 ]
             },
-            "PartidaResposta": {
+            "PartidaRegistrada": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -351,6 +507,65 @@
                             "CLASSICO",
                             "PILOTAGEM"
                         ]
+                    },
+                    "moedasGanhas": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "saldo": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "InicioDePartida": {
+                "type": "object",
+                "properties": {
+                    "modo": {
+                        "type": "string",
+                        "enum": [
+                            "CLASSICO",
+                            "PILOTAGEM"
+                        ]
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "FACIL",
+                            "MEDIO",
+                            "DIFICIL"
+                        ]
+                    }
+                },
+                "required": [
+                    "dificuldade"
+                ]
+            },
+            "BilheteResposta": {
+                "type": "object",
+                "properties": {
+                    "bilhete": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "validoAte": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "CompraResposta": {
+                "type": "object",
+                "properties": {
+                    "saldo": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "skins": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -407,6 +622,98 @@
                     "registradaEm": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                }
+            },
+            "PartidaResposta": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "resultado": {
+                        "type": "string",
+                        "enum": [
+                            "VITORIA",
+                            "DERROTA",
+                            "ABORTADA"
+                        ]
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "FACIL",
+                            "MEDIO",
+                            "DIFICIL"
+                        ]
+                    },
+                    "pontos": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "passageiros": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "movimentos": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "tempoSegundos": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "registradaEm": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "modo": {
+                        "type": "string",
+                        "enum": [
+                            "CLASSICO",
+                            "PILOTAGEM"
+                        ]
+                    }
+                }
+            },
+            "Skin": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "linha": {
+                        "type": "string"
+                    },
+                    "nivel": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "preco": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "Hangar": {
+                "type": "object",
+                "properties": {
+                    "saldo": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "skins": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "equipada": {
+                        "type": "string"
                     }
                 }
             }
