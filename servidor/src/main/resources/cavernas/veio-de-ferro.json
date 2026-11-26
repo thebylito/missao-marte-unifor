@@ -1,0 +1,33 @@
+{
+  "id": "veio-de-ferro",
+  "nome": "Veio de Ferro",
+  "largura": 3180,
+  "altura": 1200,
+  "rochas": [
+    { "x": 0, "y": 0, "largura": 3180, "altura": 80 },
+    { "x": 0, "y": 1120, "largura": 3180, "altura": 80 },
+    { "x": 0, "y": 0, "largura": 40, "altura": 1200 },
+    { "x": 3140, "y": 0, "largura": 40, "altura": 1200 },
+    { "x": 530, "y": 620, "largura": 460, "altura": 500 },
+    { "x": 1520, "y": 640, "largura": 400, "altura": 480 },
+    { "x": 2440, "y": 600, "largura": 380, "altura": 520 },
+    { "x": 830, "y": 80, "largura": 380, "altura": 120 },
+    { "x": 1550, "y": 80, "largura": 270, "altura": 190 },
+    { "x": 2230, "y": 80, "largura": 330, "altura": 150 }
+  ],
+  "base": { "x": 120, "superficie": 128 },
+  "pontosDePouso": [
+    { "x": 475, "superficie": 116 },
+    { "x": 900, "superficie": 236 },
+    { "x": 1280, "superficie": 116 },
+    { "x": 1610, "superficie": 306 },
+    { "x": 1930, "superficie": 116 },
+    { "x": 2290, "superficie": 266 },
+    { "x": 2840, "superficie": 116 }
+  ],
+  "asteroides": [
+    { "centroX": 1250, "centroY": 680, "raio": 30, "amplitudeX": 100, "amplitudeY": 0, "periodo": 7, "fase": 0, "giroGrausPorSegundo": 42 },
+    { "centroX": 2090, "centroY": 790, "raio": 34, "amplitudeX": 0, "amplitudeY": 95, "periodo": 6, "fase": 1.4, "giroGrausPorSegundo": -50 }
+  ],
+  "liberada": false
+}

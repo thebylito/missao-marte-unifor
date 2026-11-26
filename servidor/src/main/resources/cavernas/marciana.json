@@ -1,0 +1,35 @@
+{
+  "id": "marciana",
+  "nome": "Caverna Marciana",
+  "largura": 3840,
+  "altura": 1440,
+  "rochas": [
+    { "x": 0, "y": 0, "largura": 3840, "altura": 80 },
+    { "x": 0, "y": 1360, "largura": 3840, "altura": 80 },
+    { "x": 0, "y": 0, "largura": 40, "altura": 1440 },
+    { "x": 3800, "y": 0, "largura": 40, "altura": 1440 },
+    { "x": 820, "y": 80, "largura": 120, "altura": 640 },
+    { "x": 1120, "y": 760, "largura": 150, "altura": 600 },
+    { "x": 1300, "y": 80, "largura": 520, "altura": 400 },
+    { "x": 1980, "y": 880, "largura": 160, "altura": 480 },
+    { "x": 2220, "y": 900, "largura": 440, "altura": 60 },
+    { "x": 2800, "y": 80, "largura": 140, "altura": 660 },
+    { "x": 3050, "y": 980, "largura": 420, "altura": 380 }
+  ],
+  "base": { "x": 260, "superficie": 128 },
+  "pontosDePouso": [
+    { "x": 1480, "superficie": 516 },
+    { "x": 2360, "superficie": 996 },
+    { "x": 3360, "superficie": 116 },
+    { "x": 2000, "superficie": 116 },
+    { "x": 2790, "superficie": 776 },
+    { "x": 600, "superficie": 116 },
+    { "x": 3050, "superficie": 116 }
+  ],
+  "asteroides": [
+    { "centroX": 1040, "centroY": 520, "raio": 36, "amplitudeX": 0, "amplitudeY": 200, "periodo": 6, "fase": 0, "giroGrausPorSegundo": 40 },
+    { "centroX": 2480, "centroY": 560, "raio": 40, "amplitudeX": 220, "amplitudeY": 0, "periodo": 7, "fase": 1.2, "giroGrausPorSegundo": -55 },
+    { "centroX": 3240, "centroY": 600, "raio": 32, "amplitudeX": 120, "amplitudeY": 160, "periodo": 5, "fase": 2.4, "giroGrausPorSegundo": 70 }
+  ],
+  "liberada": true
+}
