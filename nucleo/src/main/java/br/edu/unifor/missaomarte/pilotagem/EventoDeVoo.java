@@ -5,7 +5,8 @@ package br.edu.unifor.missaomarte.pilotagem;
  * a partida só os produz; quem decide como mostrá-los é a interface.
  *
  * @param mensagem texto pronto para o jogador
- * @param valor    pontos ganhos (ENTREGOU), vidas restantes (EXPLODIU) ou pontos finais (VITORIA); senão 0
+ * @param valor    pontos ganhos (ENTREGOU), vidas restantes (EXPLODIU), pontos finais (VITORIA) ou
+ *                 sobrevivência (PERIGO_TERMINOU, 1 ou 0); senão 0
  * @param x        onde aconteceu (a posição da nave)
  * @param y        onde aconteceu
  */
@@ -22,6 +23,8 @@ public record EventoDeVoo(Tipo tipo, String mensagem, int valor, double x, doubl
         RENASCEU,
         VITORIA,
         DERROTA,
-        ABORTADA
+        ABORTADA,
+        PERIGO_INICIOU,
+        PERIGO_TERMINOU
     }
 }

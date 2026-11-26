@@ -4,7 +4,12 @@ import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.aplicacao.ResultadoPartida;
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.dominio.Passageiro;
+import br.edu.unifor.missaomarte.pilotagem.horda.PerigoDoRoteiro;
+import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +46,7 @@ public final class PartidaDePilotagem {
     static final double QUADRO_MAXIMO = 0.25;
     /** Erro de arredondamento tolerado no acumulador (30 quadros de 1/30 s são exatamente 120 passos). */
     private static final double FOLGA = 1e-9;
+    private static final double GRAVIDADE_MAXIMA_COM_PANE = 1.5 * ConfigDeVoo.medio().gravidade();
 
     private final String piloto;
     private final Dificuldade dificuldade;
@@ -48,10 +54,19 @@ public final class PartidaDePilotagem {
     private final Caverna caverna;
     private final NaveEmVoo nave;
     private final List<EventoDeVoo> eventos = new ArrayList<>();
+    private final Deque<PerigoDoRoteiro> roteiro = new ArrayDeque<>();
+    private final List<EventoAplicado> eventosAoVivo = new ArrayList<>();
+    private final List<EventoAplicado> eventosAplicados = new ArrayList<>();
+    private final List<PerigoAtivo> perigos = new ArrayList<>();
     /** De que plataforma veio cada passageiro (para onde ele volta se a nave explodir). */
     private final Map<Passageiro, PlataformaDePouso> origens = new IdentityHashMap<>();
     private Partida.Estado estado = Partida.Estado.EM_ANDAMENTO;
     private double tempo;
+    private long passo;
+    private double ventoConstante;
+    private double rajada;
+    private double intensidadeDaTempestade;
+    private boolean paneDeGravidade;
     private double acumulador;
     private double tempoPousada;
     private double tempoDestruida;
@@ -103,6 +118,10 @@ public final class PartidaDePilotagem {
             return;
         }
         tempo += PASSO;
+        passo++;
+        if (!roteiro.isEmpty() || !eventosAoVivo.isEmpty() || !perigos.isEmpty()) {
+            atualizarPerigos();
+        }
         double tempoDosAsteroides = tempo * config.velocidadeDosAsteroides();
         for (AsteroideEmOrbita a : caverna.getAsteroides()) {
             a.posicionar(tempoDosAsteroides);
@@ -118,6 +137,69 @@ public final class PartidaDePilotagem {
                 voar(comandos);
                 break;
         }
+    }
+
+    // ------------------------------------------------------------------ efeitos
+
+    /** Aceleração lateral da horda, positiva para a direita. Zero desliga o vento. */
+    public void definirVentoConstante(double aceleracaoLateral) {
+        ventoConstante = aceleracaoLateral;
+    }
+
+    /** Substitui o roteiro pendente. Perigos já iniciados seguem até o fim. */
+    public void definirRoteiro(List<PerigoDoRoteiro> roteiro) {
+        List<PerigoDoRoteiro> emOrdem = roteiro.stream()
+                .sorted(Comparator.comparingDouble(PerigoDoRoteiro::instante)).toList();
+        for (PerigoDoRoteiro perigo : emOrdem) {
+            exigirPerigo(perigo.tipo());
+        }
+        this.roteiro.clear();
+        this.roteiro.addAll(emOrdem);
+    }
+
+    /** Agenda um perigo ao vivo para o próximo passo. */
+    public void iniciarEvento(TipoDeEvento tipo, long semente) {
+        exigirPerigo(tipo);
+        eventosAoVivo.add(new EventoAplicado(tipo, semente, passo + 1));
+    }
+
+    private static void exigirPerigo(TipoDeEvento tipo) {
+        if (!tipo.perigo()) {
+            throw new IllegalArgumentException("O VIP precisa da posição da cápsula.");
+        }
+    }
+
+    private void atualizarPerigos() {
+        // O relógio da física original acumula arredondamento. O roteiro usa o instante do passo inteiro.
+        double instanteDoPasso = passo * PASSO;
+        while (!roteiro.isEmpty() && roteiro.peekFirst().instante() <= instanteDoPasso) {
+            PerigoDoRoteiro proximo = roteiro.removeFirst();
+            aplicarPerigo(new EventoAplicado(proximo.tipo(), proximo.semente(), passo));
+        }
+        eventosAoVivo.forEach(this::aplicarPerigo);
+        eventosAoVivo.clear();
+
+        rajada = 0;
+        intensidadeDaTempestade = 0;
+        paneDeGravidade = false;
+        for (var iterator = perigos.iterator(); iterator.hasNext();) {
+            PerigoAtivo perigo = iterator.next();
+            if (perigo.terminou(passo)) {
+                emitir(EventoDeVoo.Tipo.PERIGO_TERMINOU, perigo.tipo().name(), perigo.sobreviveu ? 1 : 0);
+                iterator.remove();
+            } else if (perigo.tipo() == TipoDeEvento.TEMPESTADE) {
+                rajada += perigo.rajada(passo);
+                intensidadeDaTempestade = Math.max(intensidadeDaTempestade, perigo.intensidade(passo));
+            } else if (perigo.tipo() == TipoDeEvento.PANE_DE_GRAVIDADE) {
+                paneDeGravidade = true;
+            }
+        }
+    }
+
+    private void aplicarPerigo(EventoAplicado evento) {
+        eventosAplicados.add(evento);
+        perigos.add(new PerigoAtivo(evento, nave.estado != NaveEmVoo.Estado.DESTRUIDA));
+        emitir(EventoDeVoo.Tipo.PERIGO_INICIOU, evento.tipo().name(), 0);
     }
 
     /** O jogador desistiu (botão Abortar ou Esc). Depois disso nada mais muda. */
@@ -142,6 +224,9 @@ public final class PartidaDePilotagem {
 
         double ax = 0;
         double ay = -config.gravidade();
+        if (paneDeGravidade) {
+            ay = -Math.min(config.gravidade() * 1.3, GRAVIDADE_MAXIMA_COM_PANE);
+        }
         nave.motorLigado = comandos.motor() && nave.combustivel > 0;
         if (nave.motorLigado) {
             double[] bico = nave.direcaoDoBico();
@@ -149,6 +234,12 @@ public final class PartidaDePilotagem {
             ay += bico[1] * config.empuxo();
             nave.combustivel = Math.max(0, nave.combustivel - config.consumoPorSegundo() * PASSO);
             avisarSeOCombustivelBaixou();
+        }
+        if (ventoConstante != 0) {
+            ax += ventoConstante;
+        }
+        if (rajada != 0) {
+            ax += rajada;
         }
         nave.velocidadeX += ax * PASSO;
         nave.velocidadeY += ay * PASSO;
@@ -293,6 +384,9 @@ public final class PartidaDePilotagem {
     }
 
     private void destruir(String motivo) {
+        for (PerigoAtivo perigo : perigos) {
+            perigo.sobreviveu = false;
+        }
         nave.estado = NaveEmVoo.Estado.DESTRUIDA;
         nave.motorLigado = false;
         nave.plataforma = null;
@@ -385,6 +479,12 @@ public final class PartidaDePilotagem {
     public int getBonus() { return bonus; }
     public int getEntregues() { return entregues; }
     public int getPousos() { return pousos; }
+
+    /** Histórico em ordem de aplicação, independente de consumirEventos(). */
+    public List<EventoAplicado> eventosAplicados() { return List.copyOf(eventosAplicados); }
+
+    /** Opacidade da névoa entre 0 e 1. */
+    public double intensidadeDaTempestade() { return intensidadeDaTempestade; }
 
     /** De 0 a 1: quanto falta para o passageiro da plataforma embarcar (para a tela animar). */
     public double progressoDoEmbarque() {
