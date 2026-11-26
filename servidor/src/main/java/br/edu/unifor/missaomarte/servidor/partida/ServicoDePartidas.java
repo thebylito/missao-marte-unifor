@@ -59,14 +59,15 @@ public class ServicoDePartidas {
         if (dados.modo() == Modo.HORDA) {
             return registrarNaHorda(jogadorId, dados);
         }
+        boolean citaBilhete = dados.bilhete() != null;
+        var encontrado = citaBilhete ? jogadores.travar(jogadorId) : jogadores.findById(jogadorId);
+        Jogador jogador = encontrado.orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
+        // Depois da trava: lido antes dela, o bilhete ficaria em cache como ativo, e dois envios simultâneos o
+        // usariam duas vezes (revisão do PR #35).
         if (comRegraAntiga(jogadorId, dados)) {
             throw ServicoDeBilhetes.jogoDesatualizado(
                     "Esta partida usou as regras antigas. Atualize o jogo pelo site para entrar no ranking.");
         }
-
-        boolean citaBilhete = dados.bilhete() != null;
-        var encontrado = citaBilhete ? jogadores.travar(jogadorId) : jogadores.findById(jogadorId);
-        Jogador jogador = encontrado.orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
         Partida partida = partidas.save(new Partida(jogador, dados, relogio.instant()));
         boolean valeMoedas = citaBilhete && bilhetes.consumir(jogadorId, dados.bilhete(), partida);
         int ganhas = valeMoedas ? moedas.creditarVitoria(partida) : 0;

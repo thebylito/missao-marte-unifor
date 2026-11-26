@@ -194,6 +194,46 @@ class ApiDeAjustesTeste extends ApiComMoedasTeste {
                 .andExpect(jsonPath("$.motivo").value("JOGO_DESATUALIZADO"));
     }
 
+    /**
+     * Revisão do PR #35: dois envios simultâneos da mesma vitória, com o bilhete "do padrão", não podem render moedas
+     * duas vezes. A conferência do bilhete precisa vir depois da trava do jogador.
+     */
+    @Test
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    void doisEnviosSimultaneosComOBilheteDoPadraoRendemMoedasUmaVez() throws Exception {
+        String token = novoJogador("Concorrente");
+        long id = idDe(token);
+        try {
+            String codigo = bilhete(token, "PILOTAGEM", "MEDIO");
+            jdbc.update("update bilhetes set ajustes_padrao = true where codigo = ?", UUID.fromString(codigo));
+            relogio.avancar(Duration.ofSeconds(45));
+            String vitoria = partida("VITORIA", "PILOTAGEM", "MEDIO", 40, codigo);
+            var barreira = new java.util.concurrent.CyclicBarrier(2);
+            var executor = java.util.concurrent.Executors.newFixedThreadPool(2);
+            try {
+                java.util.concurrent.Callable<Integer> enviar = () -> {
+                    barreira.await(5, java.util.concurrent.TimeUnit.SECONDS);
+                    return registrar(token, vitoria).andReturn().getResponse().getStatus();
+                };
+                var primeiro = executor.submit(enviar);
+                var segundo = executor.submit(enviar);
+                List<Integer> codigos = List.of(primeiro.get(10, java.util.concurrent.TimeUnit.SECONDS),
+                        segundo.get(10, java.util.concurrent.TimeUnit.SECONDS));
+                assertThat(codigos).containsOnlyOnce(201);
+            } finally {
+                executor.shutdownNow();
+            }
+            assertThat(jdbc.queryForObject("select coalesce(sum(valor), 0) from moedas where jogador_id = ?",
+                    Integer.class, id)).isEqualTo(3);
+        } finally {
+            jdbc.update("delete from bilhetes where jogador_id = ?", id);
+            jdbc.update("delete from moedas where jogador_id = ?", id);
+            jdbc.update("delete from partidas where jogador_id = ?", id);
+            jdbc.update("delete from jogadores where id = ?", id);
+        }
+    }
+
     private Boolean ajustesPadraoDoBilhete(String codigo) {
         return jdbc.queryForObject("select ajustes_padrao from bilhetes where codigo = ?", Boolean.class,
                 UUID.fromString(codigo));

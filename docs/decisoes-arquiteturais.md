@@ -888,7 +888,11 @@ números, e o jogo precisa usá-los.
     `JOGO_DESATUALIZADO`, "Esta partida usou as regras antigas"), a menos que a partida tenha começado com um
     bilhete emitido quando os ajustes ainda eram o padrão. O bilhete guarda isso (`ajustes_padrao`, migração V6).
     Assim ninguém perde a partida por causa do momento da mudança; só é recusado quem começou a jogar com a regra
-    velha depois dela. A partida continua no ranking local do aparelho. O Clássico não muda.
+    velha depois dela. "Começou com o padrão" quer dizer: o bilhete é da Pilotagem, foi emitido com o padrão, ainda
+    está ativo (pedir outro o anula) e está dentro das 2 h de validade. A conferência vem depois da trava do jogador,
+    para dois envios simultâneos não usarem o mesmo bilhete. A partida recusada continua no ranking local do
+    aparelho. O Clássico não muda. Exceção: o APK da Fase 7 não pede bilhete, então é recusado mesmo tendo começado
+    antes da mudança.
   - **Eventos:** num evento mais longo que o padrão, o jogo antigo termina o perigo mais cedo; num mais curto, mais
     tarde. O servidor aceita o resultado do início da duração mais curta até 15 s depois da mais longa, entre a
     configurada e a padrão, para não tirar os +3 de ninguém. O VIP continua valendo só até o fim do evento.
