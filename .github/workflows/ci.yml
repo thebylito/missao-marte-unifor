@@ -131,4 +131,4 @@ jobs:
           docker buildx build \
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
-            servidor
+            -f servidor/Dockerfile .

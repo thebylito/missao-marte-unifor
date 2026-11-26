@@ -1,0 +1,15 @@
+# Fase 8 (DA-39): o contexto do build é a raiz do repositório, mas só entra o necessário para compilar o
+# servidor e o nucleo. Tudo o mais (assets, android, arte, .git, segredos, bancos) fica de fora.
+*
+!servidor/gradlew
+!servidor/gradle/
+!servidor/settings.gradle
+!servidor/build.gradle
+!servidor/src/
+!servidor/downloads/
+!nucleo/build.gradle
+!nucleo/src/main/
+**/build
+**/.gradle
+servidor/.env
+servidor/dados
