@@ -169,7 +169,8 @@ Node chegou a ser planejada e foi descartada; ver DA-18). Custo: o enum de dific
 e nenhum segredo versionado ou em log.
 **Decisão.**
 - Senha guardada com `BCryptPasswordEncoder`.
-- Login em `POST /api/sessoes`, que devolve um JWT HS256 com o id do jogador no `sub` e validade de 2 h. É validado
+- Login em `POST /api/sessoes`, que devolve um JWT HS256 com o id do jogador no `sub` e validade de 2 h (30 dias
+  desde a DA-38). É validado
   pelo resource server do Spring Security (`spring-boot-starter-oauth2-resource-server`), sem sessão no servidor e
   sem biblioteca extra.
 - O segredo vem só de `MISSAOMARTE_JWT_SEGREDO`. Sem a variável, o servidor gera um segredo temporário e avisa no
@@ -209,7 +210,7 @@ testes do domínio não precisem do servidor.
 - Falhas viram `Falha`, com uma mensagem para o jogador.
 - O fim da partida envia o resultado em segundo plano, e a tela só mostra o andamento.
 - O ranking ganhou as abas local e global, e o menu ganhou as opções histórico e trocar de piloto.
-- A sessão (nome e token) fica só na memória.
+- A sessão (nome e token) fica só na memória. Revisto na DA-38: agora ela também fica guardada no aparelho.
 - O endereço vem de `-Dmissaomarte.servidor`, com padrão `http://localhost:8080`.
 - Escolha registrada com o usuário em 2026-11-18: convidado em vez de login obrigatório.
 
@@ -574,3 +575,41 @@ cliques roda com a pasta de trabalho em "/", onde o jogo não consegue gravar o 
 - **Validação.** O pacote do Mac Apple Silicon foi testado aqui: aberto pelo `open` a partir de "/", ele sobe até a
   tela de entrada e cria `~/.missao-marte`. Os de Windows e Mac Intel são conferidos no CI (o `.exe` e o `.cfg`; a
   assinatura do `.app`), mas ninguém os abriu numa máquina de verdade ainda.
+
+## DA-38 — A sessão fica guardada no aparelho, e o token vale 30 dias (pós-entrega)
+
+**Contexto.** O usuário notou que o celular "deslogava sozinho" (2026-11-25). A investigação achou três causas:
+- **O Android mata o jogo em segundo plano.** O `dumpsys activity exit-info` do celular (Galaxy S24 Ultra,
+  Android 17) registrou `reason=LOW_MEMORY` com o jogo em segundo plano. Ao voltar, o processo é novo, e a sessão,
+  que pela DA-17 ficava só na memória, tinha sumido: o jogo abria na tela de entrada. No emulador, o mesmo com
+  `am kill`.
+- **Trocar o tema claro/escuro recria a Activity.** O `uiMode` não estava no `configChanges`. O celular troca o
+  tema sozinho no pôr do sol, se o tema escuro estiver agendado. Recriar a Activity reinicia o jogo do zero, mesmo
+  em primeiro plano e no meio de uma partida. No emulador: `cmd uimode night yes`, depois `pause` e `create:` no
+  mesmo processo.
+- **O token valia 2 h, e o cliente ignorava o 401.** Depois desse prazo, o menu continuava em "Piloto conectado",
+  mas o envio do resultado, o histórico e as sombras falhavam.
+**Decisão** (o usuário escolheu entre guardar a sessão com um token longo, um token de renovação ou manter as 2 h):
+- **A sessão fica guardada no aparelho.** `SessaoGuardada` grava nome, token, validade e o servidor que emitiu o
+  token nas mesmas preferências do endereço do servidor: no Android, as SharedPreferences privadas do app; no
+  desktop, `~/.prefs/missao-marte`. A senha nunca é guardada.
+- **O jogo recupera a sessão ao abrir.** Depois do carregamento, `irParaInicio` vai direto ao menu se a sessão for
+  do mesmo servidor e ainda valer. Sessão de outro servidor ou vencida é apagada na hora.
+- **O token vale 30 dias** (`missaomarte.jwt.validade=P30D`).
+- **Um 401 desconecta o piloto.** Se o servidor recusa o token no envio do resultado ou no histórico, o jogo apaga a
+  sessão e volta ao modo convidado. A tela já mostra "Entre novamente". "Trocar de piloto" também apaga a sessão.
+- **O manifesto ganhou `uiMode|locale|layoutDirection|fontScale` no `configChanges`.** Tema, idioma e tamanho da
+  fonte do sistema não recriam mais a Activity, porque o jogo não usa nenhum deles.
+**Consequências.**
+- **Não dá para revogar um token antes do prazo.** O JWT continua sem estado: "Trocar de piloto" só apaga a cópia do
+  aparelho, e um token copiado de lá vale até vencer. Trocar `MISSAOMARTE_JWT_SEGREDO` derruba todos os tokens de uma
+  vez. Um token de renovação guardado no servidor resolveria, mas foi deixado de fora pelo custo (tabela, endpoint e
+  testes nos dois lados).
+- **No desktop, o token fica em texto puro no `~/.prefs`.** Quem lê os arquivos da conta do usuário no computador
+  consegue usá-lo.
+- **O que ainda se perde.** Se o Android matar o jogo durante uma partida, a partida acaba (o piloto continua
+  conectado). As sombras não tratam o 401 do WebSocket à parte: a conexão só não abre.
+- **Validação:** roteiros `sessao` e `sessao-vencida` do `pilotar_android.py` no emulador, contra servidores locais
+  de 30 dias e de 2 min. O logcat mostra a sessão recuperada depois do `am kill`, nenhum `create:` ao trocar tema e
+  fonte, a sessão apagada por "Trocar de piloto" e o 401 levando ao modo convidado. Desta vez as evidências ficam
+  fora do repositório, por escolha do usuário.
