@@ -221,6 +221,42 @@
       },
       "opaque": false,
       "loop": true
+    },
+    "guara": {
+      "file": "naves/guara.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 8,
+      "rows": 8,
+      "frames": 64,
+      "width": 1024,
+      "height": 1024,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false,
+      "frame0": "nose up",
+      "rotationDirection": "counterclockwise",
+      "degreesPerFrame": 5.625
+    },
+    "bruma": {
+      "file": "naves/bruma.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 8,
+      "rows": 8,
+      "frames": 64,
+      "width": 1024,
+      "height": 1024,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false,
+      "frame0": "nose up",
+      "rotationDirection": "counterclockwise",
+      "degreesPerFrame": 5.625
     }
   }
 }

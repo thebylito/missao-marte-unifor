@@ -7,7 +7,8 @@ sys.path.insert(0,str(HERE))
 import argparse, importlib, json, os, time
 import bpy
 import numpy as np
-from specs import SPECS
+from specs import SPECS, SKINS
+from naves.atlas import gerar_atlas
 from common import scene
 from verify import verify
 
@@ -28,11 +29,12 @@ def metadata():
           'frameOrder':'left-to-right, top-to-bottom','alphaMode':'straight',
           'camera':'orthographic XZ','lighting':'fixed upper-left key + subtle rim',
           'assets':{}}
-    for name,(w,h,n,c,r) in SPECS.items():
-        entry={'file':name+'.png','cellW':w,'cellH':h,'cols':c,'rows':r,'frames':n,
+    for name, spec in SPECS.items():
+        w,h,n,c,r = spec.grid
+        entry={'file':spec.output,'cellW':w,'cellH':h,'cols':c,'rows':r,'frames':n,
                'width':w*c,'height':h*r,'pivot':{'x':w/2,'y':0 if name=='chama' else h/2},
                'opaque':name in ('fundo','rocha_tile')}
-        if name=='nave':
+        if name=='nave' or name in SKINS:
             entry.update(frame0='nose up',rotationDirection='counterclockwise',degreesPerFrame=5.625)
         if name.startswith('plataforma_'):
             entry['landingY']=16 if name=='plataforma_base' else 12
@@ -72,9 +74,10 @@ def write_sheet(path,a):
 
 def render_asset(name,args,frame_path):
     start=time.perf_counter()
-    w,h,n,c,r=SPECS[name]
+    spec = SPECS[name]
+    w,h,n,c,r = spec.grid
     s=scene(w,h,opaque=name in ('fundo','rocha_tile'),engine=args.engine,samples=args.samples)
-    module=importlib.import_module(name)
+    module=importlib.import_module(spec.module)
     animate=module.build()
     sheet=np.zeros((r*h,c*w,4),np.float32)
     engines=set()
@@ -104,7 +107,9 @@ def render_asset(name,args,frame_path):
         x=(i%c)*w
         sheet[y:y+h,x:x+w]=a
         print(f'FRAME {name} {i+1}/{n}',flush=True)
-    write_sheet(OUT/(name+'.png'),sheet)
+    path = OUT/spec.output
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_sheet(path,sheet)
     elapsed=time.perf_counter()-start
     print(f'ASSET {name}: {c*w}x{r*h}; {elapsed:.2f}s',flush=True)
     return {'seconds':round(elapsed,3),'engines':sorted(engines),'frames':n}
@@ -124,6 +129,7 @@ def main():
     try:
         for name in args.only or SPECS:
             report['assets'][name]=render_asset(name,args,frame_path)
+        gerar_atlas(OUT)
         (OUT/'manifest.json').write_text(json.dumps(metadata(),ensure_ascii=False,indent=2)+'\n')
         report['renderSeconds']=round(time.perf_counter()-start,3)
         report['underTenMinutes']=report['renderSeconds']<600

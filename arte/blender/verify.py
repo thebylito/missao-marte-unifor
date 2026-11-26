@@ -3,10 +3,11 @@ import sys
 sys.dont_write_bytecode = True
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import json, struct
+import importlib, json, re, struct
 import bpy
 import numpy as np
-from specs import SPECS
+from specs import SPECS, SKINS, CATALOGO
+from naves.atlas import ler_rgba
 OUT = Path(__file__).resolve().parent.parent.parent / 'assets' / 'sprites'
 
 def pixels(path):
@@ -17,23 +18,80 @@ def pixels(path):
     bpy.data.images.remove(im)
     return p.reshape(h,w,4)[::-1].copy()
 
+def png_header(path, size):
+    with path.open('rb') as stream:
+        header = stream.read(33)
+    assert header[:8] == b'\x89PNG\r\n\x1a\n', 'not PNG'
+    w,h,depth,color = struct.unpack('>IIBB', header[16:26])
+    assert (w,h) == size, f'wrong dimensions {w}x{h}'
+    assert (depth,color) == (8,6), f'expected 8-bit RGBA, got {depth}/{color}'
+
+
+def silhouette(alpha):
+    y,x = np.where(alpha > .5)
+    return len(y), np.array([x.min(),y.min(),x.max(),y.max()])
+
+
+def verify_skin(alpha, reference, module):
+    area, box = silhouette(alpha)
+    base_area, base_box = reference
+    assert .8 <= area/base_area <= 1.2, f'area {area}/{base_area}'
+    assert np.max(np.abs(box-base_box)) <= 10, f'bounds {box} vs {base_box}'
+    for x,y in [(40,104),(88,104),(64,92)]:
+        assert alpha[y-1,x] > .5 and alpha[y+1,x] < .5, f'landing gear or nozzle at {x},{y}'
+    radius, part = importlib.import_module(module).geometry_radius_bound()
+    assert radius < 56, f'radius {radius} at {part}'
+
+
+def verify_catalog():
+    catalog = json.loads((OUT/'naves/catalogo.json').read_text())
+    assert catalog == CATALOGO, 'catalog differs from spec'
+    ids = [item['id'] for item in catalog]
+    assert ids[0] == 'padrao' and len(set(ids)) == len(ids), 'default or duplicate id'
+    for item in catalog:
+        assert set(item) == {'id','nome','descricao','raridade'}, 'catalog fields'
+        assert re.fullmatch('[a-z0-9_]+', item['id']), 'invalid id'
+        assert item['nome'].strip() and item['descricao'].strip(), 'missing text'
+        assert item['raridade'] in ('comum','rara','epica'), 'invalid rarity'
+    return ids
+
+
+def verify_atlas(name, ids):
+    preview = name == 'previas'
+    h = ((len(ids)+7)//8*128) if preview else len(ids)*64
+    path = OUT/'naves'/(name+'.png')
+    png_header(path, (1024,h))
+    atlas = ler_rgba(path)
+    for i, skin in enumerate(ids):
+        sheet = ler_rgba(OUT/SPECS['nave' if skin == 'padrao' else skin].output)
+        if preview:
+            y,x = i//8*128,i%8*128
+            assert np.array_equal(atlas[y:y+128,x:x+128],sheet[:128,:128]), skin
+        else:
+            for j in range(16):
+                y,x = divmod(j*4,8)
+                cell = sheet[y*128:(y+1)*128,x*128:(x+1)*128].astype(np.uint16)
+                expected = (cell[::2,::2]+cell[1::2,::2]+cell[::2,1::2]+cell[1::2,1::2]+2)//4
+                assert np.array_equal(atlas[i*64:(i+1)*64,j*64:(j+1)*64],expected), f'{skin} frame {j*4}'
+    if preview and len(ids)%8:
+        assert not atlas[-128:,len(ids)%8*128:].any(), 'preview padding'
+
+
 def verify():
     errors = []
     results = []
     manifest = json.loads((OUT/'manifest.json').read_text()) if (OUT/'manifest.json').exists() else {}
     print('\nASSET                       SIZE          FRAMES  RESULT', flush=True)
-    for name,(w,h,n,c,r) in SPECS.items():
-        path = OUT/(name+'.png')
+    reference = silhouette(pixels(OUT/'nave.png')[:128,:128,3])
+    for name,spec in SPECS.items():
+        w,h,n,c,r = spec.grid
+        path = OUT/spec.output
         try:
             assert path.exists(), 'missing file'
-            header = path.read_bytes()[:33]
-            assert header[:8] == b'\x89PNG\r\n\x1a\n', 'not PNG'
-            width,height,depth,color = struct.unpack('>IIBB', header[16:26])
-            assert (width,height)==(c*w,r*h), f'wrong dimensions {width}x{height}'
-            assert color==6 and depth==8, f'expected 8-bit RGBA, got {depth}/{color}'
+            png_header(path,(c*w,r*h))
             a = pixels(path)
             entry = manifest['assets'][name]
-            for key,val in [('file',name+'.png'),('cellW',w),('cellH',h),('cols',c),('rows',r),('frames',n)]:
+            for key,val in [('file',spec.output),('cellW',w),('cellH',h),('cols',c),('rows',r),('frames',n)]:
                 assert entry[key]==val, f'manifest {key}'
             seen = []
             for i in range(n):
@@ -45,7 +103,7 @@ def verify():
                     assert np.any((alpha>0)&(alpha<1)), f'no antialiasing frame {i}'
                 else:
                     assert alpha.min()==1, 'opaque fill required'
-                if name in ('nave','asteroide','explosao','icone','inimigo'):
+                if name in SKINS or name in ('nave','asteroide','explosao','icone','inimigo'):
                     assert max(alpha[0].max(),alpha[-1].max(),alpha[:,0].max(),alpha[:,-1].max())==0, f'clipping frame {i}'
                 if name in ('astronauta','engenheiro','professor'):
                     assert alpha[-1].max()>.5, f'feet do not reach bottom {i}'
@@ -60,7 +118,9 @@ def verify():
                 dx=float(np.abs(a[:,0]-a[:,-1]).max())
                 dy=float(np.abs(a[0]-a[-1]).max())
                 assert dx==0 and dy==0, f'tile seam {dx}/{dy}'
-            if name=='nave':
+            if name in SKINS:
+                verify_skin(a[:h,:w,3], reference, spec.module)
+            if name=='nave' or name in SKINS:
                 # Cyan cockpit should be above/below/left/right at the cardinal frames.
                 for idx,axis,sign in [(0,0,-1),(16,1,-1),(32,0,1),(48,1,1)]:
                     cell=a[(idx//c)*h:(idx//c+1)*h,(idx%c)*w:(idx%c+1)*w]
@@ -73,8 +133,19 @@ def verify():
         except Exception as ex:
             status='FAIL: '+str(ex)
             errors.append(name+': '+str(ex))
-        print(f'{name+".png":27} {c*w:4} x {r*h:<4}  {n:3}    {status}', flush=True)
+        print(f'{spec.output:27} {c*w:4} x {r*h:<4}  {n:3}    {status}', flush=True)
         results.append({'asset':name,'size':[c*w,r*h],'frames':n,'result':status})
+    for name in ('catalogo.json','previas.png','sombras.png'):
+        try:
+            ids = verify_catalog()
+            if name.endswith('.png'):
+                verify_atlas(Path(name).stem, ids)
+            status = 'PASS'
+        except Exception as ex:
+            status = 'FAIL: '+str(ex)
+            errors.append(name+': '+str(ex))
+        print(f'naves/{name:40} {status}', flush=True)
+        results.append({'asset':'naves/'+name,'result':status})
     report={'passed':not errors,'results':results,'errors':errors}
     (Path(__file__).parent/'verification.json').write_text(json.dumps(report,indent=2)+'\n')
     if errors:

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "padrao",
+    "nome": "Padrão",
+    "descricao": "Nave de reconhecimento e resgate em Marte.",
+    "raridade": "comum"
+  },
+  {
+    "id": "guara",
+    "nome": "Guará",
+    "descricao": "Rebocador de cânions com guincho frontal e dois cofres de ancoragem.",
+    "raridade": "comum"
+  },
+  {
+    "id": "bruma",
+    "nome": "Bruma",
+    "descricao": "Ambulância de altitude com duas cápsulas laterais de evacuação.",
+    "raridade": "rara"
+  }
+]

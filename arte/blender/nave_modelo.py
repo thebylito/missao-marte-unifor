@@ -106,14 +106,14 @@ def _parts():
     return parts
 
 
-def geometry_radius_bound():
+def parts_radius_bound(parts):
     """Conservative XZ bound, including a full bevel-width safety allowance.
 
     Bevels cut inward. Rod bounds use endpoint distance + radius; ellipsoids
     use an enclosing XZ rectangle. This bound holds at all gameplay rotations.
     """
     bounds = []
-    for kind, name, _mat, args, bevel in _parts():
+    for kind, name, _mat, args, bevel in parts:
         if kind == 'mesh':
             radius = max(math.hypot(x, z) for x, _y, z in args[0])
         elif kind in ('cube', 'sphere'):
@@ -127,8 +127,12 @@ def geometry_radius_bound():
     return max(bounds)
 
 
+def geometry_radius_bound():
+    return parts_radius_bound(_parts())
+
+
 def build_ship():
-    from common import root, material, emissive, mesh, cube, sphere, rod
+    from common import root, material, emissive
 
     bound, _ = geometry_radius_bound()
     assert bound < 56, 'Ship exceeds rotation-safe radius'
@@ -146,7 +150,13 @@ def build_ship():
         'cyan_band': material('Glossy cyan band', (.02, .45, .62, 1), 0, .15, .25),
         'amber': emissive('Small amber markers', (1, .25, .015, 1), .85),
     }
-    for kind, name, mat, args, bevel in _parts():
+    return assemble(ship, _parts(), mats, bound)
+
+
+def assemble(ship, parts, mats, bound):
+    from common import mesh, cube, sphere, rod
+
+    for kind, name, mat, args, bevel in parts:
         if kind == 'mesh':
             obj = mesh(name, *args, mats[mat], ship)
             if bevel:

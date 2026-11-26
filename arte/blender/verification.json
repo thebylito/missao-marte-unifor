@@ -117,6 +117,36 @@
       ],
       "frames": 8,
       "result": "PASS"
+    },
+    {
+      "asset": "guara",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS"
+    },
+    {
+      "asset": "bruma",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS"
+    },
+    {
+      "asset": "naves/catalogo.json",
+      "result": "PASS"
+    },
+    {
+      "asset": "naves/previas.png",
+      "result": "PASS"
+    },
+    {
+      "asset": "naves/sombras.png",
+      "result": "PASS"
     }
   ],
   "errors": []

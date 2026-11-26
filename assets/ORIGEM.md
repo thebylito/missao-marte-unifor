@@ -10,7 +10,7 @@ Modelos 3D feitos do zero, só com primitivas e materiais procedurais, por scrip
 fundo transparente e alfa reto. Cada folha é uma grade de quadros, lida da esquerda para a direita e de cima para baixo.
 A geometria de cada folha está em `sprites/manifest.json`.
 
-Para regerar tudo (Blender 5.2.3 LTS, cerca de 11 s; termina conferindo tamanhos, alfa, pivôs e orientação):
+Para regerar tudo (Blender 5.2.3 LTS; termina conferindo tamanhos, alfa, pivôs e orientação):
 
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P arte/blender/render_all.py -- --engine cycles --samples 128
@@ -35,6 +35,24 @@ Para regerar tudo (Blender 5.2.3 LTS, cerca de 11 s; termina conferindo tamanhos
 Os scripts nasceram na prova de conceito da equipe (POC 2.5D, novembro de 2026) e foram trazidos para o
 repositório na Fase 4. Mudanças em relação à POC: fundo em 1200x900 (proporção 4:3 da janela, em vez de 1920x1080),
 saída em `assets/sprites/` e o novo `inimigo.py`.
+
+### Skins da loja
+
+Para renderizar as duas skins e recompor os atlas a partir das folhas em disco, execute na raiz do projeto:
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python-exit-code 1 -P arte/blender/render_all.py -- --engine cycles --samples 128 --only guara bruma
+```
+
+| Arquivo (a partir da raiz) | Origem |
+|---|---|
+| `assets/sprites/naves/guara.png` | `arte/blender/naves/guara_modelo.py`, renderizado por `arte/blender/render_all.py` (64 ângulos). |
+| `assets/sprites/naves/bruma.png` | `arte/blender/naves/bruma_modelo.py`, renderizado por `arte/blender/render_all.py` (64 ângulos). |
+| `assets/sprites/naves/catalogo.json` | `arte/blender/naves/atlas.py` grava o catálogo ordenado de `arte/blender/specs.py`. |
+| `assets/sprites/naves/previas.png` | `arte/blender/naves/atlas.py` copia o quadro 0 de cada folha em células de 128 px e oito colunas. |
+| `assets/sprites/naves/sombras.png` | `arte/blender/naves/atlas.py` reduz por média 2×2 os quadros 0, 4, …, 60 em uma linha por skin. |
+
+A primeira posição dos dois atlas vem de `assets/sprites/nave.png`. As demais seguem a ordem do catálogo.
 
 ## Sons (`sons/`): sintetizados por script
 
