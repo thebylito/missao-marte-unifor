@@ -109,6 +109,16 @@ class MigracaoDoEsquemaTeste {
                 .andExpect(jsonPath("$[0].pontos").value(60));
     }
 
+    /** Fase 8: a coluna nova {@code skin} (NOT NULL) entra no banco que já tem jogadores, com o default. */
+    @Test
+    void aVeteranaFicaComASkinPadrao() throws SQLException {
+        try (Connection c = banco.getConnection(); Statement s = c.createStatement();
+             ResultSet r = s.executeQuery("SELECT SKIN FROM JOGADORES WHERE NOME = 'Veterana'")) {
+            assertTrue(r.next(), "Veterana");
+            assertEquals("padrao", r.getString(1));
+        }
+    }
+
     @Test
     void oScriptPodeRodarDeNovo() throws SQLException {
         try (Connection c = banco.getConnection(); Statement s = c.createStatement()) {

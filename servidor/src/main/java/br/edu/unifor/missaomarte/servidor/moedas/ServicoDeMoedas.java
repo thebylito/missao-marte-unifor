@@ -65,6 +65,18 @@ public class ServicoDeMoedas {
     }
 
     /**
+     * Desconta {@code valor} moedas (o movimento fica negativo). Não confere o saldo: quem chama trava o jogador e
+     * confere antes (a compra da loja).
+     */
+    @Transactional
+    public void debitar(long jogadorId, Origem origem, String referencia, int valor) {
+        if (valor < 0) {
+            throw new IllegalArgumentException("o débito não pode ser negativo: " + valor);
+        }
+        lancar(jogadorId, origem, referencia, -valor);
+    }
+
+    /**
      * Credita a vitória de uma partida cujo bilhete já foi conferido. Devolve as moedas ganhas: 0 na derrota, na
      * abortada e no Clássico depois do teto do dia. A referência é {@code partida:<id>}.
      */
