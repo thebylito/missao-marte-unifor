@@ -1,6 +1,6 @@
 """Ambulância com cápsulas ovais e uma escotilha de triagem."""
 from nave_modelo import _rings, parts_radius_bound
-from naves.comum import chassis, animacao
+from ..comum import chassis, animacao
 
 
 def partes():

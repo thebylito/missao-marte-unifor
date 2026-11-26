@@ -25,9 +25,24 @@ SPECS = {
 }
 
 CATALOGO = [
-    dict(id='padrao', nome='Padrão', descricao='Nave de reconhecimento e resgate em Marte.', raridade='comum'),
-    dict(id='guara', nome='Guará', descricao='Rebocador de cânions com guincho frontal e dois cofres de ancoragem.', raridade='comum'),
-    dict(id='bruma', nome='Bruma', descricao='Ambulância de altitude com duas cápsulas laterais de evacuação.', raridade='rara'),
+    dict(id='padrao', nome='Padrão', descricao='Nave de reconhecimento e resgate com casco cerâmico e cabine ciano.',
+         linha='padrao', nivel=1),
+    dict(id='padrao_2', nome='Padrão II', descricao='Acrescenta aletas de serviço, antenas e reforços de pouso.',
+         linha='padrao', nivel=2),
+    dict(id='padrao_3', nome='Padrão III', descricao='Acrescenta placas de titânio azul e filetes de níquel à cerâmica clara.',
+         linha='padrao', nivel=3),
+    dict(id='padrao_4', nome='Padrão IV', descricao='Acende as faixas de navegação, o anel do bocal e a cabine ciano.',
+         linha='padrao', nivel=4),
+    dict(id='padrao_5', nome='Padrão V', descricao='Acrescenta um arco dourado com frisos cromados e intensifica as luzes.',
+         linha='padrao', nivel=5),
+    dict(id='guara', nome='Guará', descricao='Rebocador de cânions com guincho frontal e dois cofres de ancoragem.',
+         linha='guara', nivel=1),
+    dict(id='guara_2', nome='Guará II', descricao='Acrescenta antenas de resgate, módulos de ancoragem e tirantes no guincho.',
+         linha='guara', nivel=2),
+    dict(id='guara_3', nome='Guará III', descricao='Acrescenta chapas de aço escovado e faixas marfim à pintura ocre.',
+         linha='guara', nivel=3),
+    dict(id='guara_4', nome='Guará IV', descricao='Acende as faixas de resgate, as balizas e o anel do bocal e reforça o brilho da cabine.',
+         linha='guara', nivel=4),
 ]
 SKINS = tuple(item['id'] for item in CATALOGO[1:])
 for skin in SKINS:

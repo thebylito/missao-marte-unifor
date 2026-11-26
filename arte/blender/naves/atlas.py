@@ -1,11 +1,12 @@
 """Atlas em RGBA8, com acesso aos canais PNG sem transformação de cor."""
 import json
-import bpy
 import numpy as np
 from specs import CATALOGO, SPECS
 
 
 def ler_rgba(path):
+    import bpy
+
     im = bpy.data.images.load(str(path), check_existing=False)
     try:
         im.alpha_mode = 'CHANNEL_PACKED'
@@ -19,6 +20,8 @@ def ler_rgba(path):
 
 
 def salvar_rgba(path, data):
+    import bpy
+
     h, w = data.shape[:2]
     im = bpy.data.images.new(path.stem, width=w, height=h, alpha=True)
     try:
@@ -37,7 +40,7 @@ def gerar_atlas(out):
     previas = np.zeros(((count+7)//8*128, 8*128, 4), np.uint8)
     sombras = np.zeros((count*64, 16*64, 4), np.uint8)
     for i, entry in enumerate(CATALOGO):
-        name = 'nave' if i == 0 else entry['id']
+        name = 'nave' if entry['id'] == 'padrao' else entry['id']
         folha = ler_rgba(out/SPECS[name].output)
         x, y = i%8*128, i//8*128
         previas[y:y+128, x:x+128] = folha[:128, :128]

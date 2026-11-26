@@ -119,6 +119,62 @@
       "result": "PASS"
     },
     {
+      "asset": "padrao_2",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS",
+      "evolution": {
+        "iou": 0.881000676132522,
+        "meanRgbDifference": 13.471348170887696,
+        "previous": "padrao"
+      }
+    },
+    {
+      "asset": "padrao_3",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS",
+      "evolution": {
+        "iou": 1.0,
+        "meanRgbDifference": 15.020960108181203,
+        "previous": "padrao_2"
+      }
+    },
+    {
+      "asset": "padrao_4",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS",
+      "evolution": {
+        "iou": 0.9993243243243243,
+        "meanRgbDifference": 10.2920892494929,
+        "previous": "padrao_3"
+      }
+    },
+    {
+      "asset": "padrao_5",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS",
+      "evolution": {
+        "iou": 0.9919544083137781,
+        "meanRgbDifference": 14.647178100709699,
+        "previous": "padrao_4"
+      }
+    },
+    {
       "asset": "guara",
       "size": [
         1024,
@@ -128,13 +184,46 @@
       "result": "PASS"
     },
     {
-      "asset": "bruma",
+      "asset": "guara_2",
       "size": [
         1024,
         1024
       ],
       "frames": 64,
-      "result": "PASS"
+      "result": "PASS",
+      "evolution": {
+        "iou": 0.9098217406501223,
+        "meanRgbDifference": 6.599948777052119,
+        "previous": "guara"
+      }
+    },
+    {
+      "asset": "guara_3",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS",
+      "evolution": {
+        "iou": 0.9996505939902166,
+        "meanRgbDifference": 9.922987300477688,
+        "previous": "guara_2"
+      }
+    },
+    {
+      "asset": "guara_4",
+      "size": [
+        1024,
+        1024
+      ],
+      "frames": 64,
+      "result": "PASS",
+      "evolution": {
+        "iou": 0.9986038394415357,
+        "meanRgbDifference": 8.604800186415007,
+        "previous": "guara_3"
+      }
     },
     {
       "asset": "naves/catalogo.json",

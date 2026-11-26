@@ -2,6 +2,11 @@
 from nave_modelo import _rings, parts_radius_bound
 from naves.comum import chassis, animacao
 
+PALETA = {
+    'ocre': ((.91,.21,.023,1), .26, .37),
+    'marfim': ((.98,.83,.54,1), .13, .4),
+}
+
 
 def partes():
     parts, add = chassis()
@@ -30,7 +35,4 @@ def geometry_radius_bound():
 
 
 def build():
-    return animacao('Guará', partes(), {
-        'ocre': ((.91,.21,.023,1), .26, .37),
-        'marfim': ((.98,.83,.54,1), .13, .4),
-    })
+    return animacao('Guará', partes(), PALETA)
