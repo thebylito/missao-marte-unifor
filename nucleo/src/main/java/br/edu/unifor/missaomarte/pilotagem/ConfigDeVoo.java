@@ -1,6 +1,7 @@
 package br.edu.unifor.missaomarte.pilotagem;
 
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
+import java.util.Objects;
 
 /**
  * Os números do Modo Pilotagem (Fase 7). Unidades: unidades do mundo (a caverna mede 3840 x 1440), segundos e graus.
@@ -8,6 +9,9 @@ import br.edu.unifor.missaomarte.dominio.Dificuldade;
  * velocidade dos asteroides e, no Fácil, o tanque: a gravidade, o empuxo e o giro ficam iguais, para o controle ter a
  * mesma sensação em todas. O Difícil não tem tanque menor: a viagem mais longa (o Professor, ida e volta) já gasta
  * perto de 100 mesmo pilotada com cuidado, e com menos combustível ela ficaria impossível (medido na Fase 7).
+ *
+ * <p>Fase 8 (DA-48): os números de cada dificuldade ficam em {@link AjustesDeVoo#PADRAO}, e o servidor pode
+ * trocá-los por variável de ambiente ({@link #para(Dificuldade, AjustesDeVoo)}).
  *
  * @param gravidade                 aceleração para baixo
  * @param empuxo                    aceleração do motor, na direção do bico
@@ -28,6 +32,7 @@ import br.edu.unifor.missaomarte.dominio.Dificuldade;
  * @param tempoParaRenascer         segundos entre a explosão e a nave nova na base
  * @param velocidadeDosAsteroides   multiplica a velocidade de todos os asteroides
  * @param bonusMaximo               bônus de combustível na vitória, com o tanque cheio
+ * @param eventos                   velocidade dos meteoros e duração dos eventos (Fase 8, DA-48)
  */
 public record ConfigDeVoo(
         double gravidade,
@@ -48,18 +53,37 @@ public record ConfigDeVoo(
         int vidas,
         double tempoParaRenascer,
         double velocidadeDosAsteroides,
-        int bonusMaximo) {
+        int bonusMaximo,
+        AjustesDosEventos eventos) {
 
-    /** A configuração de cada dificuldade (tabela da análise da Fase 7). */
+    public ConfigDeVoo {
+        Objects.requireNonNull(eventos, "eventos");
+    }
+
+    /** Sem os ajustes dos eventos: os da Fase 8 ({@link AjustesDosEventos#PADRAO}). */
+    public ConfigDeVoo(double gravidade, double empuxo, double giroGrausPorSegundo, double arrasto, double tanque,
+                       double consumoPorSegundo, double reabastecimentoPorSegundo, double quedaMaxima,
+                       double deslizeMaximo, double inclinacaoMaxima, double raioDoCasco, double peX, double peY,
+                       double tempoDeEmbarque, int capacidade, int vidas, double tempoParaRenascer,
+                       double velocidadeDosAsteroides, int bonusMaximo) {
+        this(gravidade, empuxo, giroGrausPorSegundo, arrasto, tanque, consumoPorSegundo, reabastecimentoPorSegundo,
+                quedaMaxima, deslizeMaximo, inclinacaoMaxima, raioDoCasco, peX, peY, tempoDeEmbarque, capacidade,
+                vidas, tempoParaRenascer, velocidadeDosAsteroides, bonusMaximo, AjustesDosEventos.PADRAO);
+    }
+
+    /** A configuração de cada dificuldade com os números padrão da Fase 8 ({@link AjustesDeVoo#PADRAO}). */
     public static ConfigDeVoo para(Dificuldade dificuldade) {
-        switch (dificuldade) {
-            case FACIL:
-                return medio().com(130, 90, 60, 25, 0.75);
-            case DIFICIL:
-                return medio().com(100, 65, 40, 15, 1.3);
-            default:
-                return medio();
-        }
+        return para(dificuldade, AjustesDeVoo.PADRAO);
+    }
+
+    /**
+     * Fase 8 (DA-48): a configuração da dificuldade com os ajustes do servidor. Os ajustes mudam o tanque, os limites
+     * de pouso, a velocidade dos asteroides e os eventos; o resto é o do {@link #medio()}.
+     */
+    public static ConfigDeVoo para(Dificuldade dificuldade, AjustesDeVoo ajustes) {
+        AjustesDaDificuldade a = ajustes.para(dificuldade);
+        return medio().com(a.tanque(), a.quedaMaxima(), a.deslizeMaximo(), a.inclinacaoMaxima(),
+                a.velocidadeDosAsteroides(), ajustes.eventos());
     }
 
     /** Os valores da POC. */
@@ -73,9 +97,10 @@ public record ConfigDeVoo(
                 1.0, 30);               // asteroides, bônus máximo
     }
 
-    private ConfigDeVoo com(double novoTanque, double queda, double deslize, double inclinacao, double asteroides) {
+    private ConfigDeVoo com(double novoTanque, double queda, double deslize, double inclinacao, double asteroides,
+                            AjustesDosEventos novosEventos) {
         return new ConfigDeVoo(gravidade, empuxo, giroGrausPorSegundo, arrasto, novoTanque, consumoPorSegundo,
                 reabastecimentoPorSegundo, queda, deslize, inclinacao, raioDoCasco, peX, peY, tempoDeEmbarque,
-                capacidade, vidas, tempoParaRenascer, asteroides, bonusMaximo);
+                capacidade, vidas, tempoParaRenascer, asteroides, bonusMaximo, novosEventos);
     }
 }

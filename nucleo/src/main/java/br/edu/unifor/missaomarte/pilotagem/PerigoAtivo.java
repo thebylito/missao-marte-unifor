@@ -8,17 +8,27 @@ import java.util.SplittableRandom;
 final class PerigoAtivo {
 
     private final EventoAplicado inicio;
+    private final double duracaoSegundos;
     private final long passoFinal;
     private final double fase;
     private final ChuvaDeMeteoros chuva;
     boolean sobreviveu;
 
-    PerigoAtivo(EventoAplicado inicio, boolean naveInteira, Caverna caverna) {
+    /**
+     * @param duracaoSegundos a do servidor (evento ao vivo) ou a dos ajustes (roteiro)
+     * @param ajustes         a velocidade dos meteoros da chuva
+     */
+    PerigoAtivo(EventoAplicado inicio, double duracaoSegundos, boolean naveInteira, Caverna caverna,
+                AjustesDosEventos ajustes) {
         this.inicio = inicio;
-        passoFinal = inicio.passo() + Math.round(tipo().duracaoSegundos() / PartidaDePilotagem.PASSO);
+        this.duracaoSegundos = duracaoSegundos;
+        passoFinal = inicio.passo() + Math.round(duracaoSegundos / PartidaDePilotagem.PASSO);
         fase = tipo() == TipoDeEvento.TEMPESTADE
                 ? new SplittableRandom(inicio.semente()).nextDouble(2 * Math.PI) : 0;
-        chuva = tipo() == TipoDeEvento.CHUVA_DE_METEOROS ? new ChuvaDeMeteoros(caverna, inicio.semente()) : null;
+        chuva = tipo() == TipoDeEvento.CHUVA_DE_METEOROS
+                ? new ChuvaDeMeteoros(caverna, inicio.semente(), duracaoSegundos,
+                        ajustes.velocidadeMinimaDosMeteoros(), ajustes.velocidadeMaximaDosMeteoros())
+                : null;
         sobreviveu = naveInteira;
     }
 
@@ -39,7 +49,7 @@ final class PerigoAtivo {
     }
 
     double intensidade(long passo) {
-        double envelope = Math.sin(Math.PI * idade(passo) / tipo().duracaoSegundos());
+        double envelope = Math.sin(Math.PI * idade(passo) / duracaoSegundos);
         return envelope * envelope;
     }
 

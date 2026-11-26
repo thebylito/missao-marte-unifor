@@ -18,8 +18,12 @@ public enum TipoDeEvento {
         this.perigo = perigo;
     }
 
+    /**
+     * A duração padrão, da tabela da análise. Desde a DA-48 o servidor pode ajustá-la ({@code AjustesDosEventos}); a
+     * agenda dos eventos ao vivo continua sorteando os horários com esta, para não mudar as hordas já gravadas.
+     */
     public double duracaoSegundos() { return duracaoSegundos; }
 
-    /** O evento só atrapalha a partida (DA-45). */
+    /** O evento só atrapalha a partida (DA-46). */
     public boolean perigo() { return perigo; }
 }

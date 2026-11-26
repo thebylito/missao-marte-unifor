@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.dominio.TipoPassageiro;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDaDificuldade;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -67,6 +69,33 @@ class DescricaoDaHordaTeste {
         assertEquals(List.of(), h.modificadores());
         assertEquals(1, h.roteiro().size());
         assertThrows(UnsupportedOperationException.class, () -> h.fasesDosAsteroides().add(3.0));
+    }
+
+    /** Fase 8 (DA-48): uma horda gravada antes dos ajustes (sem o campo no JSON) usa os números padrão. */
+    @Test
+    void semAjustesAHordaUsaOPadrao() {
+        DescricaoDaHorda semCampo = new DescricaoDaHorda(1, Dificuldade.MEDIO, null, List.of(), 1.0, List.of(),
+                List.of(), List.of());
+        DescricaoDaHorda nulo = new DescricaoDaHorda(1, Dificuldade.MEDIO, null, List.of(), 1.0, List.of(),
+                List.of(), List.of(), null);
+
+        assertEquals(AjustesDeVoo.PADRAO, semCampo.ajustes());
+        assertEquals(AjustesDeVoo.PADRAO, nulo.ajustes());
+        assertEquals(semCampo, nulo);
+    }
+
+    @Test
+    void comAjustesTrocaSoOsAjustes() {
+        DescricaoDaHorda h = new DescricaoDaHorda(7, Dificuldade.DIFICIL, null, List.of(), 1.1, List.of(0.5),
+                List.of(), List.of());
+        AjustesDeVoo outros = new AjustesDeVoo(AjustesDeVoo.PADRAO.facil(), AjustesDeVoo.PADRAO.medio(),
+                new AjustesDaDificuldade(120, 70, 45, 18, 1.2), AjustesDeVoo.PADRAO.eventos());
+
+        DescricaoDaHorda trocada = h.comAjustes(outros);
+
+        assertEquals(outros, trocada.ajustes());
+        assertEquals(new DescricaoDaHorda(7, Dificuldade.DIFICIL, null, List.of(), 1.1, List.of(0.5), List.of(),
+                List.of(), outros), trocada);
     }
 
     @Test

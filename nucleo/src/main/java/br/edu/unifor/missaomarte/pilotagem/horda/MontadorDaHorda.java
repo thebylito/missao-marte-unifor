@@ -22,7 +22,7 @@ import java.util.Set;
  * do {@code Caverna.marciana()}; e os asteroides, com a fase sorteada no lugar da fase da descrição. Assim, a horda
  * da caverna marciana com as fases e os pontos originais monta exatamente o {@code Caverna.marciana()}.
  *
- * <p>A {@link ConfigDeVoo} é a da dificuldade, com a velocidade dos asteroides multiplicada pela da horda, a
+ * <p>A {@link ConfigDeVoo} é a da dificuldade com os ajustes gravados na horda, com a velocidade dos asteroides multiplicada pela da horda, a
  * gravidade pelo fator {@code GRAVIDADE} e o tanque pelo fator {@code TANQUE} (quando há). O vento não está na
  * configuração: vai em {@link HordaMontada#ventoConstante()}.
  */
@@ -104,9 +104,12 @@ public final class MontadorDaHorda {
         }
     }
 
-    /** A configuração da dificuldade com os fatores da horda; o record não tem "with", então vai pelo construtor. */
+    /**
+     * A configuração da dificuldade com os ajustes gravados na horda (DA-48) e os fatores dela por cima; o record não
+     * tem "with", então vai pelo construtor.
+     */
     private static ConfigDeVoo config(DescricaoDaHorda horda) {
-        ConfigDeVoo b = ConfigDeVoo.para(horda.dificuldade());
+        ConfigDeVoo b = ConfigDeVoo.para(horda.dificuldade(), horda.ajustes());
         return new ConfigDeVoo(
                 b.gravidade() * valor(horda, TipoDeModificador.GRAVIDADE, 1),
                 b.empuxo(),
@@ -126,7 +129,8 @@ public final class MontadorDaHorda {
                 b.vidas(),
                 b.tempoParaRenascer(),
                 b.velocidadeDosAsteroides() * horda.velocidadeDosAsteroides(),
-                b.bonusMaximo());
+                b.bonusMaximo(),
+                b.eventos());
     }
 
     /** O valor do modificador deste tipo, ou o padrão quando a horda não tem esse modificador. */
