@@ -25,6 +25,9 @@ public record EventoDeVoo(Tipo tipo, String mensagem, int valor, double x, doubl
         DERROTA,
         ABORTADA,
         PERIGO_INICIOU,
-        PERIGO_TERMINOU
+        PERIGO_TERMINOU,
+        VIP_SURGIU,
+        VIP_PEGO,
+        VIP_SUMIU
     }
 }

@@ -68,6 +68,9 @@ public final class PartidaDePilotagem {
     private double rajada;
     private double intensidadeDaTempestade;
     private boolean paneDeGravidade;
+    private PlataformaDePouso capsulaVip;
+    private PlataformaDePouso capsulaPendente;
+    private long passoFinalDoVip;
     private double acumulador;
     private double tempoPousada;
     private double tempoDestruida;
@@ -122,6 +125,9 @@ public final class PartidaDePilotagem {
         passo++;
         if (!roteiro.isEmpty() || !eventosAoVivo.isEmpty() || !perigos.isEmpty()) {
             atualizarPerigos();
+        }
+        if (capsulaPendente != null || capsulaVip != null) {
+            atualizarVip();
         }
         double tempoDosAsteroides = tempo * config.velocidadeDosAsteroides();
         for (AsteroideEmOrbita a : caverna.getAsteroides()) {
@@ -212,6 +218,46 @@ public final class PartidaDePilotagem {
         emitir(EventoDeVoo.Tipo.PERIGO_INICIOU, evento.tipo().name(), 0);
     }
 
+    /** Agenda a cápsula no próximo passo em que o lugar do VIP estiver livre. X é a borda esquerda. */
+    public void iniciarVip(double x, double superficie) {
+        capsulaPendente = new PlataformaDePouso(PlataformaDePouso.Tipo.VIP, x, superficie,
+                Caverna.LARGURA_DA_PLATAFORMA, Caverna.ALTURA_DA_PLATAFORMA);
+    }
+
+    /** Outro piloto pegou o VIP. Uma cápsula ocupada ainda sustenta a nave até ela sair. */
+    public void encerrarVip() {
+        capsulaPendente = null;
+        if (capsulaVip != null && !naveNaCapsula()) {
+            removerCapsulaVip();
+        }
+    }
+
+    private void atualizarVip() {
+        if (naveNaCapsula()) {
+            return;
+        }
+        if (capsulaVip != null && (passo >= passoFinalDoVip || capsulaPendente != null)) {
+            removerCapsulaVip();
+        }
+        if (capsulaPendente != null) {
+            capsulaVip = capsulaPendente;
+            capsulaPendente = null;
+            TipoDeEvento tipo = TipoDeEvento.PASSAGEIRO_VIP;
+            passoFinalDoVip = passo + Math.round(tipo.duracaoSegundos() / PASSO);
+            eventosAplicados.add(new EventoAplicado(tipo, 0, passo));
+            emitir(EventoDeVoo.Tipo.VIP_SURGIU, "Cápsula VIP à vista!", 0);
+        }
+    }
+
+    private boolean naveNaCapsula() {
+        return capsulaVip != null && nave.plataforma == capsulaVip;
+    }
+
+    private void removerCapsulaVip() {
+        capsulaVip = null;
+        emitir(EventoDeVoo.Tipo.VIP_SUMIU, "A cápsula VIP saiu de cena.", 0);
+    }
+
     /** O jogador desistiu (botão Abortar ou Esc). Depois disso nada mais muda. */
     public void abortar() {
         if (estado != Partida.Estado.EM_ANDAMENTO) {
@@ -273,19 +319,21 @@ public final class PartidaDePilotagem {
         double[][] pes = pes();
         // 1) pouso: um pé chegou à superfície de uma plataforma, vindo de cima
         for (PlataformaDePouso p : caverna.getPlataformas()) {
-            for (double[] pe : pes) {
-                boolean tocando = p.cobre(pe[0])
-                        && pe[1] <= p.getSuperficie()
-                        && pe[1] >= p.getSuperficie() - TOLERANCIA_DE_CONTATO;
-                if (tocando) {
-                    tentarPousar(p);
-                    return;
-                }
+            if (tocouSuperficie(p, pes)) {
+                tentarPousar(p);
+                return;
             }
+        }
+        if (capsulaVip != null && tocouSuperficie(capsulaVip, pes)) {
+            tentarPousar(capsulaVip);
+            return;
         }
         // 2) colisões fatais: casco ou pés contra a rocha ou o corpo das plataformas, asteroides e limites
         List<Rocha> solidos = new ArrayList<>(caverna.getRochas());
         caverna.getPlataformas().forEach(p -> solidos.add(p.corpo()));
+        if (capsulaVip != null) {
+            solidos.add(capsulaVip.corpo());
+        }
         for (Rocha r : solidos) {
             if (r.tocaCirculo(nave.x, nave.y, config.raioDoCasco())
                     || r.contem(pes[0][0], pes[0][1]) || r.contem(pes[1][0], pes[1][1])) {
@@ -308,6 +356,17 @@ public final class PartidaDePilotagem {
         if (nave.x < 0 || nave.x > caverna.getLargura() || nave.y < 0 || nave.y > caverna.getAltura()) {
             destruir("A nave se perdeu no espaço!");
         }
+    }
+
+    private static boolean tocouSuperficie(PlataformaDePouso plataforma, double[][] pes) {
+        for (double[] pe : pes) {
+            if (plataforma.cobre(pe[0])
+                    && pe[1] <= plataforma.getSuperficie()
+                    && pe[1] >= plataforma.getSuperficie() - TOLERANCIA_DE_CONTATO) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean verificarMeteoros() {
@@ -339,6 +398,10 @@ public final class PartidaDePilotagem {
         nave.y = p.getSuperficie() - config.peY();
         tempoPousada = 0;
         avisouNaveCheia = false;
+        if (p.getTipo() == PlataformaDePouso.Tipo.VIP) {
+            emitir(EventoDeVoo.Tipo.VIP_PEGO, "Passageiro VIP resgatado!", 0);
+            return;
+        }
         pousos++;
         boolean naBase = p.getTipo() == PlataformaDePouso.Tipo.BASE;
         emitir(EventoDeVoo.Tipo.POUSOU, naBase ? "Pouso na base." : "Pouso perfeito!", 0);
@@ -349,11 +412,15 @@ public final class PartidaDePilotagem {
 
     private void pousada(Comandos comandos) {
         if (comandos.motor() && nave.combustivel > 0) {
+            boolean saiuDaCapsula = naveNaCapsula();
             nave.estado = NaveEmVoo.Estado.VOANDO;
             decolouDe = nave.plataforma.getSuperficie();
             nave.plataforma = null;
             nave.y += 1;   // descola da superfície para o mesmo pouso não ser contado de novo
             emitir(EventoDeVoo.Tipo.DECOLOU, "", 0);
+            if (saiuDaCapsula) {
+                removerCapsulaVip();
+            }
             voar(comandos);
             return;
         }
@@ -413,6 +480,7 @@ public final class PartidaDePilotagem {
         for (PerigoAtivo perigo : perigos) {
             perigo.sobreviveu = false;
         }
+        boolean saiuDaCapsula = naveNaCapsula();
         nave.estado = NaveEmVoo.Estado.DESTRUIDA;
         nave.motorLigado = false;
         nave.plataforma = null;
@@ -422,6 +490,9 @@ public final class PartidaDePilotagem {
         vidas--;
         tempoDestruida = 0;
         emitir(EventoDeVoo.Tipo.EXPLODIU, motivo, vidas);
+        if (saiuDaCapsula) {
+            removerCapsulaVip();
+        }
     }
 
     private void devolver(Passageiro passageiro) {
@@ -514,6 +585,9 @@ public final class PartidaDePilotagem {
 
     /** Meteoros presentes no passo atual. */
     public List<Meteoro> getMeteoros() { return List.copyOf(meteoros); }
+
+    /** A cápsula temporária, quando presente na caverna. */
+    public Optional<PlataformaDePouso> getCapsulaVip() { return Optional.ofNullable(capsulaVip); }
 
     /** De 0 a 1: quanto falta para o passageiro da plataforma embarcar (para a tela animar). */
     public double progressoDoEmbarque() {
