@@ -90,6 +90,12 @@ public class TelaPilotagem extends TelaBase {
     // ------------------------------------------------------------------ entrada
 
     @Override
+    public void show() {
+        super.show();
+        jogo.getNaves().prepararSombras();
+    }
+
+    @Override
     protected InputAdapter entrada() {
         return new InputAdapter() {
             @Override
@@ -330,8 +336,7 @@ public class TelaPilotagem extends TelaBase {
         }
         int quadro = Math.round(angulo / GRAUS_POR_QUADRO_DA_NAVE);
         quadro = ((quadro % Folha.NAVE.getQuadros()) + Folha.NAVE.getQuadros()) % Folha.NAVE.getQuadros();
-        lote().draw(recursos().quadro(Folha.NAVE, quadro), x - Folha.NAVE.getLargura() / 2f,
-                y - Folha.NAVE.getAltura() / 2f);
+        desenharNave(quadro, x, y, Folha.NAVE.getLargura());
     }
 
     /** As naves dos outros pilotos: translúcidas, azuladas e com o nome em cima. */
@@ -350,11 +355,9 @@ public class TelaPilotagem extends TelaBase {
                 lote().setColor(1, 1, 1, 0.45f);
                 lote().draw(chama, bx - w / 2, by - h, w / 2, h, w, h, 0.8f, 1f, angulo);
             }
-            int quadro = Math.round(angulo / GRAUS_POR_QUADRO_DA_NAVE);
-            quadro = ((quadro % Folha.NAVE.getQuadros()) + Folha.NAVE.getQuadros()) % Folha.NAVE.getQuadros();
             lote().setColor(SOMBRA);
-            lote().draw(recursos().quadro(Folha.NAVE, quadro), x - Folha.NAVE.getLargura() / 2f,
-                    y - Folha.NAVE.getAltura() / 2f);
+            float lado = Folha.NAVE.getLargura();
+            lote().draw(jogo.getNaves().sombra(s.skin(), angulo), x - lado / 2, y - lado / 2, lado, lado);
             lote().setColor(Color.WHITE);
             escrever(s.nome(), x - s.nome().length() * 5.5f, y + Folha.NAVE.getAltura() / 2f + 22, NOME_DA_SOMBRA,
                     1.3f);

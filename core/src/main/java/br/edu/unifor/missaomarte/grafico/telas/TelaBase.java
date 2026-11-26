@@ -376,6 +376,10 @@ public abstract class TelaBase implements Screen {
         lote().draw(r, cx - largura / 2, cy - altura / 2, largura, altura);
     }
 
+    protected void desenharNave(int quadro, float cx, float cy, float lado) {
+        lote().draw(jogo.getNaves().quadro(quadro), cx - lado / 2, cy - lado / 2, lado, lado);
+    }
+
     /** Faixa horizontal tocável em volta de uma linha de texto (para opções de menu). */
     protected static Retangulo linha(float x, float yDoTexto, float largura, float altura) {
         return new Retangulo(x, yDoTexto - altura + 8, largura, altura);

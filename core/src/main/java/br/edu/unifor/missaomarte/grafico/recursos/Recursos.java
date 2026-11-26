@@ -64,7 +64,9 @@ public final class Recursos implements Disposable {
     /** Põe todos os assets na fila. O carregamento de fato acontece em {@link #atualizar()}, um pouco por quadro. */
     public void enfileirarTudo() {
         for (Folha f : Folha.values()) {
-            gerenciador.load(f.getCaminho(), Texture.class, parametrosDaTextura(f));
+            if (f != Folha.NAVE) {
+                gerenciador.load(f.getCaminho(), Texture.class, parametrosDaTextura(f));
+            }
         }
         for (Som s : Som.values()) {
             gerenciador.load(s.getCaminho(), Sound.class);
@@ -126,6 +128,9 @@ public final class Recursos implements Disposable {
 
     private void prepararDepoisDoCarregamento() {
         for (Folha f : Folha.values()) {
+            if (f == Folha.NAVE) {
+                continue;
+            }
             Texture textura = gerenciador.get(f.getCaminho(), Texture.class);
             TextureRegion[] regioes = new TextureRegion[f.getQuadros()];
             for (int i = 0; i < regioes.length; i++) {

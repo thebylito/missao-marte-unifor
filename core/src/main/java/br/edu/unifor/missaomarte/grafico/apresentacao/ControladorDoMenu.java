@@ -1,8 +1,10 @@
 package br.edu.unifor.missaomarte.grafico.apresentacao;
 
 import br.edu.unifor.missaomarte.aplicacao.ServicoRanking;
+import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import com.badlogic.gdx.Input.Keys;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Menu principal da janela, com as mesmas 4 opções do console e, na Fase 5, o histórico online (5) e a troca de
@@ -11,7 +13,7 @@ import java.io.IOException;
  */
 public final class ControladorDoMenu {
 
-    public enum Acao { NENHUMA, NOVA_PARTIDA, RANKING, SAIR, HISTORICO, TROCAR_PILOTO }
+    public enum Acao { NENHUMA, NOVA_PARTIDA, RANKING, SAIR, HISTORICO, TROCAR_PILOTO, HANGAR }
 
     public static final String PERGUNTA_APAGAR = "Você realmente deseja limpar o histórico de ranking? (S/N)";
 
@@ -54,10 +56,18 @@ public final class ControladorDoMenu {
             case Keys.NUMPAD_6:
                 mensagem = "";
                 return Acao.TROCAR_PILOTO;
+            case Keys.NUM_7:
+            case Keys.NUMPAD_7:
+                mensagem = "";
+                return Acao.HANGAR;
             default:
                 mensagem = "Opção inválida. Tente novamente.";
                 return Acao.NENHUMA;
         }
+    }
+
+    public static Optional<String> textoDoSaldo(Optional<Sessao> sessao, Integer saldo) {
+        return sessao.map(piloto -> "Moedas: " + (saldo == null ? "—" : saldo));
     }
 
     private String apagarRanking() {

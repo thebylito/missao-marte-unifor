@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Menu principal: as 4 opções do console e as 2 da Fase 5, escolhidas pelas teclas 1 a 6 ou, na Fase 6, por toque
+ * Menu principal: as 4 opções do console e as 2 da Fase 5, escolhidas pelas teclas 1 a 7 ou, na Fase 6, por toque
  * (tocar numa opção aperta a tecla dela; na confirmação de apagar, os botões Sim e Não apertam S e N).
  */
 public class TelaMenu extends TelaBase {
@@ -24,6 +24,7 @@ public class TelaMenu extends TelaBase {
         "4. Sair do Jogo",
         "5. Meu Histórico (online)",
         "6. Trocar de Piloto",
+        "7. Hangar",
     };
     private static final float Y_DAS_OPCOES = 385;
     private static final float PASSO = 36;
@@ -49,6 +50,7 @@ public class TelaMenu extends TelaBase {
                     case SAIR: jogo.sair(); break;
                     case HISTORICO: jogo.irParaHistorico(); break;
                     case TROCAR_PILOTO: jogo.irParaEntrada(); break;
+                    case HANGAR: jogo.irParaHangar(); break;
                     default: break;
                 }
                 return true;
@@ -80,7 +82,7 @@ public class TelaMenu extends TelaBase {
         lote().begin();
         if (recursosProntos()) {
             // a nave flutua ao lado das opções e um asteroide gira do outro lado
-            desenharCentralizado(Folha.NAVE, 0, 150, 320 + 8 * (float) Math.sin(tempo * 1.8), 120);
+            desenharNave(0, 150, 320 + 8 * (float) Math.sin(tempo * 1.8), 120);
             desenharCentralizado(Folha.ASTEROIDE, FolhaDeSprites.quadroEmLaco(Folha.ASTEROIDE, tempo, 10), 660, 300, 80);
         }
         escreverTitulo("MISSÃO MARTE UNIFOR", 520, Color.ORANGE, 2.4f);
@@ -94,10 +96,12 @@ public class TelaMenu extends TelaBase {
         String quem = jogo.getSessao().map(s -> "Piloto conectado: " + s.nome() + " (ranking global ativo)")
                 .orElse("Jogando como convidado (só o ranking local)");
         escreverCentralizado(quem, 430, jogo.getSessao().isPresent() ? Color.LIME : Color.LIGHT_GRAY, 1f);
+        ControladorDoMenu.textoDoSaldo(jogo.getSessao(), jogo.getSaldo())
+                .ifPresent(saldo -> escreverCentralizado(saldo, 407, Color.ORANGE, 1f));
         Color corDaMensagem = controlador.isConfirmandoApagar() ? Color.YELLOW : Color.SKY;
-        escreverCentralizado(controlador.getMensagem(), 150, corDaMensagem, 1.2f);
+        escreverCentralizado(controlador.getMensagem(), 125, corDaMensagem, 1.2f);
         if (!toque()) {
-            escreverCentralizado("Escolha uma opção (teclas 1 a 6)", 60, Color.GRAY, 1f);
+            escreverCentralizado("Escolha uma opção (teclas 1 a 7)", 60, Color.GRAY, 1f);
         } else if (!controlador.isConfirmandoApagar()) {
             escreverCentralizado("Toque numa opção", 60, Color.GRAY, 1f);
         }

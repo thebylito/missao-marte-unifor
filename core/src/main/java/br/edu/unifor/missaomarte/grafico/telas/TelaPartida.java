@@ -195,7 +195,7 @@ public class TelaPartida extends TelaBase {
 
         if (!cena.getEfeitos().isNaveDestruida()) {
             int quadro = FolhaDeSprites.quadroDaNave(cena.getDirecaoDaNave());
-            desenharCentralizado(Folha.NAVE, quadro, qNave.centroX() + dx, qNave.centroY() + dy, lado * 1.25f);
+            desenharNave(quadro, qNave.centroX() + dx, qNave.centroY() + dy, lado * 1.25f);
         }
 
         for (EfeitosDaPartida.ExplosaoVisivel e : cena.getEfeitos().explosoes()) {
@@ -269,7 +269,7 @@ public class TelaPartida extends TelaBase {
         escrever("Vidas", x, y + 16, Color.LIGHT_GRAY, 0.85f);
         for (int i = 0; i < hud.vidasIniciais(); i++) {
             lote().setColor(i < hud.vidas() ? Color.WHITE : COR_VIDA_PERDIDA);
-            desenharCentralizado(Folha.NAVE, 0, x + 70 + i * 34, y + 10, 40);
+            desenharNave(0, x + 70 + i * 34, y + 10, 40);
         }
         lote().setColor(Color.WHITE);
 

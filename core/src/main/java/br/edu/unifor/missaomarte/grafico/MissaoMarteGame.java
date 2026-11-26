@@ -5,17 +5,25 @@ import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.CenaDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPilotagem;
-import br.edu.unifor.missaomarte.grafico.apresentacao.SombrasDaPilotagem;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoHangar;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking;
+import br.edu.unifor.missaomarte.grafico.apresentacao.EnvioDoResultado;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida;
+import br.edu.unifor.missaomarte.grafico.apresentacao.InicioDaPartida;
+import br.edu.unifor.missaomarte.grafico.apresentacao.SombrasDaPilotagem;
 import br.edu.unifor.missaomarte.grafico.audio.Sons;
 import br.edu.unifor.missaomarte.grafico.audio.SonsLibgdx;
+import br.edu.unifor.missaomarte.grafico.online.Falha;
+import br.edu.unifor.missaomarte.grafico.online.Hangar;
+import br.edu.unifor.missaomarte.grafico.online.Resposta;
 import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import br.edu.unifor.missaomarte.grafico.recursos.Recursos;
+import br.edu.unifor.missaomarte.grafico.recursos.RecursosDasNaves;
 import br.edu.unifor.missaomarte.grafico.telas.TelaCarregamento;
 import br.edu.unifor.missaomarte.grafico.telas.TelaEntrada;
 import br.edu.unifor.missaomarte.grafico.telas.TelaFimDePartida;
+import br.edu.unifor.missaomarte.grafico.telas.TelaHangar;
 import br.edu.unifor.missaomarte.grafico.telas.TelaHistorico;
 import br.edu.unifor.missaomarte.grafico.telas.TelaMenu;
 import br.edu.unifor.missaomarte.grafico.telas.TelaNovaPartida;
@@ -56,9 +64,16 @@ public class MissaoMarteGame extends Game {
     private SpriteBatch lote;
     private BitmapFont fonte;
     private Recursos recursos;
+    private RecursosDasNaves naves;
     private Sons sons = Sons.NENHUM;
     /** Jogador conectado ao servidor (Fase 5); vazio no modo convidado. Guardado também no aparelho (DA-38). */
     private Sessao sessao;
+    private Integer saldo;
+    // Pedidos de uma sessão antiga não podem mudar a atual. Uma consulta do menu não sobrescreve
+    // confirmações que chegaram enquanto ela estava em curso.
+    private long geracaoDaSessao;
+    private long versaoDoPerfil;
+    private InicioDaPartida inicioDaPartida;
 
     public MissaoMarteGame(ServicosDoJogo servicos) {
         this(servicos, Plataforma.padrao());
@@ -78,6 +93,7 @@ public class MissaoMarteGame extends Game {
         lote = new SpriteBatch();
         fonte = new BitmapFont();   // fonte padrão da libGDX: só a tela de carregamento a usa
         recursos = new Recursos();
+        naves = new RecursosDasNaves(Gdx.files.internal(""));
         recursos.enfileirarTudo();
         sons = new SonsLibgdx(recursos);
         trocarTela(new TelaCarregamento(this));
@@ -114,6 +130,7 @@ public class MissaoMarteGame extends Game {
             recursos.dispose();
             Diario.registrar("AssetManager: " + antes + " assets liberados; restam " + recursos.quantidadeCarregada());
         }
+        if (naves != null) naves.dispose();
         if (formas != null) formas.dispose();
         if (lote != null) lote.dispose();
         if (fonte != null) fonte.dispose();
@@ -126,6 +143,9 @@ public class MissaoMarteGame extends Game {
      */
     public void trocarTela(Screen nova) {
         Screen anterior = getScreen();
+        if (recursos != null && recursos.isCarregado()) {
+            naves.selecionar(getSessao().map(Sessao::skin).orElse(Sessao.SKIN_PADRAO));
+        }
         setScreen(nova);
         if (anterior != null && anterior != nova) {
             anterior.dispose();
@@ -136,6 +156,61 @@ public class MissaoMarteGame extends Game {
 
     public void irParaMenu() {
         trocarTela(new TelaMenu(this));
+        getSessao().ifPresent(piloto -> {
+            long geracao = geracaoDaSessao;
+            long versao = versaoDoPerfil;
+            servicos.servidor().hangar(piloto, Resposta.de(perfil -> {
+                if (versao == versaoDoPerfil) {
+                    atualizarPerfil(geracao, perfil);
+                }
+            }, falha -> verificarSessao(geracao, falha)));
+        });
+    }
+
+    public void irParaHangar() {
+        long geracao = geracaoDaSessao;
+        var controlador = new ControladorDoHangar(servicos.servidor(), getSessao(), naves.catalogo(),
+                perfil -> atualizarPerfil(geracao, perfil), equipada -> atualizarSkin(geracao, equipada),
+                falha -> verificarSessao(geracao, falha));
+        trocarTela(new TelaHangar(this, controlador));
+    }
+
+    private void atualizarPerfil(long geracao, Hangar perfil) {
+        atualizarSaldo(geracao, perfil.saldo());
+        if (perfil.equipada() != null) {
+            atualizarSkin(geracao, perfil.equipada());
+        }
+    }
+
+    private void atualizarSaldo(long geracao, int novoSaldo) {
+        if (geracao == geracaoDaSessao && sessao != null) {
+            saldo = novoSaldo;
+            versaoDoPerfil++;
+        }
+    }
+
+    private void atualizarSkin(long geracao, String equipada) {
+        if (geracao == geracaoDaSessao && sessao != null) {
+            versaoDoPerfil++;
+            if (!sessao.skin().equals(equipada)) {
+                sessao = sessao.comSkin(equipada);
+                plataforma.sessaoGuardada().guardar(sessao, plataforma.servidor().endereco());
+                reexibirMenu();
+            }
+        }
+    }
+
+    private void verificarSessao(long geracao, Falha falha) {
+        if (geracao == geracaoDaSessao && falha.motivo() == Falha.Motivo.NAO_AUTORIZADO) {
+            sessaoRecusada();
+        }
+    }
+
+    private void reexibirMenu() {
+        if (getScreen() instanceof TelaMenu menu) {
+            // Ativa de novo a mesma tela, preservando o controlador. A troca aplica a folha confirmada.
+            trocarTela(menu);
+        }
     }
 
     /**
@@ -149,6 +224,7 @@ public class MissaoMarteGame extends Game {
             return;
         }
         sessao = guardada.get();
+        geracaoDaSessao++;
         Diario.registrar("sessão recuperada do aparelho: " + sessao.nome());   // o nome, nunca o token
         irParaMenu();
     }
@@ -162,6 +238,8 @@ public class MissaoMarteGame extends Game {
     public void entrarComo(Sessao novaSessao) {
         Diario.registrar("conectado ao servidor como " + novaSessao.nome());   // o nome, nunca o token
         sessao = novaSessao;
+        geracaoDaSessao++;
+        saldo = null;
         plataforma.sessaoGuardada().guardar(novaSessao, plataforma.servidor().endereco());
         irParaMenu();
     }
@@ -175,17 +253,20 @@ public class MissaoMarteGame extends Game {
         if (sessao != null) {
             Diario.registrar("o servidor recusou a sessão de " + sessao.nome() + ": modo convidado até entrar de novo");
             esquecerSessao();
+            reexibirMenu();
         }
     }
 
     private void esquecerSessao() {
         sessao = null;
+        saldo = null;
+        geracaoDaSessao++;
         plataforma.sessaoGuardada().esquecer();
     }
 
     public void jogarComoConvidado() {
         Diario.registrar("modo convidado: só o ranking local");
-        sessao = null;
+        esquecerSessao();
         irParaMenu();
     }
 
@@ -198,6 +279,8 @@ public class MissaoMarteGame extends Game {
     }
 
     public void iniciarPartida(FormularioNovaPartida formulario) {
+        inicioDaPartida = InicioDaPartida.pedir(getSessao(), servicos.servidor(), formulario.getModo(),
+                formulario.getDificuldade());
         if (formulario.getModo() == Modo.PILOTAGEM) {   // Fase 7
             Diario.registrar("pilotagem: " + formulario.getDificuldade());
             PartidaDePilotagem voo = PartidaDePilotagem.nova(formulario.getPiloto(), formulario.getDificuldade());
@@ -210,6 +293,15 @@ public class MissaoMarteGame extends Game {
                 formulario.getTamanho());
         ControladorDaPartida controlador = new ControladorDaPartida(partida, servicos.ranking());
         trocarTela(new TelaPartida(this, new CenaDaPartida(controlador, sons)));
+    }
+
+    public EnvioDoResultado enviarResultado(FimDePartida fim) {
+        InicioDaPartida inicio = inicioDaPartida == null
+                ? InicioDaPartida.semBilhete(getSessao(), servicos.servidor()) : inicioDaPartida;
+        inicioDaPartida = null;
+        long geracao = geracaoDaSessao;
+        return inicio.enviar(fim.paraOServidor(), registro -> atualizarSaldo(geracao, registro.saldo()),
+                falha -> verificarSessao(geracao, falha));
     }
 
     public void irParaFimDePartida(FimDePartida fim) {
@@ -235,6 +327,8 @@ public class MissaoMarteGame extends Game {
     /** Fonte padrão da libGDX, usada antes de as fontes do jogo carregarem. */
     public BitmapFont getFonte() { return fonte; }
     public Recursos getRecursos() { return recursos; }
+    public RecursosDasNaves getNaves() { return naves; }
+    public Integer getSaldo() { return saldo; }
     public Sons getSons() { return sons; }
     public Optional<Sessao> getSessao() { return Optional.ofNullable(sessao); }
 }

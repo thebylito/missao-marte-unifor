@@ -33,16 +33,12 @@ public class TelaFimDePartida extends TelaBase {
     public void show() {
         super.show();
         ReacaoAosEventos.somDoFim(fim.estado()).ifPresent(jogo.getSons()::tocar);
-        // Fase 5: com um jogador conectado, o resultado vai ao servidor em segundo plano
-        envio = EnvioDoResultado.iniciar(jogo.getSessao(), jogo.getServicos().servidor(), fim.paraOServidor());
+        envio = jogo.enviarResultado(fim);
     }
 
     @Override
     protected void atualizar(float delta) {
         tempo += delta;
-        if (envio != null && envio.isSessaoRecusada()) {
-            jogo.sessaoRecusada();   // token vencido: a mensagem pede para entrar de novo, e o menu mostra convidado
-        }
     }
 
     private static final Retangulo BOTAO_VOLTAR =
@@ -81,7 +77,8 @@ public class TelaFimDePartida extends TelaBase {
         if (envio != null) {
             Color cor = envio.getEstado() == EnvioDoResultado.Estado.FALHOU ? Color.YELLOW
                     : envio.getEstado() == EnvioDoResultado.Estado.ENVIADO ? Color.LIME : Color.LIGHT_GRAY;
-            escreverCentralizado(envio.texto(), 120, cor, 0.95f);
+            escreverCentralizado(envio.texto(), 146, cor, 0.95f);
+            envio.textoDasMoedas().ifPresent(moedas -> escreverCentralizado(moedas, 121, Color.ORANGE, 1.1f));
         }
         if (!toque()) {
             escreverCentralizado("Enter: voltar ao menu", 70, Color.SKY, 1.1f);
@@ -99,14 +96,14 @@ public class TelaFimDePartida extends TelaBase {
         }
         switch (fim.estado()) {
             case VITORIA:
-                desenharCentralizado(Folha.NAVE, 0, 400, 545 + 6 * (float) Math.sin(tempo * 2.2), 96);
+                desenharNave(0, 400, 545 + 6 * (float) Math.sin(tempo * 2.2), 96);
                 break;
             case DERROTA:
                 desenharCentralizado(Folha.EXPLOSAO, FolhaDeSprites.quadroEmLaco(Folha.EXPLOSAO, tempo, 14), 400, 545, 110);
                 break;
             default:
                 lote().setColor(0.6f, 0.6f, 0.6f, 1);
-                desenharCentralizado(Folha.NAVE, 0, 400, 545, 80);
+                desenharNave(0, 400, 545, 80);
                 lote().setColor(Color.WHITE);
                 break;
         }
