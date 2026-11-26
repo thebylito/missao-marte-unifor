@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eventos ao vivo · Missão Marte</title>
+  <link rel="icon" href="icone.png">
+  <link rel="stylesheet" href="estilo.css">
+  <script src="admin.js" defer></script>
+</head>
+<body>
+  <main class="painel-admin">
+    <section aria-labelledby="titulo">
+      <a href="/">Voltar ao Missão Marte</a>
+      <h1 id="titulo">Eventos ao vivo</h1>
+      <div class="cartao">
+        <form id="login">
+          <label for="nome">Nome do jogador</label>
+          <input id="nome" name="nome" autocomplete="username" required>
+          <label for="senha">Senha</label>
+          <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+          <button class="botao principal" type="submit">Entrar</button>
+        </form>
+        <form id="evento" hidden>
+          <label for="tipo">Evento</label>
+          <select id="tipo" name="tipo" required>
+            <option value="CHUVA_DE_METEOROS">Chuva de meteoros</option>
+            <option value="TEMPESTADE">Tempestade de poeira</option>
+            <option value="PANE_DE_GRAVIDADE">Pane de gravidade</option>
+            <option value="PASSAGEIRO_VIP">Passageiro VIP</option>
+          </select>
+          <div class="acoes">
+            <button class="botao principal" type="submit">Disparar</button>
+            <button class="botao" id="sair" type="button">Sair</button>
+          </div>
+        </form>
+        <p id="resultado" class="estado" role="status"></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
