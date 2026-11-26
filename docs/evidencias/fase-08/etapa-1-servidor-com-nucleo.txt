@@ -1,0 +1,45 @@
+Fase 8, etapa 1 — servidor com o nucleo (DA-39) e colunas de enum como texto (DA-40)
+Executado em 2026-11-26, macOS (Apple Silicon), JDK 17, Docker 29.9.2. Branch fase-8-etapa-1.
+
+1) Build do servidor com o nucleo
+   cd servidor && ./gradlew --no-daemon build
+   -> BUILD SUCCESSFUL; 52 testes, 0 falhas (os 45 de antes, sem mudança, + NucleoNoServidorTeste + os 6 do
+      MigracaoDoEsquemaTeste).
+   -> o jar do nucleo fica em servidor/build/nucleo/libs/nucleo.jar; o build do servidor não cria nucleo/build.
+
+2) Build do jogo (raiz), que continua dono dos testes do nucleo
+   ./gradlew --no-daemon build
+   -> BUILD SUCCESSFUL; nucleo 92, core 214, console 3, lwjgl3 3 testes, 0 falhas (os mesmos números de antes).
+
+3) Imagem Docker com o contexto na raiz
+   docker buildx build --progress plain --load -f servidor/Dockerfile -t missao-marte-servidor:etapa1 .
+   -> "transferring context: 522.27kB" (só servidor/ e nucleo/, pelo servidor/Dockerfile.dockerignore)
+   -> o jar dentro da imagem (/app/app.jar, copiado com docker cp) tem BOOT-INF/lib/nucleo.jar
+   -> /app tem só app.jar e downloads/ (sem .env)
+   -> docker run -p 18081:8080 ... : GET /actuator/health = {"status":"UP"}; GET /api/ranking = []
+   cd servidor && docker compose config
+   -> build.context = raiz do repositório, dockerfile = servidor/Dockerfile
+
+4) Migração de um banco criado pela versão da 7.x (main, 3880dcb)
+   a. Servidor da main num banco novo (porta 18082): cadastro da conta "Veterana" e três partidas pela API
+      (vitória clássica 50 pontos, vitória da pilotagem 60 pontos no Difícil, derrota da pilotagem): todas 201.
+   b. Tipos das colunas antes (H2 Shell, information_schema.columns):
+        DIFICULDADE | ENUM | null       | NO
+        MODO        | ENUM | 'CLASSICO' | NO
+        RESULTADO   | ENUM | null       | NO
+   c. Servidor desta branch sobre o MESMO arquivo (porta 18083), duas subidas seguidas:
+        subida 1: health UP; GET /api/ranking e GET /api/ranking?modo=PILOTAGEM idênticos (byte a byte) aos da 7.x
+        subida 2: idem (o script de conversão roda de novo sem efeito)
+   d. Tipos depois:
+        DIFICULDADE | CHARACTER VARYING | null       | NO
+        MODO        | CHARACTER VARYING | 'CLASSICO' | NO
+        RESULTADO   | CHARACTER VARYING | null       | NO
+   e. Terceira subida, login de novo e GET /api/partidas/minhas: as 3 partidas, com os mesmos valores
+      (DERROTA/PILOTAGEM/10, VITORIA/PILOTAGEM/60, VITORIA/CLASSICO/50).
+   Rankings da 7.x usados na comparação:
+     [{"posicao":1,"nome":"Veterana","pontos":50,"dificuldade":"MEDIO","passageiros":3,"tempoSegundos":40,...}]
+     [{"posicao":1,"nome":"Veterana","pontos":60,"dificuldade":"DIFICIL","passageiros":3,"tempoSegundos":130,...}]
+   (O "FAILURE ... exit value 143" no log do bootRun é o Gradle avisando do kill usado para parar o servidor.)
+
+5) Antes do merge
+   A primeira subida em produção converte as colunas do banco real. Fazer backup do volume /dados no Dokploy antes.

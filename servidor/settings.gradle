@@ -1,3 +1,7 @@
 // Servidor de ranking (Fase 5): build Gradle próprio, independente do cliente.
-// Não inclui nenhum módulo do jogo: o servidor não depende do código do cliente.
+// Fase 8 (DA-39): inclui o módulo nucleo do jogo (as regras, em Java puro), e só ele, para gerar e conferir as
+// hordas. Nada de core, console ou libGDX: o contrato com o jogo continua sendo a API.
 rootProject.name = 'missao-marte-servidor'
+
+include 'nucleo'
+project(':nucleo').projectDir = file('../nucleo')

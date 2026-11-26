@@ -1,12 +1,15 @@
 # Servidor de ranking em contêiner, para desenvolvimento.
 #   docker compose up --build          sobe em http://localhost:8080 (Swagger em /swagger-ui.html)
-#   docker compose up --build --watch  idem, e reconstrói sozinho quando src/ ou o build.gradle mudam
+#   docker compose up --build --watch  idem, e reconstrói sozinho quando src/, o build.gradle ou o nucleo mudam
 #   docker compose down                para (os dados ficam no volume "dados")
 #   docker compose down -v             para e apaga os dados
 # O segredo do token vem do arquivo .env desta pasta (copie .env.exemplo para .env); o .env não vai para o Git.
 services:
   servidor:
-    build: .
+    # Fase 8 (DA-39): o contexto é a raiz do repositório, porque o servidor compila o nucleo do jogo
+    build:
+      context: ..
+      dockerfile: servidor/Dockerfile
     image: missao-marte-servidor:dev
     ports:
       - "${PORTA:-8080}:8080"
@@ -23,6 +26,8 @@ services:
           path: ./src
         - action: rebuild
           path: ./build.gradle
+        - action: rebuild
+          path: ../nucleo/src/main
 
 volumes:
   dados:

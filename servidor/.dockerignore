@@ -1,7 +1,0 @@
-# só o necessário para compilar entra no contexto da imagem
-build/
-.gradle/
-dados/
-*.md
-compose.yaml
-Dockerfile

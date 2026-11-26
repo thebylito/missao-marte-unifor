@@ -80,7 +80,7 @@ jobs:
             --push \
             --tag ${{ steps.meta.outputs.image }} \
             --tag ${{ steps.meta.outputs.repo }}:latest \
-            servidor
+            -f servidor/Dockerfile .
 
   deploy:
     needs: build-and-push

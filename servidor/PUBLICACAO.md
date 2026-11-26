@@ -100,7 +100,7 @@ aceitável. É por isso que o APK aceita `http://` (`usesCleartextTraffic`, DA-2
 
 ## 7. Lista de verificação
 
-1. A imagem foi construída a partir desta pasta (`docker build -t missao-marte-servidor .`) ou pela plataforma.
+1. A imagem foi construída na raiz do repositório (`docker build -f servidor/Dockerfile -t missao-marte-servidor .`, porque o servidor compila o `nucleo`, DA-39) ou pela plataforma.
 2. `MISSAOMARTE_JWT_SEGREDO` está definido nos segredos da plataforma (32 bytes ou mais).
 3. Há um volume persistente em `/dados`, e só uma réplica.
 4. A verificação de saúde usa `/actuator/health`, com período inicial de 40 s ou mais.
