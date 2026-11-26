@@ -58,6 +58,7 @@ public final class PartidaDePilotagem {
     private final List<EventoAplicado> eventosAoVivo = new ArrayList<>();
     private final List<EventoAplicado> eventosAplicados = new ArrayList<>();
     private final List<PerigoAtivo> perigos = new ArrayList<>();
+    private final List<Meteoro> meteoros = new ArrayList<>();
     /** De que plataforma veio cada passageiro (para onde ele volta se a nave explodir). */
     private final Map<Passageiro, PlataformaDePouso> origens = new IdentityHashMap<>();
     private Partida.Estado estado = Partida.Estado.EM_ANDAMENTO;
@@ -137,6 +138,9 @@ public final class PartidaDePilotagem {
                 voar(comandos);
                 break;
         }
+        if (!meteoros.isEmpty() && nave.estado == NaveEmVoo.Estado.POUSADA && estado == Partida.Estado.EM_ANDAMENTO) {
+            verificarMeteoros();
+        }
     }
 
     // ------------------------------------------------------------------ efeitos
@@ -182,23 +186,29 @@ public final class PartidaDePilotagem {
         rajada = 0;
         intensidadeDaTempestade = 0;
         paneDeGravidade = false;
+        meteoros.clear();
         for (var iterator = perigos.iterator(); iterator.hasNext();) {
             PerigoAtivo perigo = iterator.next();
             if (perigo.terminou(passo)) {
                 emitir(EventoDeVoo.Tipo.PERIGO_TERMINOU, perigo.tipo().name(), perigo.sobreviveu ? 1 : 0);
                 iterator.remove();
-            } else if (perigo.tipo() == TipoDeEvento.TEMPESTADE) {
-                rajada += perigo.rajada(passo);
-                intensidadeDaTempestade = Math.max(intensidadeDaTempestade, perigo.intensidade(passo));
-            } else if (perigo.tipo() == TipoDeEvento.PANE_DE_GRAVIDADE) {
-                paneDeGravidade = true;
+            } else {
+                switch (perigo.tipo()) {
+                    case TEMPESTADE -> {
+                        rajada += perigo.rajada(passo);
+                        intensidadeDaTempestade = Math.max(intensidadeDaTempestade, perigo.intensidade(passo));
+                    }
+                    case PANE_DE_GRAVIDADE -> paneDeGravidade = true;
+                    case CHUVA_DE_METEOROS -> perigo.posicionarMeteoros(passo, meteoros);
+                    case PASSAGEIRO_VIP -> throw new IllegalStateException("VIP não é perigo.");
+                }
             }
         }
     }
 
     private void aplicarPerigo(EventoAplicado evento) {
         eventosAplicados.add(evento);
-        perigos.add(new PerigoAtivo(evento, nave.estado != NaveEmVoo.Estado.DESTRUIDA));
+        perigos.add(new PerigoAtivo(evento, nave.estado != NaveEmVoo.Estado.DESTRUIDA, caverna));
         emitir(EventoDeVoo.Tipo.PERIGO_INICIOU, evento.tipo().name(), 0);
     }
 
@@ -292,9 +302,25 @@ public final class PartidaDePilotagem {
                 return;
             }
         }
+        if (!meteoros.isEmpty() && verificarMeteoros()) {
+            return;
+        }
         if (nave.x < 0 || nave.x > caverna.getLargura() || nave.y < 0 || nave.y > caverna.getAltura()) {
             destruir("A nave se perdeu no espaço!");
         }
+    }
+
+    private boolean verificarMeteoros() {
+        for (Meteoro meteoro : meteoros) {
+            double dx = nave.x - meteoro.x();
+            double dy = nave.y - meteoro.y();
+            double soma = meteoro.raio() + config.raioDoCasco();
+            if (dx * dx + dy * dy < soma * soma) {
+                destruir("Atingida por um meteoro!");
+                return true;
+            }
+        }
+        return false;
     }
 
     private void tentarPousar(PlataformaDePouso p) {
@@ -485,6 +511,9 @@ public final class PartidaDePilotagem {
 
     /** Opacidade da névoa entre 0 e 1. */
     public double intensidadeDaTempestade() { return intensidadeDaTempestade; }
+
+    /** Meteoros presentes no passo atual. */
+    public List<Meteoro> getMeteoros() { return List.copyOf(meteoros); }
 
     /** De 0 a 1: quanto falta para o passageiro da plataforma embarcar (para a tela animar). */
     public double progressoDoEmbarque() {

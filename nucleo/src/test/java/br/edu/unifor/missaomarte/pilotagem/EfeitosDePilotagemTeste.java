@@ -8,7 +8,10 @@ import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.pilotagem.EventoDeVoo.Tipo;
 import br.edu.unifor.missaomarte.pilotagem.horda.PerigoDoRoteiro;
 import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.SplittableRandom;
 import org.junit.jupiter.api.Test;
 
 class EfeitosDePilotagemTeste {
@@ -68,7 +71,7 @@ class EfeitosDePilotagemTeste {
         PartidaDePilotagem partida = partida(config(0, 0));
         posicionarEmVoo(partida, 1000, 700, 0);
         long semente = 19;
-        double fase = new java.util.SplittableRandom(semente).nextDouble(2 * Math.PI);
+        double fase = new SplittableRandom(semente).nextDouble(2 * Math.PI);
         partida.iniciarEvento(TipoDeEvento.TEMPESTADE, semente);
         assertEquals(0, partida.intensidadeDaTempestade());
 
@@ -101,6 +104,73 @@ class EfeitosDePilotagemTeste {
     @Test
     void modificadorDaHordaComPaneRespeitaOTeto() {
         assertEquals(55 * 1.5, gravidadeComPane(55 * 1.2), 1e-9);
+    }
+
+    @Test
+    void chuvaRepeteTrajetoriasDaMesmaSementeETerminaEmVinteSegundos() {
+        PartidaDePilotagem primeira = partida(MEDIO);
+        PartidaDePilotagem segunda = partida(MEDIO);
+        primeira.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
+        segunda.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
+        assertTrue(primeira.getMeteoros().isEmpty());
+
+        Map<Double, Meteoro> vistos = new HashMap<>();
+        int ultimoSurgimento = 0;
+        for (int i = 0; i < 2400; i++) {
+            avancar(primeira, 1);
+            avancar(segunda, 1);
+            List<Meteoro> meteoros = primeira.getMeteoros();
+            assertEquals(meteoros, segunda.getMeteoros());
+            for (Meteoro meteoro : meteoros) {
+                assertTrue(meteoro.raio() >= 18 && meteoro.raio() <= 28);
+                Meteoro anterior = vistos.put(meteoro.raio(), meteoro);
+                if (anterior == null) {
+                    ultimoSurgimento = i;
+                } else {
+                    double velocidade = Math.hypot(meteoro.x() - anterior.x(), meteoro.y() - anterior.y()) / PASSO;
+                    assertTrue(velocidade >= 300 && velocidade <= 500);
+                }
+            }
+        }
+        assertTrue(vistos.size() >= 6 && vistos.size() <= 10);
+        assertTrue(ultimoSurgimento > 1200, "há entradas também na segunda metade da chuva");
+        assertTrue(tipos(primeira).stream().noneMatch(tipo -> tipo == Tipo.PERIGO_TERMINOU));
+        avancar(primeira, 1);
+        assertTrue(primeira.getMeteoros().isEmpty());
+        assertTrue(tipos(primeira).contains(Tipo.PERIGO_TERMINOU));
+        assertEquals(0, primeira.getPontos());
+    }
+
+    @Test
+    void meteoroExplodeANaveParadaEmSuaRota() {
+        PontoDaChuva alvo = alvoDaChuva();
+        PartidaDePilotagem partida = partida(config(0, 0));
+        posicionarEmVoo(partida, alvo.meteoro().x(), alvo.meteoro().y(), 0);
+        partida.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
+        avancar(partida, alvo.passo());
+
+        EventoDeVoo explosao = partida.consumirEventos().stream().filter(e -> e.tipo() == Tipo.EXPLODIU)
+                .findFirst().orElseThrow();
+        assertEquals("Atingida por um meteoro!", explosao.mensagem());
+        assertEquals(2, partida.getVidas());
+        assertEquals(0, partida.getPontos());
+    }
+
+    @Test
+    void asteroideTemPrioridadeQuandoAMesmaPosicaoTambemTemMeteoro() {
+        PontoDaChuva alvo = alvoDaChuva();
+        double x = alvo.meteoro().x();
+        double y = alvo.meteoro().y();
+        Caverna caverna = new Caverna(3000, 1500).base(100, 70)
+                .asteroide(new AsteroideEmOrbita(x, y, 20, 0, 0, 5, 0, 0));
+        PartidaDePilotagem partida = new PartidaDePilotagem("Ana", Dificuldade.MEDIO, caverna, config(0, 0));
+        partida.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
+        avancar(partida, alvo.passo() - 1);
+        posicionarEmVoo(partida, x, y, 0);
+        avancar(partida, 1);
+        assertTrue(partida.getMeteoros().contains(alvo.meteoro()));
+        assertEquals("Atingida por um asteroide!", partida.consumirEventos().stream()
+                .filter(e -> e.tipo() == Tipo.EXPLODIU).findFirst().orElseThrow().mensagem());
     }
 
     @Test
@@ -166,6 +236,22 @@ class EfeitosDePilotagemTeste {
         partida.iniciarEvento(TipoDeEvento.PANE_DE_GRAVIDADE, 1);
         avancar(partida, 1);
         return -partida.getNave().getVelocidadeY() / PASSO;
+    }
+
+    private record PontoDaChuva(Meteoro meteoro, int passo) {}
+
+    private static PontoDaChuva alvoDaChuva() {
+        PartidaDePilotagem referencia = partida(MEDIO);
+        referencia.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
+        for (int i = 1; i <= 2400; i++) {
+            avancar(referencia, 1);
+            for (Meteoro meteoro : referencia.getMeteoros()) {
+                if (meteoro.x() > 300 && meteoro.x() < 2700 && meteoro.y() > 400 && meteoro.y() < 1100) {
+                    return new PontoDaChuva(meteoro, i);
+                }
+            }
+        }
+        throw new AssertionError("A chuva precisa cruzar o interior da caverna");
     }
 
     private static int valorDoFim(PartidaDePilotagem partida) {
