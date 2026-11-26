@@ -25,9 +25,20 @@ function tempo(segundos) {
   return `${m}:${s}`;
 }
 
+/** AAAA/MM/DD HH:MM no fuso de quem está vendo: com a hora, dá para saber quem chegou primeiro num empate. */
 function quando(iso) {
   const data = new Date(iso);
-  return Number.isNaN(data.getTime()) ? "" : data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  if (Number.isNaN(data.getTime())) return "";
+  const dois = (n) => String(n).padStart(2, "0");
+  return `${data.getFullYear()}/${dois(data.getMonth() + 1)}/${dois(data.getDate())} `
+    + `${dois(data.getHours())}:${dois(data.getMinutes())}`;
+}
+
+/** O `proximaAs` do servidor já vem como "HH:MM" (Fortaleza); um instante ISO, se vier, vira HH:MM local. */
+function horaDaProxima(valor) {
+  if (/^\d{2}:\d{2}$/.test(valor ?? "")) return valor;
+  const data = new Date(valor);
+  return Number.isNaN(data.getTime()) ? "" : data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
 function celula(texto, classe) {
@@ -98,7 +109,7 @@ async function carregarHorda() {
 
     const horda = await resposta.json();
     const fim = Date.now() + horda.segundosParaAcabar * 1000;
-    const proxima = new Date(horda.proximaAs).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const proxima = horaDaProxima(horda.proximaAs);
     const dificuldade = DIFICULDADES[horda.dificuldade] ?? horda.dificuldade;
     const resumo = `${horda.caverna.nome} · ${dificuldade}`;
     const linha = document.getElementById("horda-atual");
