@@ -741,3 +741,84 @@ divergir. A DA-14 dizia que o servidor não inclui nenhum módulo do jogo, e a D
   - `BancoH2AntigoTeste` confere o banco antigo.
   Houve também um ensaio com a imagem que está em produção (`docs/evidencias/fase-08/etapa-1b-postgres-flyway.txt`):
   ranking, histórico e perfis iguais byte a byte depois da virada.
+
+## DA-42 — Moedas por extrato e bilhete de partida (Fase 8, 2026-11-26)
+
+**Contexto.** Vitórias e colocações rendem moedas. A loja precisa de um saldo consistente mesmo com pedidos
+simultâneos, e o servidor recebe partidas tanto de jogadores com bilhete quanto de clientes da Fase 7.
+
+**Decisão.**
+- O saldo é a soma do extrato. A chave `(jogador_id, origem, referencia)` e a inserção condicional garantem
+  um crédito por vitória, horda ou semana. A compra trava a linha do jogador ao conferir o saldo e debitar.
+- Cada jogador tem um bilhete ativo por vez, com validade de 2 horas, ligado a modo, dificuldade e, na Horda,
+  ao número da horda. O consumo confere o tempo real e gasta o bilhete uma vez.
+- Na Horda, só entra uma partida com bilhete válido. Nos modos anteriores, clientes sem bilhete continuam
+  registrando partidas sem ganhar moedas.
+
+**Consequências.** A V2 cria extrato, bilhetes e skins. Quem vem do H2 começa com saldo zero. A V3 permite ligar
+bilhetes e partidas à horda. O saldo e as premiações continuam consistentes entre instâncias no start-first.
+
+## DA-43 — Skins só cosméticas (Fase 8, 2026-11-26)
+
+**Contexto.** A loja vende variações da nave, e os outros pilotos precisam ver a skin equipada nas sombras.
+
+**Decisão.**
+- O servidor guarda o catálogo e os preços, as skins compradas e a skin equipada. O jogo guarda a arte.
+- Todo jogador tem a skin `padrao`, que representa a nave de sempre. A V2 a define como padrão também para
+  contas que vieram do H2. A skin passa no canal como id, lido do perfil ao abrir a conexão.
+
+**Consequências.** A escolha da skin preserva a geometria de colisão. As folhas ficam fora do enum `Folha`,
+e as sombras usam um atlas pequeno no jogo.
+
+## DA-44 — A horda é gerada no servidor e vai pronta como dados (Fase 8, 2026-11-26)
+
+**Contexto.** Todos os pilotos da horda precisam da mesma caverna, dificuldade, modificadores e roteiro,
+mesmo durante um deploy.
+
+**Decisão.**
+- A âncora é **1º de janeiro de 2026, 00h00 em America/Fortaleza** (`03:00Z`). É a horda 0. Cada horda
+  seguinte começa duas horas depois, nas horas pares de Fortaleza.
+- A semente é o `long` formado pelos primeiros oito bytes, em ordem big-endian, do HMAC-SHA256 de
+  `horda:N` com `MISSAOMARTE_HORDA_SEGREDO`. A descrição sorteada fica em `hordas`, com uma linha por
+  número. Uma segunda instância relê a vencedora da inserção concorrente.
+- O sorteio usa as cavernas liberadas no catálogo e, quando gravada, a caverna da horda anterior.
+  O ensaio local força a caverna indicada, inclusive uma que ainda esteja em avaliação.
+- A API envia a descrição como JSON e os segundos relativos até a virada.
+
+**Consequências.** Uma alteração no catálogo, no segredo ou na versão do servidor só afeta as próximas
+gerações. O ensaio ignora a linha publicada e não a altera. O fechamento trava a mesma linha usada no
+registro, grava o Top 10 e credita seus prêmios na mesma transação.
+
+## DA-45 — Canal das sombras com salas e eventos (Fase 8, 2026-11-26)
+
+**Contexto.** A Horda pode ter uma caverna diferente do Livre, e um evento ao vivo precisa alcançar pilotos
+nas duas modalidades. Esta decisão revisa a DA-31 e mantém a autenticação e os limites da DA-32.
+
+**Decisão.**
+- O WebSocket recebe `sala=livre` ou `sala=horda-N`. Sem o parâmetro, usa `livre`. Cada sala valida as
+  posições com sua própria caverna e recebe apenas as sombras dela.
+- A agenda automática deriva da semente da horda. Uma instância com pilotos conectados publica o evento no
+  horário do aviso. O banco distribui o evento às instâncias durante o start-first. Cada uma repassa para suas
+  sessões, com um ponto de pouso de VIP por sala.
+- O painel valida a conta no banco pelo `sub` do JWT e usa a lista `MISSAOMARTE_ADMINS`.
+
+**Consequências.** Os clientes antigos continuam na sala Livre e podem ignorar os tipos novos. O agendador
+entrega os avisos e inícios nas conexões abertas e retoma os fechamentos que venceram durante uma parada.
+
+## DA-46 — Evento só atrapalha a partida (Fase 8, 2026-11-26)
+
+**Contexto.** Os eventos ao vivo trazem perigos, e nem todos os pilotos estão conectados na hora em que
+cada evento começa. O Top 10 da horda compara as melhores vitórias sob o desafio da horda.
+
+**Decisão.**
+- Sobreviver rende +3 no placar da semana por jogador e perigo, para uma sessão presente no início.
+  Uma explosão informada durante o perigo invalida a participação daquela sessão. O servidor aceita o resultado
+  ao fim do evento, com 15 segundos de folga de rede.
+- Um `UPDATE` condicional arbitra o VIP para todas as salas e instâncias. O primeiro pedido válido rende
+  +5 no placar da semana e gera `vip-pego` para as salas.
+- O placar atribui a horda à semana em que ela foi jogada. A de domingo às 22h integra a semana que acaba na
+  virada. Os eventos entram na semana de seu início. Empates no total semanal seguem a ordem dos ids de jogador.
+
+**Consequências.** Pontos de evento ficam no placar semanal. O Top 10 guarda a melhor vitória por jogador, com
+empate pela primeira pontuação registrada. Na segunda às 00h30 em Fortaleza, o fechamento semanal considera as
+hordas encerradas e premia os três primeiros uma vez.

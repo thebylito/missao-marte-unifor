@@ -24,6 +24,8 @@ com GitHub Actions, está na [seção 10](#10-publicação-no-dokploy-com-github
 | Variável | Obrigatória | Para quê | Padrão |
 |---|---|---|---|
 | `MISSAOMARTE_JWT_SEGREDO` | **sim** | segredo que assina os tokens (HS256), com 32 bytes ou mais. Gere com `openssl rand -base64 48` e guarde só nos segredos da plataforma | temporário a cada início (os tokens deixam de valer quando o servidor reinicia) |
+| `MISSAOMARTE_HORDA_SEGREDO` | recomendada | segredo HMAC para o sorteio das próximas hordas. Gere um valor independente do JWT com `openssl rand -base64 48` e use o mesmo nas réplicas | temporário a cada subida, com aviso no log. Hordas já publicadas são relidas do banco |
+| `MISSAOMARTE_ADMINS` | para usar o painel | nomes dos jogadores autorizados, separados por vírgula, sem distinguir maiúsculas. É o nome cadastrado no banco que vale | vazio: nenhum administrador |
 | `MISSAOMARTE_URL_PUBLICA` | recomendada | endereço público, por exemplo `https://ranking.exemplo.com`. É o que o "Try it out" do Swagger usa | `http://localhost:8080` |
 | `MISSAOMARTE_DB_URL` | **sim** | o PostgreSQL, `jdbc:postgresql://<host-interno-do-postgres>:5432/missaomarte` (seção 10) | vazia: H2 em `MISSAOMARTE_DADOS` |
 | `MISSAOMARTE_DB_USUARIO` | **sim** | o usuário do banco do jogo (`missaomarte`), nunca o administrador da instância | `sa` (o do H2) |
@@ -37,7 +39,7 @@ com GitHub Actions, está na [seção 10](#10-publicação-no-dokploy-com-github
 Regras:
 - **Nunca** ponha o segredo nem a senha do banco no Git, na imagem ou num `docker-compose` versionado. O `.env`
   desta pasta é só para desenvolvimento e está no `.gitignore`.
-- **Trocar o segredo** invalida todos os tokens: cada jogador só precisa entrar de novo (o jogo recebe 401, apaga a
+- **Trocar o segredo do JWT** invalida todos os tokens: cada jogador só precisa entrar de novo (o jogo recebe 401, apaga a
   sessão guardada e volta ao modo convidado). As contas e as partidas continuam.
 - Os tokens valem 30 dias (`missaomarte.jwt.validade=P30D` em `application.properties`), porque o jogo guarda a
   sessão no aparelho (DA-38).
@@ -203,6 +205,7 @@ reimplantar sem novo commit: aba **Actions → Build & Deploy → Run workflow**
   - `MISSAOMARTE_JWT_SEGREDO` com o valor de `openssl rand -base64 48`. **Quem preenche é o dono do painel**, e o
     valor nunca vai para o Git.
   - Desde a Fase 8: `MISSAOMARTE_DB_URL`, `MISSAOMARTE_DB_USUARIO` e `MISSAOMARTE_DB_SENHA` (a virada, abaixo).
+  - Para Hordas e eventos: `MISSAOMARTE_HORDA_SEGREDO` e `MISSAOMARTE_ADMINS`, conforme a seção 2.
 - Domain `missao-marte.thebylito.dev` → porta **8080**, em HTTP. O HTTPS fica com a Cloudflare, na frente, como nos
   outros serviços.
 - Uma réplica só (modo shadow).
@@ -280,7 +283,7 @@ MISSAOMARTE_IMPORTAR_H2=/dados/missaomarte
 
 **3. O deploy, ainda stop-first.** Faça o merge (ou **Actions → Build & Deploy → Run workflow**). O stop-first para o
 contêiner antigo antes de subir o novo, e isso solta a trava do arquivo H2. Na subida, o servidor novo:
-- aplica a migração V1 no banco vazio;
+- aplica as migrações do Flyway no banco vazio;
 - copia o H2 (aberto só para leitura: o arquivo não muda);
 - só então começa a atender.
 
@@ -292,6 +295,7 @@ meio, ela é desfeita, e o banco também fica vazio. Nos dois casos, corrija e f
 
 ```
 Migrating schema "public" to version "1 - esquema inicial"
+... migrações seguintes ...
 Importação do H2 /dados/missaomarte.mv.db: <N> jogadores e <M> partidas copiados, com os mesmos ids; próximos ids: jogador <N+1>, partida <M+1>
 Tomcat started on port 8080
 ```
@@ -327,3 +331,16 @@ Se a instância tiver backups agendados no painel, eles também servem, desde qu
 
 O ensaio desta virada, com a imagem que está em produção, está em
 [`docs/evidencias/fase-08/etapa-1b-postgres-flyway.txt`](../docs/evidencias/fase-08/etapa-1b-postgres-flyway.txt).
+
+
+## 11. Hordas, placar e painel de eventos
+
+- A Horda troca nas horas pares de Fortaleza. A horda 0 começou em **1º de janeiro de 2026, 00h00**
+  (`03:00Z`). O prazo de registro termina 30 minutos depois do fim da horda.
+- O agendador recupera hordas e semanas pendentes ao subir. No deploy start-first, as instâncias compartilham o
+  fechamento, o extrato, o evento e o vencedor do VIP pelo banco. Cada WebSocket continua no contêiner onde abriu.
+- O painel fica em `/pagina/admin.html`. Entre com um jogador listado em `MISSAOMARTE_ADMINS`, escolha o evento
+  e clique em **Disparar**. A API responde 202, e o canal avisa os pilotos antes de começar.
+- Para testes, `missaomarte.agendador.habilitado=false` desliga o agendamento e a recuperação automática.
+  Em um servidor local com banco separado, `missaomarte.hordas.ensaio=<id>` força a caverna sem publicar
+  a descrição da horda no banco.

@@ -202,7 +202,7 @@ joga sem eventos, como já joga sem sombras (DA-32).
 | CT-14 | Moedas: tabela por modo, teto do Clássico, crédito idempotente e duas compras simultâneas sem saldo negativo | CA-11, CA-13 |
 | CT-15 | Fechamento da horda e da semana, inclusive a recuperação na subida do servidor | CA-10, CA-11 |
 | CT-16 | Salas isolam as sombras; sala de horda vencida é recusada; sem sala, `livre`; a sombra leva a skin do perfil | CA-09, CA-13 |
-| CT-17 | Agenda e painel: aviso, início e VIP pelo canal; o primeiro `vip` ganha; administrador 200, os outros 403 | CA-06 a CA-08 |
+| CT-17 | Agenda e painel: aviso, início e VIP pelo canal; o primeiro `vip` ganha; administrador 202, os outros 403 | CA-06 a CA-08 |
 | CT-18 | Top 10 por horda e placar da semana com a pontuação de colocação e de eventos | CA-03, CA-10 |
 
 **Unidade, no `core`:**

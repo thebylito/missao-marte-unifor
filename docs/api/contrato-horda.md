@@ -22,6 +22,8 @@ O jogo (etapas 5 e 6 no cliente) e o servidor (etapas 4 e 6 no servidor) seguem 
 ```
 - Os segundos são **relativos**, para o jogo não depender do relógio do aparelho.
 - `proximaAs` é a hora local de Fortaleza, em texto.
+- A dificuldade no topo usa `FACIL`, `MEDIO` ou `DIFICIL`. Dentro de `descricao` vale a grafia do exemplo
+  versionado, como `"Fácil"`.
 
 ### `POST /api/partidas/inicio` (com token)
 - Na Horda, o corpo é `{"modo":"HORDA","dificuldade":"DIFICIL","horda":123}`. Ele devolve 201
@@ -32,7 +34,8 @@ O jogo (etapas 5 e 6 no cliente) e o servidor (etapas 4 e 6 no servidor) seguem 
 - Na Horda, o corpo é `{"modo":"HORDA","horda":123,"bilhete":"<uuid>", ...os campos de sempre}`.
 - A resposta mantém todos os campos e acrescenta `"colocacao"`: a posição do jogador no Top 10 daquela horda depois
   do registro, ou `null` se ficou fora do Top 10. Os campos `moedasGanhas` e `saldo` continuam vindo.
-- A horda é aceita até 30 min depois do fim. Depois disso, a resposta é 409 com `"motivo":"HORDA_ENCERRADA"`.
+- A horda é aceita até 30 min depois do fim, enquanto seu Top 10 ainda está aberto. Passado o prazo ou concluído
+  o fechamento, a resposta é 409 com `"motivo":"HORDA_ENCERRADA"`.
 - Sem bilhete na Horda, a resposta é 400.
 
 ### `GET /api/ranking?modo=HORDA&horda=123` (público)
@@ -44,9 +47,15 @@ O jogo (etapas 5 e 6 no cliente) e o servidor (etapas 4 e 6 no servidor) seguem 
 { "semana": "2026-11-23", "posicoes": [ { "posicao": 1, "nome": "Ana", "pontos": 42, "hordas": 5, "eventos": 3 } ] }
 ```
 
+### `POST /api/admin/eventos` (com token de administrador)
+
+Recebe `{"tipo":"CHUVA_DE_METEOROS"}` e responde 202 sem corpo. O evento é anunciado pelo canal. Sem token
+válido, responde 401. Se o jogador do token não estiver na lista de administradores, responde 403.
+
 ## WebSocket `/ws/sombras?sala=livre|horda-123`
 - Sem `sala`, vale `livre`: os clientes antigos continuam funcionando.
-- As sombras só circulam dentro da mesma sala. A mensagem `sombra` leva `skin`.
+- As sombras só circulam dentro da mesma sala. A mensagem `sombra` leva `skin`. Para uma sala desconhecida
+  ou fora da janela, o servidor fecha a conexão com código 1008.
 - Os eventos chegam a todas as salas, mas a posição do VIP é calculada para a caverna de cada sala.
 
 | Direção | Mensagem |
@@ -61,3 +70,6 @@ O jogo (etapas 5 e 6 no cliente) e o servidor (etapas 4 e 6 no servidor) seguem 
 - `nome` é um `TipoDeEvento` do `nucleo`: `CHUVA_DE_METEOROS`, `TEMPESTADE`, `PANE_DE_GRAVIDADE` ou
   `PASSAGEIRO_VIP`.
 - Quem só está no menu não recebe eventos: o canal só fica aberto durante o voo.
+
+- O campo `em` é a contagem de segundos até o início. No horário do aviso é 15, e um aviso entregue com atraso
+  leva o tempo restante.

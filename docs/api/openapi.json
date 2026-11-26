@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "Miss\u00e3o Marte \u2014 servidor de ranking",
-        "description": "Cadastro e login de jogadores (token JWT), hist\u00f3rico de partidas e ranking global Top 10. O servidor guarda pontua\u00e7\u00f5es; n\u00e3o executa o jogo.",
+        "description": "Cadastro e login, hist\u00f3rico, moedas e skins, Horda, placares e painel de eventos. O canal WebSocket /ws/sombras est\u00e1 documentado em docs/api/contrato-horda.md.",
         "version": "5.0.0"
     },
     "servers": [
@@ -94,12 +94,38 @@
                     "required": true
                 },
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Partida registrada",
                         "content": {
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PartidaRegistrada"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados ou bilhete inv\u00e1lidos",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "HORDA_ENCERRADA",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                },
+                                "example": {
+                                    "status": 409,
+                                    "title": "Conflict",
+                                    "detail": "a horda est\u00e1 encerrada",
+                                    "motivo": "HORDA_ENCERRADA"
                                 }
                             }
                         }
@@ -124,12 +150,38 @@
                     "required": true
                 },
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Bilhete emitido",
                         "content": {
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/BilheteResposta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados da partida inv\u00e1lidos",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "HORDA_ENCERRADA",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                },
+                                "example": {
+                                    "status": 409,
+                                    "title": "Conflict",
+                                    "detail": "a horda est\u00e1 encerrada",
+                                    "motivo": "HORDA_ENCERRADA"
                                 }
                             }
                         }
@@ -197,6 +249,35 @@
                 }
             }
         },
+        "/api/admin/eventos": {
+            "post": {
+                "tags": [
+                    "controlador-de-eventos"
+                ],
+                "operationId": "disparar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Pedido"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "description": "Evento agendado com aviso de 15 segundos"
+                    },
+                    "401": {
+                        "description": "Token ausente ou inv\u00e1lido"
+                    },
+                    "403": {
+                        "description": "Jogador sem acesso ao painel"
+                    }
+                }
+            }
+        },
         "/api/ranking": {
             "get": {
                 "tags": [
@@ -213,8 +294,18 @@
                             "default": "CLASSICO",
                             "enum": [
                                 "CLASSICO",
-                                "PILOTAGEM"
+                                "PILOTAGEM",
+                                "HORDA"
                             ]
+                        }
+                    },
+                    {
+                        "name": "horda",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     }
                 ],
@@ -232,7 +323,29 @@
                             }
                         }
                     }
-                }
+                },
+                "security": []
+            }
+        },
+        "/api/ranking/semanal": {
+            "get": {
+                "tags": [
+                    "controlador-de-ranking"
+                ],
+                "operationId": "semanal",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Placar"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
             }
         },
         "/api/partidas/minhas": {
@@ -319,6 +432,27 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/hordas/atual": {
+            "get": {
+                "tags": [
+                    "controlador-de-hordas"
+                ],
+                "operationId": "atual",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HordaAtual"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
             }
         }
     },
@@ -442,11 +576,18 @@
                         "type": "string",
                         "enum": [
                             "CLASSICO",
-                            "PILOTAGEM"
+                            "PILOTAGEM",
+                            "HORDA"
                         ]
                     },
                     "bilhete": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Bilhete emitido no in\u00edcio da partida. Obrigat\u00f3rio no modo HORDA."
+                    },
+                    "horda": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "N\u00famero da horda. Obrigat\u00f3rio no modo HORDA."
                     }
                 },
                 "required": [
@@ -457,6 +598,33 @@
                     "resultado",
                     "tempoSegundos"
                 ]
+            },
+            "ProblemDetail": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "detail": {
+                        "type": "string"
+                    },
+                    "instance": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "properties": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                }
             },
             "PartidaRegistrada": {
                 "type": "object",
@@ -505,7 +673,8 @@
                         "type": "string",
                         "enum": [
                             "CLASSICO",
-                            "PILOTAGEM"
+                            "PILOTAGEM",
+                            "HORDA"
                         ]
                     },
                     "moedasGanhas": {
@@ -515,6 +684,14 @@
                     "saldo": {
                         "type": "integer",
                         "format": "int32"
+                    },
+                    "colocacao": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "format": "int32",
+                        "description": "Posi\u00e7\u00e3o do jogador no Top 10 da horda, ou null."
                     }
                 }
             },
@@ -525,7 +702,8 @@
                         "type": "string",
                         "enum": [
                             "CLASSICO",
-                            "PILOTAGEM"
+                            "PILOTAGEM",
+                            "HORDA"
                         ]
                     },
                     "dificuldade": {
@@ -535,6 +713,11 @@
                             "MEDIO",
                             "DIFICIL"
                         ]
+                    },
+                    "horda": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "N\u00famero da horda. Obrigat\u00f3rio no modo HORDA."
                     }
                 },
                 "required": [
@@ -589,6 +772,23 @@
                     "senha"
                 ]
             },
+            "Pedido": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "CHUVA_DE_METEOROS",
+                            "TEMPESTADE",
+                            "PANE_DE_GRAVIDADE",
+                            "PASSAGEIRO_VIP"
+                        ]
+                    }
+                },
+                "required": [
+                    "tipo"
+                ]
+            },
             "PosicaoNoRanking": {
                 "type": "object",
                 "properties": {
@@ -622,6 +822,45 @@
                     "registradaEm": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                }
+            },
+            "Placar": {
+                "type": "object",
+                "properties": {
+                    "semana": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "posicoes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Posicao"
+                        }
+                    }
+                }
+            },
+            "Posicao": {
+                "type": "object",
+                "properties": {
+                    "posicao": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "pontos": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "hordas": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "eventos": {
+                        "type": "integer",
+                        "format": "int32"
                     }
                 }
             },
@@ -672,7 +911,8 @@
                         "type": "string",
                         "enum": [
                             "CLASSICO",
-                            "PILOTAGEM"
+                            "PILOTAGEM",
+                            "HORDA"
                         ]
                     }
                 }
@@ -714,6 +954,284 @@
                     },
                     "equipada": {
                         "type": "string"
+                    }
+                }
+            },
+            "AsteroideDescrito": {
+                "type": "object",
+                "properties": {
+                    "centroX": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "centroY": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "raio": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "amplitudeX": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "amplitudeY": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "periodo": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "fase": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "giroGrausPorSegundo": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "CavernaResumida": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "nome": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DescricaoDaHorda": {
+                "type": "object",
+                "properties": {
+                    "numero": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "F\u00e1cil",
+                            "M\u00e9dio",
+                            "Dif\u00edcil"
+                        ]
+                    },
+                    "caverna": {
+                        "$ref": "#/components/schemas/DescricaoDeCaverna"
+                    },
+                    "passageiros": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PassageiroNaHorda"
+                        }
+                    },
+                    "velocidadeDosAsteroides": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "fasesDosAsteroides": {
+                        "type": "array",
+                        "items": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    "modificadores": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Modificador"
+                        }
+                    },
+                    "roteiro": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PerigoDoRoteiro"
+                        }
+                    }
+                }
+            },
+            "DescricaoDeCaverna": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "largura": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "altura": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "rochas": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RochaDescrita"
+                        }
+                    },
+                    "base": {
+                        "$ref": "#/components/schemas/PontoDePouso"
+                    },
+                    "pontosDePouso": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PontoDePouso"
+                        }
+                    },
+                    "asteroides": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AsteroideDescrito"
+                        }
+                    },
+                    "liberada": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "HordaAtual": {
+                "type": "object",
+                "properties": {
+                    "numero": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "inicio": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "fim": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "segundosParaAcabar": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "segundosParaProxima": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "proximaAs": {
+                        "type": "string"
+                    },
+                    "caverna": {
+                        "$ref": "#/components/schemas/CavernaResumida"
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "FACIL",
+                            "MEDIO",
+                            "DIFICIL"
+                        ]
+                    },
+                    "modificadores": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Modificador"
+                        }
+                    },
+                    "descricao": {
+                        "$ref": "#/components/schemas/DescricaoDaHorda"
+                    }
+                }
+            },
+            "Modificador": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "VENTO",
+                            "GRAVIDADE",
+                            "TANQUE"
+                        ]
+                    },
+                    "valor": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "PassageiroNaHorda": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "PROFESSOR",
+                            "ENGENHEIRO",
+                            "ASTRONAUTA"
+                        ]
+                    },
+                    "ponto": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "PerigoDoRoteiro": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "CHUVA_DE_METEOROS",
+                            "TEMPESTADE",
+                            "PANE_DE_GRAVIDADE",
+                            "PASSAGEIRO_VIP"
+                        ]
+                    },
+                    "instante": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "semente": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "PontoDePouso": {
+                "type": "object",
+                "properties": {
+                    "x": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "superficie": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "RochaDescrita": {
+                "type": "object",
+                "properties": {
+                    "x": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "y": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "largura": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "altura": {
+                        "type": "number",
+                        "format": "double"
                     }
                 }
             }
