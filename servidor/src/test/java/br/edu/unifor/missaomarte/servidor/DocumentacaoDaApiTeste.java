@@ -17,8 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * O servidor sobe com MISSAOMARTE_URL_PUBLICA simulada pela propriedade.
  */
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:missaomarte-documentacao;DB_CLOSE_DELAY=-1",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.datasource.url=jdbc:h2:mem:missaomarte-documentacao;DB_CLOSE_DELAY=-1" + ApiTeste.MODO_POSTGRESQL,
         "missaomarte.jwt.segredo=segredo-so-para-os-testes-com-32-bytes-ou-mais",
         "missaomarte.url-publica=https://ranking.exemplo.com"})
 @AutoConfigureMockMvc

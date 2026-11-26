@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.edu.unifor.missaomarte.servidor.ApiTeste;
 import br.edu.unifor.missaomarte.servidor.ApiTeste.RelogioDeTeste;
 import com.jayway.jsonpath.JsonPath;
 import java.net.URI;
@@ -41,8 +42,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
  * relógio é o de teste: o limite de 40 ms entre posições só "passa" quando o teste avança o relógio.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-        "spring.datasource.url=jdbc:h2:mem:missaomarte-sombras;DB_CLOSE_DELAY=-1",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.datasource.url=jdbc:h2:mem:missaomarte-sombras;DB_CLOSE_DELAY=-1" + ApiTeste.MODO_POSTGRESQL,
         "missaomarte.jwt.segredo=segredo-so-para-os-testes-com-32-bytes-ou-mais"})
 @AutoConfigureMockMvc
 class CanalDeSombrasTeste {

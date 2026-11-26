@@ -21,9 +21,9 @@ import org.hibernate.type.SqlTypes;
 /**
  * Uma partida concluída, sempre de um jogador (o dono do token que a enviou).
  *
- * <p>Fase 8 (DA-40): as colunas de enum são texto ({@code @JdbcTypeCode(SqlTypes.VARCHAR)}). Sem isso, o Hibernate
- * cria um {@code ENUM} nativo do H2, que recusa qualquer valor novo, e o {@code ddl-auto=update} nunca muda o tipo
- * de uma coluna. O banco que já existia é convertido por {@code migracoes/enums-para-texto.sql}.
+ * <p>Fase 8: o esquema é o da migração {@code db/migration/V1__esquema_inicial.sql} (DA-41), e o Hibernate só o
+ * confere ({@code ddl-auto=validate}). As colunas de enum são texto (DA-40): {@code @JdbcTypeCode(SqlTypes.VARCHAR)}
+ * faz o Hibernate esperar {@code varchar(20)}, como na migração, em vez de um {@code ENUM} nativo do H2.
  */
 @Entity
 @Table(name = "partidas", indexes = {
@@ -66,8 +66,8 @@ public class Partida {
     private Instant registradaEm;
 
     /**
-     * Fase 7. O valor padrão no banco faz as partidas já gravadas (Fases 5 e 6) virarem clássicas quando a coluna é
-     * criada num banco que já tem dados.
+     * Fase 7. O valor padrão no banco ({@code default 'CLASSICO'}, na migração V1) faz as partidas já gravadas (Fases
+     * 5 e 6) contarem como clássicas.
      */
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
