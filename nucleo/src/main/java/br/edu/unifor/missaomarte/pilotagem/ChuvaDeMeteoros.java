@@ -32,12 +32,31 @@ final class ChuvaDeMeteoros {
             }
             double dx = destinoX - x;
             double dy = destinoY - y;
-            double tempoDeTravessia = Math.hypot(dx, dy) / sorteio.nextDouble(300, 500);
+            double velocidade = sorteio.nextDouble(300, 500);
+            double tempoDeTravessia = Math.hypot(dx, dy) / velocidade;
+            if (tempoDeTravessia > duracaoDaChuva) {
+                // Uma diagonal longa demais vira uma travessia reta entre as bordas mais próximas.
+                if (altura <= largura) {
+                    x = sorteio.nextDouble(largura);
+                    y = altura;
+                    dx = 0;
+                    dy = -altura;
+                } else {
+                    x = sorteio.nextBoolean() ? 0 : largura;
+                    y = sorteio.nextDouble(altura);
+                    dx = x == 0 ? largura : -largura;
+                    dy = 0;
+                }
+                double distancia = Math.min(largura, altura);
+                velocidade = Math.max(velocidade, Math.min(500, distancia / duracaoDaChuva));
+                tempoDeTravessia = distancia / velocidade;
+            }
             double raio = sorteio.nextDouble(18, 28);
             // Espalha as entradas pela duração da chuva. Antecipa as longas quando ainda dá para cruzar.
             double entrada = (i + sorteio.nextDouble()) * duracaoDaChuva / quantidade;
             double ultimoPasso = duracaoDaChuva - PartidaDePilotagem.PASSO;
-            double limiteDaEntrada = tempoDeTravessia < duracaoDaChuva ? duracaoDaChuva - tempoDeTravessia : ultimoPasso;
+            double limiteDaEntrada = tempoDeTravessia <= duracaoDaChuva
+                    ? duracaoDaChuva - tempoDeTravessia : ultimoPasso;
             entrada = Math.min(entrada, Math.min(limiteDaEntrada, ultimoPasso));
             trajetorias.add(new Trajetoria(entrada, tempoDeTravessia, x, y, dx / tempoDeTravessia,
                     dy / tempoDeTravessia, raio));

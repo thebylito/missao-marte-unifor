@@ -158,8 +158,8 @@ public final class PartidaDePilotagem {
 
     /** Substitui o roteiro pendente. Perigos já iniciados seguem até o fim. */
     public void definirRoteiro(List<PerigoDoRoteiro> roteiro) {
-        List<PerigoDoRoteiro> emOrdem = roteiro.stream()
-                .sorted(Comparator.comparingDouble(PerigoDoRoteiro::instante)).toList();
+        List<PerigoDoRoteiro> emOrdem = new ArrayList<>(roteiro);
+        emOrdem.sort(Comparator.comparingDouble(PerigoDoRoteiro::instante));
         for (PerigoDoRoteiro perigo : emOrdem) {
             exigirPerigo(perigo.tipo());
         }
@@ -341,14 +341,8 @@ public final class PartidaDePilotagem {
                 return;
             }
         }
-        for (AsteroideEmOrbita a : caverna.getAsteroides()) {
-            double dx = nave.x - a.getX();
-            double dy = nave.y - a.getY();
-            double soma = a.getRaio() + config.raioDoCasco();
-            if (dx * dx + dy * dy < soma * soma) {
-                destruir("Atingida por um asteroide!");
-                return;
-            }
+        if (verificarAsteroides()) {
+            return;
         }
         if (!meteoros.isEmpty() && verificarMeteoros()) {
             return;
@@ -369,13 +363,30 @@ public final class PartidaDePilotagem {
         return false;
     }
 
+    private boolean verificarAsteroides() {
+        for (AsteroideEmOrbita asteroide : caverna.getAsteroides()) {
+            if (cascoTocouCirculo(asteroide.getX(), asteroide.getY(), asteroide.getRaio())) {
+                destruir("Atingida por um asteroide!");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean cascoTocouCirculo(double x, double y, double raio) {
+        double dx = nave.x - x;
+        double dy = nave.y - y;
+        double soma = raio + config.raioDoCasco();
+        return dx * dx + dy * dy < soma * soma;
+    }
+
     private boolean verificarMeteoros() {
         for (Meteoro meteoro : meteoros) {
-            double dx = nave.x - meteoro.x();
-            double dy = nave.y - meteoro.y();
-            double soma = meteoro.raio() + config.raioDoCasco();
-            if (dx * dx + dy * dy < soma * soma) {
-                destruir("Atingida por um meteoro!");
+            if (cascoTocouCirculo(meteoro.x(), meteoro.y(), meteoro.raio())) {
+                // O voo já conferiu os asteroides. No chão, eles só entram nesta disputa de prioridade.
+                if (nave.estado != NaveEmVoo.Estado.POUSADA || !verificarAsteroides()) {
+                    destruir("Atingida por um meteoro!");
+                }
                 return true;
             }
         }

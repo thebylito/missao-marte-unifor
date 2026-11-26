@@ -174,6 +174,47 @@ class EfeitosDePilotagemTeste {
     }
 
     @Test
+    void asteroideTemPrioridadeTambemSeAMesmaNaveEstiverPousada() {
+        Caverna caverna = new Caverna(3000, 1500).base(100, 70)
+                .asteroide(new AsteroideEmOrbita(228, 110, 20, 0, 0, 5, 0, 0));
+        PartidaDePilotagem partida = new PartidaDePilotagem("Ana", Dificuldade.MEDIO, caverna, MEDIO);
+        partida.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
+        avancar(partida, 2400);
+
+        EventoDeVoo explosao = partida.consumirEventos().stream().filter(e -> e.tipo() == Tipo.EXPLODIU)
+                .findFirst().orElseThrow();
+        assertEquals("Atingida por um asteroide!", explosao.mensagem());
+    }
+
+    @Test
+    void meteorosSaemPelaBordaOpostaMesmoNumaCavernaMuitoLarga() {
+        double largura = 12000;
+        double altura = 1500;
+        PartidaDePilotagem partida = new PartidaDePilotagem("Ana", Dificuldade.MEDIO,
+                new Caverna(largura, altura).base(100, 70), MEDIO);
+        partida.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
+        Map<Double, Meteoro> entradas = new HashMap<>();
+        Map<Double, Meteoro> saidas = new HashMap<>();
+        for (int i = 0; i < 2400; i++) {
+            avancar(partida, 1);
+            for (Meteoro meteoro : partida.getMeteoros()) {
+                entradas.putIfAbsent(meteoro.raio(), meteoro);
+                saidas.put(meteoro.raio(), meteoro);
+            }
+        }
+        assertTrue(entradas.size() >= 6);
+        double tolerancia = 500 * PASSO + 1e-9;
+        for (Meteoro entrada : entradas.values()) {
+            Meteoro saida = saidas.get(entrada.raio());
+            boolean cruzouDoTopoAoChao = altura - entrada.y() <= tolerancia && saida.y() <= tolerancia;
+            boolean cruzouParaADireita = entrada.x() <= tolerancia && largura - saida.x() <= tolerancia;
+            boolean cruzouParaAEsquerda = largura - entrada.x() <= tolerancia && saida.x() <= tolerancia;
+            assertTrue(cruzouDoTopoAoChao || cruzouParaADireita || cruzouParaAEsquerda,
+                    () -> "Trajetória incompleta: " + entrada + " a " + saida);
+        }
+    }
+
+    @Test
     void perigoTerminaComValorUmSeANaveSobreviveu() {
         PartidaDePilotagem partida = partida(MEDIO);
         partida.iniciarEvento(TipoDeEvento.PANE_DE_GRAVIDADE, 2);
