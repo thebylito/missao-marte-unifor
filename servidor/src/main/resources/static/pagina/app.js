@@ -6,6 +6,8 @@
 const DESCRICOES = {
   HORDA: "Um novo desafio a cada 2 horas, igual para todos, com Top 10 próprio. "
     + "Eventos surpreendem quem está voando.",
+  SEMANA: "Cada horda fechada dá 10, 8, 6, 5, 4, 3, 2, 1, 1 e 1 ponto do primeiro ao décimo lugar. "
+    + "Sobreviver a um perigo soma 3 pontos. Pegar o VIP primeiro soma 5.",
   PILOTAGEM: "Na pilotagem, a gravidade puxa a nave para baixo e o motor gasta combustível. "
     + "Pouse devagar na plataforma, embarque até 2 passageiros e leve-os à base, que também reabastece. "
     + "O combustível que sobra no fim vale até 30 pontos de bônus. Com conta, você vê as naves de quem está "
@@ -18,6 +20,8 @@ const ATUALIZAR_A_CADA_MS = 30000;
 
 let modoAtual = "PILOTAGEM";
 let pedidoRanking = 0;
+let placarSemanal;
+let pedidoSemana = 0;
 
 function tempo(segundos) {
   const m = Math.floor(segundos / 60);
@@ -56,21 +60,55 @@ function mostrar(posicoes) {
     if (p.posicao <= 3) tr.className = `podio-${p.posicao}`;
     const piloto = celula(p.nome, "piloto");
     piloto.title = p.nome;
-    tr.append(
-      celula(`${p.posicao}º`),
-      piloto,
-      celula(String(p.pontos), "num"),
-      celula(DIFICULDADES[p.dificuldade] ?? p.dificuldade),
-      celula(String(p.passageiros), "num"),
-      celula(tempo(p.tempoSegundos), "num"),
-      celula(quando(p.registradaEm)),
-    );
+    tr.append(celula(`${p.posicao}º`), piloto, celula(String(p.pontos), "num"));
+    if (modoAtual === "SEMANA") {
+      tr.append(celula(String(p.hordas), "num"), celula(String(p.eventos), "num"));
+    } else {
+      tr.append(
+        celula(DIFICULDADES[p.dificuldade] ?? p.dificuldade),
+        celula(String(p.passageiros), "num"),
+        celula(tempo(p.tempoSegundos), "num"),
+        celula(quando(p.registradaEm)),
+      );
+    }
     return tr;
   }));
   const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   estado.textContent = posicoes.length === 0
-    ? "Ainda não há vitórias neste modo."
+    ? (modoAtual === "SEMANA" ? "Ainda não há pilotos no placar desta semana." : "Ainda não há vitórias neste modo.")
     : `A lista se atualiza a cada 30 segundos. Última leitura às ${hora}.`;
+}
+
+function mostrarSemana() {
+  const segunda = new Date(`${placarSemanal.semana}T00:00:00Z`);
+  const domingo = new Date(segunda);
+  domingo.setUTCDate(segunda.getUTCDate() + 6);
+  const diaMes = (data) => data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "UTC" });
+  document.getElementById("periodo-semana").textContent =
+    `Semana de ${diaMes(segunda)} a ${diaMes(domingo)} · os 3 primeiros ganham 50, 30 e 20 moedas`;
+  mostrar(placarSemanal.posicoes);
+}
+
+async function carregarSemana() {
+  const pedido = ++pedidoSemana;
+  let placar;
+  try {
+    const resposta = await fetch("api/ranking/semanal", { headers: { Accept: "application/json" } });
+    if (resposta.status === 200) placar = await resposta.json();
+  } catch {
+    // A próxima atualização volta a verificar a disponibilidade.
+  }
+  if (pedido !== pedidoSemana) return;
+  placarSemanal = placar;
+  const aba = document.getElementById("aba-semana");
+  if (!placar && modoAtual === "SEMANA") {
+    const alternativa = document.querySelector(".abas [role=tab]:not([hidden]):not(#aba-semana)");
+    const tinhaFoco = document.activeElement === aba;
+    escolherModo(alternativa);
+    if (tinhaFoco) alternativa.focus();
+  }
+  aba.hidden = !placar;
+  if (modoAtual === "SEMANA") mostrarSemana();
 }
 
 async function carregarRanking() {
@@ -97,6 +135,15 @@ function escolherModo(botao) {
   document.getElementById("painel-ranking").setAttribute("aria-labelledby", botao.id);
   document.getElementById("descricao-modo").textContent = DESCRICOES[modoAtual];
   document.getElementById("horda-atual").hidden = modoAtual !== "HORDA";
+  const semanal = modoAtual === "SEMANA";
+  document.getElementById("colunas-ranking").hidden = semanal;
+  document.getElementById("colunas-semana").hidden = !semanal;
+  document.getElementById("periodo-semana").hidden = !semanal;
+  if (semanal) {
+    ++pedidoRanking;
+    mostrarSemana();
+    return;
+  }
   document.getElementById("linhas").replaceChildren();
   document.getElementById("estado").textContent = "Carregando o ranking…";
   carregarRanking();
@@ -185,6 +232,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!modoEscolhido) escolherModo(aba);
   });
   carregarRanking();
+  carregarSemana();
   conferirDownloads();
-  setInterval(() => { if (!document.hidden) carregarRanking(); }, ATUALIZAR_A_CADA_MS);
+  setInterval(() => {
+    if (document.hidden) return;
+    if (modoAtual !== "SEMANA") carregarRanking();
+    carregarSemana();
+  }, ATUALIZAR_A_CADA_MS);
 });
