@@ -13,7 +13,7 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 | 5 — Servidor e ranking global (Spring Boot) | validada | `fase-5` | [tutorial](docs/fase-05-tutorial.md) · [API (OpenAPI)](docs/api/openapi.json) |
 | 6 — Android e toque | validada | `fase-6` | [tutorial](docs/fase-06-tutorial.md) · [publicação do servidor](servidor/PUBLICACAO.md) |
 | 7 — Evolução livre: Modo Pilotagem | validada | `fase-7` | [análise](docs/fase-07-analise.md) · [tutorial](docs/fase-07-tutorial.md) |
-| 8 — Horda, eventos ao vivo, moedas e skins | em andamento | `fase-8` (ainda não criada) | [análise](docs/fase-08-analise.md) · [tutorial](docs/fase-08-tutorial.md) · [contrato da Horda](docs/api/contrato-horda.md) |
+| 8 — Horda, eventos ao vivo, moedas e skins | em produção | `fase-8` (depois da validação no celular) | [análise](docs/fase-08-analise.md) · [tutorial](docs/fase-08-tutorial.md) · [contrato da Horda](docs/api/contrato-horda.md) |
 
 **No ar:** https://missao-marte.thebylito.dev: ranking global ao vivo, downloads do APK e do jogo desktop (já
 apontando para o servidor) e a API. Publicado no Dokploy pelo GitHub Actions a cada merge na `main`
@@ -26,8 +26,7 @@ Entrega final (Sprint 5): [relatório técnico](docs/relatorio-tecnico.md) ([PDF
 [roteiro da demonstração](docs/demonstracao.md) · [retrospectiva](docs/retrospectiva.md) ·
 [revisão final](docs/evidencias/sprint-5/revisao-final.txt).
 
-## Executar (estado atual: Fase 7)
-<!-- CONFERIR: trocar para "Fase 8" quando a tag fase-8 for criada -->
+## Executar (estado atual: Fase 8)
 
 Requisito: **um JDK 17 instalado**. O Gradle o encontra sozinho (toolchain), mesmo que o `java` padrão seja outro.
 Não é preciso instalar o Gradle: o wrapper (`gradlew`) baixa a versão certa (8.14.3).
@@ -65,17 +64,18 @@ Para testar os controles de toque com o mouse: `./gradlew :lwjgl3:run -Dmissaoma
 
 ### Fase 8: Horda, eventos ao vivo, moedas e skins
 
-Em andamento. A Horda, os eventos, as moedas e o Hangar exigem uma conta e o servidor no ar; o convidado joga como
+A Horda, os eventos, as moedas e o Hangar exigem uma conta e o servidor no ar; o convidado joga como
 antes.
+
 - **Horda:** a cada 2 horas, nas horas pares de Fortaleza, um desafio igual para todos (caverna, passageiros,
   dificuldade e variações), com Top 10 próprio. No menu, `H` (ou um toque na faixa da horda, no rodapé) joga a horda
   atual. Os controles são os da Pilotagem (abaixo).
 - **Eventos ao vivo:** na Pilotagem e na Horda, o servidor dispara chuva de meteoros, tempestade de poeira, pane de
   gravidade ou passageiro VIP, com aviso 15 s antes. O evento só atrapalha a partida. Sobreviver a um perigo (+3) e
   pegar o VIP primeiro (+5) contam no placar da semana.
-- **Moedas:** só na vitória, e só se a partida começou com um bilhete do servidor. Clássico 1 (até 20 por dia),
-  Pilotagem 3 (+1 no Difícil), Horda 5, mais a colocação no fechamento de cada horda e da semana. O saldo aparece no
-  menu e no fim da partida. <!-- CONFERIR: as 5 moedas da Horda, as moedas de colocação (horda e semana) e os pontos do placar da semana dependem do servidor da fase-8-servidor -->
+- **Moedas:** uma vitória com bilhete válido rende 1 no Clássico (até 20 por dia), 3 na Pilotagem (+1 no Difícil)
+  ou 5 na Horda. Há também prêmios de colocação: 20, 15 e 10 para os três primeiros da horda e 5 do 4º ao 10º.
+  Na semana, os três primeiros ganham 50, 30 e 20. O saldo aparece no menu e no fim da partida.
 - **Hangar:** `7` no menu. Setas escolhem, `Enter` compra ou equipa, `Esc` volta (no toque: Anterior, Próxima e o
   botão da ação). Duas linhas de naves, Padrão (II a V) e Guará (I a IV), por 60, 120, 200 e 300 moedas. A skin só
   muda a aparência, também na sombra que os outros veem.
@@ -91,8 +91,10 @@ antes.
   ```
 
   Sem Docker, `./gradlew bootRun` usa um H2 em arquivo em modo PostgreSQL. Na publicação, o banco vem de
-  `MISSAOMARTE_DB_URL`, `MISSAOMARTE_DB_USUARIO` e `MISSAOMARTE_DB_SENHA`, e a semente das hordas usa o segredo
-  `MISSAOMARTE_HORDA_SEGREDO`. <!-- CONFERIR: nome da variável do segredo das hordas, na fase-8-servidor -->
+  `MISSAOMARTE_DB_URL`, `MISSAOMARTE_DB_USUARIO` e `MISSAOMARTE_DB_SENHA`, e `MISSAOMARTE_HORDA_SEGREDO` é opcional.
+  Na produção, o servidor gera um segredo a cada subida e relê do banco as sementes das hordas já publicadas.
+  Os ajustes do jogo (limites de pouso, tanque, asteroides, meteoros e duração dos eventos) mudam pelas variáveis
+  `MISSAOMARTE_AJUSTE_*`, sem lançar outro jogo (DA-48, `servidor/PUBLICACAO.md`, seção 12).
 
 Detalhes, decisões e validação no [tutorial da Fase 8](docs/fase-08-tutorial.md).
 
@@ -244,7 +246,6 @@ O que não foi possível verificar, com o motivo e a evidência alternativa:
 - **Android abaixo da API 34 e tablets de verdade:** só havia o emulador (API 36) e um celular (API 37). A API mínima
   26 foi conferida no bytecode do APK (`validacao/android/conferir_api_minima.py`), e o layout 4:3, em teste de unidade.
 - **APK de release assinado:** só o APK de depuração é gerado. O `android-release-unsigned.apk` não instala.
-- **Servidor publicado com HTTPS:** testado só em contêiner local. O guia está em `servidor/PUBLICACAO.md`.
 - **Imagem do servidor em amd64 e o `docker compose up --watch` na prática.**
 - **Partida do Modo Pilotagem jogada à mão no celular chegando ao ranking global (CT-32):** registrada pelo relato
   do integrante (`docs/evidencias/fase-07/partida-a-mao-celular.txt`). A gravação no ranking da pilotagem está

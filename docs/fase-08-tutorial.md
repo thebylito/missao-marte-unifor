@@ -1,9 +1,5 @@
 # Fase 8 — Evolução livre: Horda, eventos ao vivo, moedas e skins
 
-> **Rascunho (2026-11-26).** O servidor da Horda e dos eventos ainda está sendo feito na branch `fase-8-servidor`.
-> Cada número ou afirmação que depende dele, ou da validação final, está marcado com um comentário `CONFERIR` no
-> código-fonte deste arquivo.
-
 ## 1. Introdução
 
 O ranking da Pilotagem prendeu o grupo, mas toda partida era igual:
@@ -31,11 +27,9 @@ A análise foi escrita **antes do código**, como na Fase 7: regras, compatibili
 17 critérios de aceite e 31 casos de teste. Está em [`fase-08-analise.md`](fase-08-analise.md). O contrato entre
 o jogo e o servidor está em [`api/contrato-horda.md`](api/contrato-horda.md).
 
-O trabalho foi dividido em etapas, cada uma com a sua branch e o seu PR, e cada uma passa pelo portão de sempre
-antes da próxima: build, testes, execução real e evidência (seção 7).
+O trabalho foi dividido em etapas. A seção 7 mostra por quais PRs elas chegaram à `main`.
 
-Ponto de partida: a tag `fase-7` e as entregas posteriores (DA-35 a DA-38). Resultado: a tag `fase-8`, ainda não
-criada.
+Ponto de partida: a tag `fase-7` e as entregas posteriores (DA-35 a DA-38). A tag `fase-8` sai depois da validação final no celular (seção da validação, abaixo).
 
 ## 2. O que muda para quem joga
 
@@ -83,9 +77,9 @@ os mesmos para todos os pilotos naquela horda.
 - Na Horda, `←`/`→` alternam "Esta horda" (Top 10) e "Semana" (placar da semana). `H` vai direto à Horda.
 
 **Na página** (https://missao-marte.thebylito.dev):
-- Abas Horda, Pilotagem e Clássico.
+- Abas Horda, Semana, Pilotagem e Clássico. A aba Horda aparece quando a página consegue ler a horda atual.
 - A data do ranking aparece como AAAA-MM-DD HH:MM, no fuso de quem vê, para desempatar.
-- O placar da semana. <!-- CONFERIR: a aba ou o bloco da Semana na página ainda não está pronto (branch pagina-semana sem commits novos); a aba Horda fica escondida até o servidor ter a horda -->
+- Quando o placar semanal está disponível, a aba Semana mostra o período, os pontos de cada piloto e quantas hordas e eventos contaram para ele.
 
 ## 3. Objetivos de aprendizagem
 
@@ -103,7 +97,7 @@ os mesmos para todos os pilotos naquela horda.
 | Conceito | Resumo aplicado ao projeto | Fonte |
 |---|---|---|
 | Sorteio com semente | Tudo sai de um único `SplittableRandom(semente)`, numa ordem fixa: a mesma semente dá sempre a mesma horda. Nada de `Math.random`, relógio ou ordem de `HashMap` | [Java 17 — SplittableRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/SplittableRandom.html) |
-| HMAC | Um resumo com chave. Com a semente = HMAC-SHA256(segredo, número da horda), quem lê o repositório público não calcula as próximas hordas | [RFC 2104](https://www.rfc-editor.org/rfc/rfc2104) |
+| HMAC | Um resumo com chave. Com a semente derivada de HMAC-SHA256(segredo, `horda:N`), quem lê o repositório público não calcula as próximas hordas | [RFC 2104](https://www.rfc-editor.org/rfc/rfc2104) |
 | Conteúdo como dados | A caverna deixou de ser código (`Caverna.marciana()`) e virou um JSON. Uma caverna nova não exige nova versão do jogo | — |
 | Validação de entrada | O `ValidadorDeCaverna` confere a geometria antes de a caverna entrar no rodízio, e cada problema cita o item do JSON | — |
 | Efeito temporário em passo fixo | Cada perigo dura um número inteiro de passos de 1/120 s, a partir do passo em que entrou. O passo fica registrado | [Gaffer On Games — Fix Your Timestep!](https://gafferongames.com/post/fix_your_timestep/) |
@@ -152,23 +146,23 @@ flowchart LR
 
 ## 7. Passo a passo da implementação
 
-As etapas seguem a seção 8 da análise. Cada uma tem a sua branch, o seu PR e a sua evidência em
-`docs/evidencias/fase-08/`.
+As etapas seguem a seção 8 da análise. As evidências versionadas ficam em `docs/evidencias/fase-08/`.
 
 | # | Etapa | Branch |
 |---|---|---|
 | 0 | Análise | `fase-8-analise` (PR #26) |
 | 1 | Servidor com o `nucleo` e colunas de enum como texto | `fase-8-etapa-1` (PR #27) |
-| 1b | PostgreSQL com Flyway e a importação do H2 | `fase-8-etapa-1b` |
-| C | Skins: pipeline do Blender e as naves | `skins-naves` |
-| 2a | Moedas, bilhete, loja, Hangar e skin nas sombras | `fase-8-etapa-2a-servidor` e `fase-8-etapa-2a-jogo` |
-| 3 | Cavernas como dados e o modelo da Horda no `nucleo` | `fase-8-etapa-3` e `fase-8-nucleo-horda` |
-| 4 | Horda no servidor | `fase-8-servidor` <!-- CONFERIR: branch e PR finais da etapa 4 --> |
-| 5 | Horda no jogo | `fase-8-etapa-5-jogo` |
-| 6 | Eventos ao vivo: efeitos no `nucleo`, canal, agendador, painel e placar | `fase-8-nucleo-efeitos` e `fase-8-servidor` <!-- CONFERIR: branch e PR finais da parte do servidor da etapa 6 --> |
-| 7 | Página, este tutorial, README e a tag `fase-8` | `fase-8-docs` e as branches `pagina-*` |
+| 1b | PostgreSQL com Flyway e a importação do H2 | `fase-8-etapa-1b` (PR #30) |
+| C | Skins: pipeline do Blender e as naves | `skins-naves` (PR #32) |
+| 2a | Moedas, bilhete, loja, Hangar e skin nas sombras | `fase-8-etapa-2a-servidor` e `fase-8-etapa-2a-jogo` (PR #32) |
+| 3 | Cavernas como dados e o modelo da Horda no `nucleo` | `fase-8-etapa-3` e `fase-8-nucleo-horda` (PR #32) |
+| 4 | Horda no servidor | `fase-8-servidor` (PR #32) |
+| 5 | Horda no jogo | `fase-8-etapa-5-jogo` (PR #32) |
+| 6 | Eventos ao vivo: efeitos no `nucleo`, canal, agendador, painel e placar | `fase-8-nucleo-efeitos` e `fase-8-servidor` (PR #32) |
+| 7 | Página e documentação | `pagina-ordem-dos-modos` (#28), `pagina-data-e-hora` (#29), `pagina-semana` (#31) e `fase-8-docs` (#32) |
+| — | Ajustes do jogo por variável de ambiente (DA-48) | `fase-8-ajustes` (PR #33) |
 
-<!-- CONFERIR: números dos PRs das etapas 1b em diante, depois dos merges -->
+O PR #32 reuniu as branches do servidor e do jogo em `fase-8-final`, inclusive `fase-8-jogo-completo`.
 
 ### 7.1 Servidor com o `nucleo` (etapa 1, DA-39 e DA-40)
 
@@ -273,8 +267,6 @@ A compra é livre: não exige o nível anterior.
 | `poco-polar.json` | Poço Polar | 2400 × 2000 | só depois de uma vitória humana no Difícil |
 | `veio-de-ferro.json` | Veio de Ferro | 3180 × 1200 | só depois de uma vitória humana no Difícil |
 
-<!-- CONFERIR: se o Poço Polar e o Veio de Ferro já foram vencidos no Difícil e liberados ("liberada": true) antes da tag -->
-
 ### 7.6 A horda no `nucleo` (etapa 3)
 
 1. `DescricaoDaHorda` é a horda pronta, como dado: número, dificuldade, caverna, passageiros, velocidade e fases
@@ -307,11 +299,11 @@ A partida ganhou métodos novos. Nenhum é chamado na Pilotagem sem eventos.
 | `eventosAplicados()` | o histórico: `EventoAplicado(tipo, semente, passo)` |
 | `getMeteoros()`, `intensidadeDaTempestade()`, `getCapsulaVip()` | o que a tela desenha |
 
-Como cada efeito funciona (`TipoDeEvento` guarda a duração):
+Como cada efeito funciona (`TipoDeEvento` guarda a duração padrão; desde a DA-48, o servidor pode ajustá-la):
 
 - **Chuva de meteoros (20 s).** `ChuvaDeMeteoros` sorteia, com a semente do evento, de 6 a 10 trajetórias retas:
-  - entram pelo teto ou por um lado e saem pelo lado oposto;
-  - têm velocidade de 300 a 500 e raio de 18 a 28;
+  - entram pelo teto ou por um lado e saem pela borda oposta. Se a travessia levar mais da metade da chuva (10 s no padrão), cruzam em linha reta entre as bordas mais próximas;
+  - têm velocidade de 150 a 250 no padrão (ajustável, DA-48) e raio de 18 a 28;
   - as entradas se espalham pelos 20 s.
 
   A posição é calculada pela idade da chuva, sem acumular nada, então a mesma semente dá as mesmas posições. O
@@ -334,30 +326,30 @@ Como cada efeito funciona (`TipoDeEvento` guarda a duração):
 
 ### 7.8 Horda no servidor (etapa 4, DA-44)
 
-<!-- CONFERIR: toda esta seção descreve o servidor pelo contrato e pela análise; conferir nomes de classes, propriedades e comportamento quando a fase-8-servidor terminar -->
-
 1. **Relógio das hordas.** Uma horda nova em cada hora par de Fortaleza (00h, 02h, …, 22h). Às 19:59:59 vale a das
    18h, e às 20:00:00 a das 20h.
-2. **Semente.** HMAC-SHA256 com o segredo `MISSAOMARTE_HORDA_SEGREDO` sobre o número da horda.
-   <!-- CONFERIR: nome da variável e o que entra no HMAC -->
-3. **Gravada na primeira geração.** A horda é sorteada uma vez e gravada. Um deploy no meio dela (cavernas novas,
-   arquivos mudados) não muda o sorteio.
+2. **Semente.** O servidor aplica HMAC-SHA256 ao texto `horda:N` em UTF-8, com o número no lugar de `N`, e usa os
+   primeiros 8 bytes no sorteio. Para a agenda, usa outro rótulo, `agenda:N`. A chave vem de
+   `MISSAOMARTE_HORDA_SEGREDO` ou, como na produção, de 32 bytes aleatórios gerados a cada subida.
+3. **Gravada na primeira geração.** O servidor guarda no banco a descrição da horda, a semente do sorteio e a da agenda.
+   Depois de um deploy, relê a mesma horda, mesmo que o segredo ou o catálogo tenha mudado.
 4. **Rotas** (o formato está no contrato):
    - `GET /api/hordas/atual` (pública): a horda atual, `segundosParaAcabar`, `segundosParaProxima` e `proximaAs`;
    - `POST /api/partidas/inicio` com `{"modo":"HORDA","dificuldade":...,"horda":N}`: o bilhete, obrigatório na Horda;
    - `POST /api/partidas` com `modo=HORDA`, `horda` e `bilhete`: a resposta traz `colocacao` (ou `null`);
    - `GET /api/ranking?modo=HORDA&horda=N`: o Top 10 daquela horda; sem `horda`, a atual;
    - `GET /api/ranking/semanal`: o placar da semana.
-5. **Regras do registro.** A partida vale para a horda em que começou, se terminar até 30 min depois do fim dela.
-   Depois disso, a resposta é 409 `HORDA_ENCERRADA`. Sem bilhete, 400. Pontos acima de 75 (resgates mais o bônus
-   de combustível) são recusados. O tempo real mínimo do bilhete na Horda é o da Pilotagem, 45 s.
-   <!-- CONFERIR: janela de 30 min, códigos 409/400, a recusa acima de 75 (CT-11) e o mínimo de 45 s na Horda -->
-6. **Moedas da Horda.** 5 por vitória com bilhete. No fechamento da horda, o 1º ganha 20, o 2º 15, o 3º 10 e do 4º
-   ao 10º, 5. <!-- CONFERIR: valores creditados pelo servidor e o horário do fechamento -->
-7. **Ensaio de caverna.** Num servidor local com `missaomarte.hordas.ensaio=<id>`, a horda usa uma caverna ainda
-   não liberada, para um humano tentar vencê-la no Difícil. <!-- CONFERIR: nome e forma da propriedade -->
+5. **Regras do registro.** O servidor aceita o registro até 30 min depois do fim da horda, enquanto o Top 10 está
+   aberto. Fora do prazo ou após o fechamento, devolve 409 `HORDA_ENCERRADA`. Sem bilhete válido ou acima de
+   75 pontos, devolve 400. O tempo desde a emissão precisa chegar a 45 s e ao tempo declarado menos 10 s.
+   O bilhete vale por 2 h. Reenviar uma partida já registrada com o mesmo bilhete devolve o registro anterior,
+   mesmo depois do fechamento.
+6. **Moedas da Horda.** 5 por vitória com bilhete. A partir de 30 min após o fim, o agendador fecha o Top 10.
+   O 1º ganha 20, o 2º ganha 15, o 3º ganha 10 e do 4º ao 10º cada piloto ganha 5.
+7. **Ensaio de caverna.** Num servidor local com `missaomarte.hordas.ensaio=<id>`, o sorteio usa a caverna
+   indicada, mesmo sem liberação, e não grava a horda de ensaio. A dificuldade continua sendo sorteada.
 8. **Salas.** O `CanalDeSombras` aceita `/ws/sombras?sala=livre` ou `?sala=horda-N`. As sombras só circulam dentro
-   da sala. Sem `sala`, vale `livre`. A sala de uma horda que já acabou é recusada. <!-- CONFERIR: salas no CanalDeSombras e a recusa da sala encerrada (CT-16) -->
+   da sala. Sem `sala`, vale `livre`. A sala de uma horda publicada aceita conexões até 30 min após o fim.
 
 ### 7.9 Horda no jogo (etapa 5)
 
@@ -403,27 +395,43 @@ Como cada efeito funciona (`TipoDeEvento` guarda a duração):
 
 **No servidor:**
 
-<!-- CONFERIR: agendador, painel e placar ainda em desenvolvimento na fase-8-servidor -->
-
-5. **Agenda automática.** De 2 a 3 eventos por horda, em horários tirados da semente da horda. Nunca nos primeiros
+5. **Agenda automática.** De 2 a 3 eventos por horda, em horários tirados da semente da agenda. Nunca nos primeiros
    5 min, e com pelo menos 20 min entre eles. O evento só dispara se houver alguém conectado.
-6. **Painel.** Um administrador dispara qualquer evento na hora, pelo `admin.html`. O aviso de 15 s continua
-   valendo. Os outros recebem 403. <!-- CONFERIR: como um jogador vira administrador -->
-7. **Eventos em todas as salas.** A posição do VIP é calculada para a caverna de cada sala. O primeiro `vip` que
-   chega ganha.
+6. **Painel.** Cadastre a conta e inclua o nome em `MISSAOMARTE_ADMINS` (nomes separados por vírgula, sem distinguir
+   maiúsculas). O painel em `/pagina/admin.html` chama `POST /api/admin/eventos`. O servidor aceita o pedido com
+   202 e avisa 15 s antes do início. Sem token válido, devolve 401. Com conta fora da lista, devolve 403.
+7. **Eventos em todas as salas.** A posição do VIP é calculada para a caverna de cada sala. O primeiro piloto cujo pedido `vip` é aceito ganha. A disputa abre 3 s depois do início do evento.
 8. **Placar da semana.** A semana vai de segunda às 00h até a segunda seguinte (Fortaleza). Cada horda fechada dá
    pontos pela colocação no Top 10 (10, 8, 6, 5, 4, 3, 2, 1, 1, 1). Somam-se os pontos dos eventos: +3 por perigo
-   sobrevivido e +5 pelo VIP. A semana fecha na segunda às 00h30, com 50, 30 e 20 moedas para os três primeiros.
-   <!-- CONFERIR: pontos, horário do fechamento e moedas da semana -->
-9. **Fechamentos atrasados.** Na subida, o servidor fecha as hordas e as semanas que ficaram para trás.
-   <!-- CONFERIR: recuperação dos fechamentos atrasados na subida (CT-15) -->
+   sobrevivido e +5 pelo VIP. A semana pode fechar a partir de segunda às 00h30, com 50, 30 e 20 moedas para os três primeiros.
+9. **Fechamentos atrasados.** Na subida e a cada ciclo do agendador, o servidor fecha primeiro as hordas vencidas
+   e depois as semanas pendentes. Repetir a verificação não paga os prêmios duas vezes.
 
 ### 7.11 Página (etapa 7)
 
 - O ranking global ganhou a aba Horda, que fica escondida enquanto o servidor não tem a horda, e prioriza a Horda e
   a Pilotagem (PR #28).
 - A data passou a AAAA-MM-DD HH:MM, para desempatar, e a hora da próxima horda vem pronta do servidor (PR #29).
-- A horda atual, a contagem até a próxima e o placar da semana. <!-- CONFERIR: placar da semana e contagem na página -->
+- Na aba Horda, a contagem até o fim parte de `segundosParaAcabar`. A aba Semana mostra o placar de
+  `GET /api/ranking/semanal` e atualiza a cada 30 s enquanto a página está visível (PR #31).
+
+### 7.12 Ajustes por variável de ambiente (DA-48)
+
+Depois do teste no celular (DA-47), o usuário pediu para ajustar o jogo sem lançar outro APK. A física roda no jogo,
+então o servidor publica os números e o jogo os usa:
+
+1. **No `nucleo`.** `AjustesDeVoo` reúne, por dificuldade, o tanque, os limites de pouso e a velocidade dos
+   asteroides, além dos meteoros e da duração dos eventos. `AjustesDeVoo.PADRAO` são os números da Fase 8, e
+   `ConfigDeVoo.para(dificuldade, ajustes)` monta a configuração. Cada valor tem uma faixa, conferida no construtor.
+2. **No servidor.** `AjustesDoAmbiente` lê as 21 variáveis `MISSAOMARTE_AJUSTE_*`, e `GET /api/ajustes` as publica.
+   Um nome desconhecido ou um valor fora da faixa impedem a subida. A horda grava os ajustes do sorteio em
+   `descricao.ajustes` e fica com eles até o fim, e os eventos dela duram o que eles dizem.
+3. **No jogo.** A Pilotagem Livre pede os ajustes a cada volta ao menu (`AjustesDoServidor`). A Horda usa os gravados
+   nela. O evento ao vivo dura o que a mensagem `evento-inicio` diz.
+4. **Jogo antigo.** O APK anterior continua com o padrão. Numa horda com ajustes diferentes, o bilhete dele é
+   recusado (409 `JOGO_DESATUALIZADO`), para ninguém disputar o mesmo Top 10 com outra regra.
+
+Os nomes, os padrões e as faixas estão em [`servidor/PUBLICACAO.md`](../servidor/PUBLICACAO.md), seção 12.
 
 ## 8. Código antes e depois
 
@@ -502,7 +510,8 @@ return valor;
 
 As decisões ficam em [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md). A análise (seção 10) listava as da
 Fase 8 como DA-39 a DA-45. Como a DA-41 passou a ser o PostgreSQL, as seguintes foram renumeradas para DA-42 a
-DA-46. <!-- CONFERIR: DA-42 a DA-46 escritas com estes números e títulos -->
+DA-46. O ajuste de pouso e meteoros entrou no mesmo PR, como DA-47. Os ajustes por variável de ambiente vieram no
+PR #33, como DA-48.
 
 | DA | Decisão | Por quê |
 |---|---|---|
@@ -513,7 +522,9 @@ DA-46. <!-- CONFERIR: DA-42 a DA-46 escritas com estes números e títulos -->
 | DA-43 | Skins só cosméticas | O catálogo e os preços ficam no servidor (ajustáveis sem nova versão), e a arte fica no jogo. A colisão não muda, então a skin não dá vantagem. As folhas ficam fora do enum `Folha`, e as sombras usam um atlas pequeno |
 | DA-44 | A horda é gerada no servidor e vai pronta como dados | Uma fonte só para todos os pilotos. Semente com HMAC, horda gravada na primeira geração, cavernas em JSON e segundos relativos na resposta |
 | DA-45 | Canal das sombras com salas e eventos | Revisa a DA-31. Na Horda, só se vê quem está na mesma caverna. Os eventos vão a todas as salas. O cliente sem sala cai na `livre`. A sombra leva a skin do perfil |
-| DA-46 | O evento só atrapalha a partida | Quem estava no menu quando o evento caiu não pode sair em desvantagem no ranking. Por isso nada de evento soma na partida: sobreviver (+3) e pegar o VIP (+5) valem só no placar da semana, e o Top 10 da horda guarda a melhor partida |
+| DA-46 | Evento só atrapalha a partida | Quem estava no menu quando o evento caiu não pode sair em desvantagem no ranking. Por isso nada de evento soma na partida: sobreviver (+3) e pegar o VIP (+5) valem só no placar da semana, e o Top 10 da horda guarda a melhor partida |
+| DA-47 | Pouso mais tolerante e meteoros mais lentos | O teste no celular levou aos limites de inclinação de 25°, 20° e 15° no Fácil, Médio e Difícil e a meteoros de 150 a 250 unidades/s |
+| DA-48 | Ajustes do jogo por variável de ambiente | Ajustar sem lançar outro jogo. O servidor publica os ajustes, a Pilotagem Livre os usa, e cada horda congela os dela para todos disputarem com a mesma regra. Um valor errado impede a subida |
 
 Outras escolhas, e o que mudou em relação à análise:
 
@@ -573,13 +584,17 @@ servidor/.../banco/                        ConfiguracaoDoBanco, ImportadorDoH2
 servidor/.../moedas/                       MovimentoDeMoedas, Origem, ServicoDeMoedas
 servidor/.../partida/                      + BilheteDePartida, ServicoDeBilhetes, InicioDePartida
 servidor/.../loja/                         CatalogoDeSkins, ServicoDaLoja, ControladorDaLoja, ControladorDoHangar
-servidor/.../horda/                        CatalogoDeCavernas, e o relógio, o sorteio e os fechamentos da etapa 4
-servidor/src/main/resources/               cavernas/*.json, skins.json, db/migration/V1__esquema_inicial.sql
+servidor/.../horda/                        CatalogoDeCavernas, Horda, ServicoDeHordas, ControladorDeHordas
+servidor/.../evento/                       AgendaDeEventos, EventoAoVivo, ServicoDeEventos, ControladorDeEventos
+servidor/.../ranking/                      ServicoDeFechamentos, PlacarSemanal, ServicoDeRanking
+servidor/.../servidor/                     Agendador, ConfiguracaoDoAgendamento
+servidor/src/main/resources/               cavernas/*.json, skins.json, static/pagina/admin.html
+                                           db/migration/V1__esquema_inicial.sql, V2__moedas_bilhetes_skins.sql,
+                                           V3__hordas.sql, V4__fechamentos_e_eventos.sql,
+                                           V5__sementes_secretas_e_reenvio_da_horda.sql
 arte/blender/naves/                        os modelos das skins, comum.py, atlas.py (futuras/: as que saíram)
 assets/sprites/naves/                      8 folhas, previas.png, sombras.png, catalogo.json
 ```
-
-<!-- CONFERIR: no bloco acima, os nomes das classes da etapa 4 (horda no servidor), dos eventos (agendador, painel) e das migrações V2 em diante -->
 
 ## 11. Como executar e validar
 
@@ -611,53 +626,60 @@ exigem conta.
 ```bash
 cd servidor && ./gradlew bootRun --args='--missaomarte.hordas.ensaio=poco-polar'
 ```
-<!-- CONFERIR: forma exata da propriedade de ensaio e se ela também vale no compose (variável de ambiente) -->
+
+Use um banco local separado. Para ensaiar com o compose, acrescente `MISSAOMARTE_HORDAS_ENSAIO: poco-polar`
+à seção `environment` do serviço `servidor`. O compose fornecido não repassa essa variável do `.env`.
 
 Vença a caverna no Difícil, à mão, e só então troque `"liberada": false` por `true` no JSON.
 
-**Disparar um evento pelo painel:** `http://localhost:8080/admin.html`, com uma conta de administrador.
-<!-- CONFERIR: endereço do painel e como se cria um administrador -->
+**Disparar um evento pelo painel:** entre em `http://localhost:8080/pagina/admin.html` com uma conta já
+cadastrada e incluída em `MISSAOMARTE_ADMINS`.
 
 **Um segundo piloto só pela rede:**
 
 ```bash
-python3 validacao/sombras/piloto_fantasma.py --segundos 60 --sala horda-123
+python3 validacao/sombras/piloto_fantasma.py --segundos 60 --sala atual
 ```
-<!-- CONFERIR: a opção --sala ainda não existe no piloto_fantasma.py (CT-26) -->
 
-**Validação da fase** (as saídas ficam em `docs/evidencias/fase-08/`):
+**Validação da fase:**
 
 ```bash
 ./gradlew build                               # nucleo, console, core e lwjgl3; com SDK, o APK
-cd servidor && ./gradlew build                # servidor; os testes do PostgreSQL usam Testcontainers (Docker)
+(cd servidor && ./gradlew build)              # servidor; os testes do PostgreSQL usam Testcontainers (Docker)
+# Compile :console:classes também numa cópia da tag fase-7 e indique o caminho dela em FASE7.
+classes="console/build/classes/java/main"
+regras="nucleo/build/classes/java/main"
+principal=br.edu.unifor.missaomarte.Main
 python3 validacao/executar_roteiros.py --comparar validacao/gabarito/fase-01 -- \
-    ./gradlew -p . :console:run -q --console=plain -PpastaDoJogo={pasta}
+    java -cp "$PWD/$classes:$PWD/$regras" "$principal"
+python3 validacao/comparar_com_semente.py --sementes 1-40 \
+    --referencia "java -Dmissaomarte.semente={semente} -cp '$FASE7/$classes:$FASE7/$regras' $principal" \
+    --candidato "java -Dmissaomarte.semente={semente} -cp '$PWD/$classes:$PWD/$regras' $principal"
 python3 validacao/android/conferir_api_minima.py --sdk $ANDROID_HOME --min 26 \
     android/build/outputs/apk/debug/android-debug.apk
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python-exit-code 1 -P arte/blender/verify.py
 ```
-<!-- CONFERIR: gabarito e comando de roteiros usados na regressão (os mesmos da Fase 7) e o comando da comparação com semente (200 partidas) -->
 
 | Verificação | Resultado |
 |---|---|
-| Build e testes do jogo | <!-- CONFERIR: números finais --> Na etapa 1: `nucleo` 92, `core` 214, `console` 3 e `lwjgl3` 3, 0 falhas. Depois vieram os testes novos do `nucleo` (`EfeitosDePilotagemTeste` 13, `VipNaPilotagemTeste` 8, `PilotagemSemEfeitosTeste` 1, `SorteioDaHordaTeste` 20, `MontadorDaHordaTeste` 15, `ValidadorDeCavernaTeste` 31, `DescricaoDaHordaTeste` 5) e do `core` (`HangarEFaseOitoTeste` 12, `EventosAoVivoTeste` 9, `MenuERankingDaHordaTeste` 7, `VooDaHordaTeste` 7, `CatalogoDeNavesTeste` 4, `HordaHttpTeste` 3 e outros) |
-| Build e testes do servidor | <!-- CONFERIR: números finais --> 52 na etapa 1 e 114 na etapa 2a (`etapa-2a-servidor.txt`), mais os do PostgreSQL (etapa 1b) e os de cavernas (`CatalogoDeCavernasTeste` 5, `CavernasEmJsonTeste` 2, `ContratoDaHordaTeste` 1) |
+| Testes do jogo | `nucleo` 207, `core` 298, `console` 3 e `lwjgl3` 3, depois do PR #33. Nenhum pulado ou com falha. O Android não tem testes unitários próprios |
+| Testes do servidor | 209 depois do PR #33, todos passaram, inclusive os 14 com PostgreSQL no Testcontainers |
 | Física sem efeitos (CT-04) | `PilotagemSemEfeitosTeste`: a assinatura de 600 passos é igual à da Fase 7, e os 27 testes da `PartidaDePilotagemTeste` passam sem mudança |
 | Sorteio e validador (CT-01 a CT-03) | mesma semente, mesma horda; as faixas da análise; o Difícil nunca corta o tanque; a anterior só se repete quando há uma caverna só; cada regra do validador com um caso que passa e um que falha |
 | Efeitos (CT-05 a CT-08) | vento; roteiro em ordem com o passo e a semente registrados; evento ao vivo no próximo passo; tempestade com média zero em cinco ciclos; pane com teto; chuva igual para a mesma semente, que termina em 20 s; meteoro fatal; prioridade do asteroide; sobrevivência 1 e 0; VIP sem pontos e sem pouso |
 | Cavernas em JSON (CT-10, CT-19) | o `marciana.json` monta exatamente o `Caverna.marciana()`; o mesmo `docs/api/exemplos/horda.json` é aceito pelo servidor e pelo jogo |
 | Banco (CT-12) | `EsquemaNovoTeste`, `EsquemaNoPostgresTeste`, `ImportadorDoH2Teste`, `ImportacaoDoH2NoPostgresTeste`, `BancoH2AntigoTeste`; o ensaio com a imagem de produção deu ranking, histórico e perfis iguais byte a byte (`etapa-1b-postgres-flyway.txt`) |
 | Bilhete e moedas (CT-13, CT-14) | `ApiDeBilhetesTeste` 18, `MoedasPorVitoriaTeste` 9, `ExtratoDeMoedasTeste` 7, `ApiDaLojaTeste` 14, `CompraSimultaneaTeste` 2; sem a trava, duas compras simultâneas levariam o saldo a −60, e o teste falha já na primeira rodada |
-| Horda no servidor (CT-09, CT-11, CT-15 a CT-18) | Pendente. <!-- CONFERIR: relógio, janela de 30 min, fechamentos e recuperação, salas, agenda e painel, Top 10 e semana --> |
-| Execução real (CT-24 a CT-29) | Pendente. <!-- CONFERIR: compose com o nucleo; partida completa da Horda com Top 10 e moedas; evento do painel no jogo e no fantasma; skin na sombra de outro aparelho; Android num aparelho real; página no Dokploy --> |
-| Regressão (CT-30) | Pendente. <!-- CONFERIR: console 200/200, roteiros 11/11 e prints do clássico iguais com a skin padrão --> |
-| Skins (CT-31) | Na trilha C, o render e o `verify.py` passaram em todas as skins, no Blender do Mac. <!-- CONFERIR: evidência final do verify.py com as 8 skins (arquivo em docs/evidencias/fase-08/) --> |
-| APK (CA-17) | Pendente. <!-- CONFERIR: 0 chamadas acima da API 26 --> |
+| Horda no servidor (CT-09, CT-11, CT-15 a CT-18) | Passaram os testes do relógio, bilhete, prazo e Top 10 (`ApiDaHordaTeste`), dos prêmios e da recuperação (`FechamentosTeste`, `RecuperacaoDosFechamentosTeste`), da agenda, das salas e do painel (`AgendaDeEventosTeste`, `CanalDeSombrasTeste`) |
+| Execução real (CT-24 a CT-29) | O ensaio do compose está em `etapa-1b-postgres-flyway.txt`. A publicação no Dokploy está confirmada. A contagem da página publicada não teve conferência visual nesta revisão. A DA-47 registra um voo no celular. A vitória com Top 10 e moedas, o evento no jogo e no fantasma, a skin entre aparelhos e o roteiro completo no Android têm instruções em `validacao/fase-08/LEIA-ME.md`, sem registro final de execução nesta branch |
+| Regressão (CT-30) | Console: 11/11 roteiros iguais ao gabarito da Fase 1. 200/200 partidas idênticas às da tag `fase-7` (40 sementes × 5 cenários). Sem comparação de prints do Clássico registrada nesta fase |
+| Skins (CT-31) | O commit `7355412` registra o render e a aprovação das oito skins pelo `verify.py` no Blender do Mac. A saída do verificador não está versionada em `docs/evidencias/fase-08/` |
+| APK (CA-17) | O verificador examinou 336 referências no APK de depuração: 0 acima da API 26 e 1 sem resolução (`StringBuilder.setLength(int)`) |
 
 ## 12. Achados e limitações
 
 - **O servidor ainda não refaz as partidas.** Ele confere o bilhete e o tempo real mínimo (e, na Horda, o teto de
-  75 pontos), mas não a física. <!-- CONFERIR: o teto de 75 na Horda -->
+  75 pontos), mas não a física.
   Um cliente modificado pode esperar o tempo certo e mandar uma vitória falsa. O replay anti-trapaça ficou para
   depois (seção 13). O terreno está preparado: cada evento ao vivo e cada perigo do roteiro já gravam o passo da
   simulação em que entraram (`EventoAplicado`).
@@ -676,8 +698,8 @@ python3 validacao/android/conferir_api_minima.py --sdk $ANDROID_HOME --min 26 \
 - **A Horda não tem ranking local.** O Top 10 é só do servidor, porque a Horda exige conta.
 - **O banco de produção é compartilhado** com outros projetos (`postgres-br`). A cópia de segurança passa a ser o
   `pg_dump`.
-- **Um achado no Android 8.** A leitura do endereço do servidor usava `InputStream.readAllBytes()`, que só existe
-  no Android a partir da API 33. Foi trocada pelo `StreamUtils` da libGDX. <!-- CONFERIR: como foi achado (conferir_api_minima.py ou aparelho) -->
+- **Compatibilidade com Android 8.** A leitura do endereço do servidor passou de `InputStream.readAllBytes()`
+  (API 33) para `StreamUtils.copyStreamToByteArray(in)` da libGDX no commit `ccebf4b`.
 - **As decisões da análise que mudaram:** a loja (linhas de evolução em vez de raridades) e o banco (PostgreSQL em
   vez do H2). As duas estão na seção 9.
 
@@ -712,7 +734,7 @@ python3 validacao/android/conferir_api_minima.py --sdk $ANDROID_HOME --min 26 \
 
 ## 15. Conclusão
 
-A Fase 8 acrescentou um modo, quatro eventos, uma economia e oito naves sem mudar nenhum passo da Pilotagem antiga.
+A Fase 8 acrescentou um modo, quatro eventos, uma economia e oito naves e ajustou o pouso da Pilotagem (DA-47).
 O caminho foi o mesmo da Fase 7: escrever a análise antes do código, separar o novo por pontos de extensão e
 provar a compatibilidade com testes.
 
