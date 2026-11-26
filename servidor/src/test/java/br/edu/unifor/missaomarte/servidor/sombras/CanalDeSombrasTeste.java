@@ -2,10 +2,14 @@ package br.edu.unifor.missaomarte.servidor.sombras;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.edu.unifor.missaomarte.servidor.ApiTeste.RelogioDeTeste;
+import br.edu.unifor.missaomarte.servidor.moedas.Origem;
+import br.edu.unifor.missaomarte.servidor.moedas.ServicoDeMoedas;
 import com.jayway.jsonpath.JsonPath;
 import java.net.URI;
 import java.time.Duration;
@@ -105,6 +109,9 @@ class CanalDeSombrasTeste {
     @Autowired
     CanalDeSombras canal;
 
+    @Autowired
+    ServicoDeMoedas moedas;
+
     private final List<Cliente> abertos = new ArrayList<>();
 
     @BeforeEach
@@ -203,6 +210,34 @@ class CanalDeSombrasTeste {
         assertThat((Boolean) JsonPath.read(sombra, "$.motor")).isTrue();
         assertThat((Integer) JsonPath.read(sombra, "$.piloto")).isPositive();
         a.nadaChegou();   // ninguém recebe a própria sombra
+    }
+
+    /** Fase 8: compra e equipa uma skin pela API (com um saldo dado direto no extrato). */
+    private void equipar(String token, String skin, int preco) throws Exception {
+        String eu = mvc.perform(get("/api/jogadores/eu").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        moedas.creditar(((Number) JsonPath.read(eu, "$.id")).longValue(), Origem.SEMANA, "teste:" + skin, preco);
+        mvc.perform(post("/api/loja/compras").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"skin\":\"" + skin + "\"}"))
+                .andExpect(status().isCreated());
+        mvc.perform(put("/api/jogadores/eu/skin").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"skin\":\"" + skin + "\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void aSombraLevaASkinEquipadaDoPerfilENuncaADaMensagem() throws Exception {     // CT-16
+        String tokenDaAna = token(nomeUnico("Ana"));
+        equipar(tokenDaAna, "guara", 60);
+        Cliente a = conectar(tokenDaAna);
+        Cliente b = conectar(token(nomeUnico("Bia")));
+        esperarConectados(2);
+
+        a.enviar("{\"tipo\":\"posicao\",\"x\":100,\"y\":100,\"angulo\":0,\"motor\":false,\"skin\":\"padrao_5\"}");
+        assertThat((String) JsonPath.read(b.proxima(), "$.skin")).isEqualTo("guara");   // do perfil, não da mensagem
+
+        b.enviar(posicao(200, 100, 0, false));   // quem não comprou nada voa com a padrão
+        assertThat((String) JsonPath.read(a.proxima(), "$.skin")).isEqualTo("padrao");
     }
 
     @Test

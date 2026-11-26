@@ -21,4 +21,8 @@ public interface RepositorioDeJogadores extends JpaRepository<Jogador, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select j from Jogador j where j.id = :id")
     Optional<Jogador> travar(long id);
+
+    /** Fase 8: só a skin equipada do jogador (o canal das sombras lê na conexão). */
+    @Query("select j.skin from Jogador j where j.id = :id")
+    Optional<String> skinDe(long id);
 }
