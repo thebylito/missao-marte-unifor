@@ -10,6 +10,7 @@ import br.edu.unifor.missaomarte.dominio.Ranking;
 import br.edu.unifor.missaomarte.dominio.RegistroRanking;
 import br.edu.unifor.missaomarte.grafico.online.PartidaDoHistorico;
 import br.edu.unifor.missaomarte.grafico.online.PosicaoGlobal;
+import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +25,15 @@ import java.util.List;
 public final class TextosDaInterface {
 
     private TextosDaInterface() {
+    }
+
+    static String nomeDoEvento(TipoDeEvento tipo) {
+        return switch (tipo) {
+            case CHUVA_DE_METEOROS -> "Chuva de meteoros";
+            case PANE_DE_GRAVIDADE -> "Pane de gravidade";
+            case TEMPESTADE -> "Tempestade de poeira";
+            case PASSAGEIRO_VIP -> "Passageiro VIP";
+        };
     }
 
     public static String evento(Evento e) {
@@ -143,9 +153,10 @@ public final class TextosDaInterface {
         }
         List<String> linhas = new ArrayList<>();
         for (PartidaDoHistorico p : partidas) {
-            if ("PILOTAGEM".equals(p.modo())) {   // Fase 7: os "movimentos" da pilotagem são os pousos
-                linhas.add(String.format("%s | Pilotagem | %s | %d pts | %s | %d passageiro(s) | %d pousos",
-                        data(p.registradaEm()), resultado(p.resultado()), p.pontos(), dificuldade(p.dificuldade()),
+            boolean horda = "HORDA".equals(p.modo());
+            if (horda || "PILOTAGEM".equals(p.modo())) {   // Fase 7: os "movimentos" da pilotagem são os pousos
+                linhas.add(String.format("%s | %s | %s | %d pts | %s | %d passageiro(s) | %d pousos",
+                        data(p.registradaEm()), horda ? "Horda" : "Pilotagem", resultado(p.resultado()), p.pontos(), dificuldade(p.dificuldade()),
                         p.passageiros(), p.movimentos()));
                 continue;
             }

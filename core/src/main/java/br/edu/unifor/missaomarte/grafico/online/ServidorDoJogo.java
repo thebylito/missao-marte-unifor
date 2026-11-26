@@ -1,6 +1,7 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
 import br.edu.unifor.missaomarte.aplicacao.Modo;
+import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,55 @@ public interface ServidorDoJogo {
     void entrar(String nome, String senha, Resposta<Sessao> resposta);
 
     void registrarPartida(Sessao sessao, PartidaParaEnviar partida, Resposta<Void> resposta);
+
+    /**
+     * Registro com recompensa. O nome distinto preserva o método legado (Resposta<Void> tem a mesma
+     * assinatura apagada que Resposta<RegistroDePartida>). Um servidor antigo devolve sucesso sem recompensa.
+     */
+    default void registrarPartidaComMoedas(Sessao sessao, PartidaParaEnviar partida,
+                                          Resposta<RegistroDePartida> resposta) {
+        registrarPartida(sessao, partida, new Resposta<>() {
+            @Override public void sucesso(Void nada) { resposta.sucesso(null); }
+            @Override public void falha(Falha falha) { resposta.falha(falha); }
+        });
+    }
+
+    default void iniciarPartida(Sessao sessao, Modo modo, Dificuldade dificuldade, Resposta<Bilhete> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void iniciarHorda(Sessao sessao, Dificuldade dificuldade, long numero, Resposta<Bilhete> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void hordaAtual(Resposta<HordaAtual> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    /** Sem número, consulta o Top 10 da horda atual. */
+    default void rankingDaHorda(Long numero, Resposta<List<PosicaoGlobal>> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void rankingSemanal(Resposta<RankingSemanal> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void loja(Resposta<List<SkinDaLoja>> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void hangar(Sessao sessao, Resposta<Hangar> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void comprar(Sessao sessao, String skin, Resposta<Hangar> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
+
+    default void equipar(Sessao sessao, String skin, Resposta<String> resposta) {
+        resposta.falha(Falha.semConexao());
+    }
 
     /** Fase 7: o ranking global de um modo (cada modo tem o seu). */
     void ranking(Modo modo, Resposta<List<PosicaoGlobal>> resposta);

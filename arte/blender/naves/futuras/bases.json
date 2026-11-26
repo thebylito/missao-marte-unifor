@@ -1,0 +1,67 @@
+[
+  {
+    "id": "bruma",
+    "nome": "Bruma",
+    "descricao": "Ambulância de altitude com duas cápsulas laterais de evacuação.",
+    "paleta": {
+      "ameixa": "#9936AA",
+      "perola": "#F1DDEC",
+      "latao": "#F3BA61"
+    }
+  },
+  {
+    "id": "vereda",
+    "nome": "Vereda",
+    "descricao": "Abre caminho entre dunas marcianas com duas lâminas que afastam o regolito.",
+    "paleta": {
+      "musgo": "#699B3A",
+      "palha": "#E8D899"
+    }
+  },
+  {
+    "id": "cantil",
+    "nome": "Cantil",
+    "descricao": "Leva água de degelo aos abrigos isolados no inverno marciano.",
+    "paleta": {
+      "barro": "#BA462D",
+      "creme": "#F5DAB1"
+    }
+  },
+  {
+    "id": "estiva",
+    "nome": "Estiva",
+    "descricao": "Entrega caixas de mantimentos às equipes de busca nas encostas de Marte.",
+    "paleta": {
+      "enxofre": "#F2C71F",
+      "grafite": "#696561"
+    }
+  },
+  {
+    "id": "escuta",
+    "nome": "Escuta",
+    "descricao": "Triangula pedidos de socorro com um refletor aberto sobre a cabine.",
+    "paleta": {
+      "vinho": "#B6295B",
+      "aluminio": "#DEDAD6"
+    }
+  },
+  {
+    "id": "fole",
+    "nome": "Fole",
+    "descricao": "Enche os abrigos de emergência com ar levado em dois tanques de pressão.",
+    "paleta": {
+      "ardosia": "#374B86",
+      "bronze": "#D6A479"
+    }
+  },
+  {
+    "id": "luzeiro",
+    "nome": "Luzeiro",
+    "descricao": "Guia comboios na noite marciana com arcos de cobre e balizas de luz âmbar.",
+    "paleta": {
+      "obsidiana": "#523859",
+      "cobre": "#EBA465",
+      "ambar": "#FFA233"
+    }
+  }
+]

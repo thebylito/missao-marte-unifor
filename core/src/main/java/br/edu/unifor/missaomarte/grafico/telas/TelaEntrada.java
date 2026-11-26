@@ -5,7 +5,6 @@ import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaEntrada;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaEntrada.Etapa;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaEntrada.Modo;
 import br.edu.unifor.missaomarte.grafico.apresentacao.Retangulo;
-import br.edu.unifor.missaomarte.grafico.recursos.Folha;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -123,7 +122,7 @@ public class TelaEntrada extends TelaBase {
     protected void desenhar() {
         lote().begin();
         if (recursosProntos()) {
-            desenharCentralizado(Folha.NAVE, 0, 400, 470 + 6 * (float) Math.sin(tempo * 1.8), 90);
+            desenharNave(0, 400, 470 + 6 * (float) Math.sin(tempo * 1.8), 90);
         }
         escreverTitulo("MISSÃO MARTE UNIFOR", 395, Color.ORANGE, 2f);
         switch (controlador.getEtapa()) {

@@ -14,7 +14,9 @@ import br.edu.unifor.missaomarte.grafico.recursos.Folha;
 import br.edu.unifor.missaomarte.pilotagem.AsteroideEmOrbita;
 import br.edu.unifor.missaomarte.pilotagem.Caverna;
 import br.edu.unifor.missaomarte.pilotagem.EventoDeVoo;
+import br.edu.unifor.missaomarte.pilotagem.Meteoro;
 import br.edu.unifor.missaomarte.pilotagem.NaveEmVoo;
+import br.edu.unifor.missaomarte.grafico.audio.Som;
 import br.edu.unifor.missaomarte.pilotagem.PartidaDePilotagem;
 import br.edu.unifor.missaomarte.pilotagem.PlataformaDePouso;
 import br.edu.unifor.missaomarte.pilotagem.Rocha;
@@ -74,6 +76,9 @@ public class TelaPilotagem extends TelaBase {
     private float explosaoX;
     private float explosaoY;
     private float tremor;
+    private List<Meteoro> meteoros = List.of();
+    private List<Meteoro> rastro = List.of();
+    private float tempoDoRastro;
 
     public TelaPilotagem(MissaoMarteGame jogo, ControladorDaPilotagem controlador) {
         this(jogo, controlador, SombrasDaPilotagem.desligadas());
@@ -88,6 +93,12 @@ public class TelaPilotagem extends TelaBase {
     }
 
     // ------------------------------------------------------------------ entrada
+
+    @Override
+    public void show() {
+        super.show();
+        jogo.getNaves().prepararSombras();
+    }
 
     @Override
     protected InputAdapter entrada() {
@@ -172,8 +183,17 @@ public class TelaPilotagem extends TelaBase {
         }
         relogio += delta;
         ultimoQuadro = delta;
-        sombras.atualizar(delta, controlador.getPartida().getNave(), controlador.getPartida().getCaverna());
-        for (EventoDeVoo e : controlador.atualizar(delta)) {
+        sombras.atualizar(delta, controlador.getPartida());
+        if (sombras.consumirAlerta()) jogo.getSons().tocar(Som.ALERTA);
+        List<EventoDeVoo> eventos = controlador.atualizar(delta);
+        sombras.tratarEventos(eventos);
+        tempoDoRastro += delta;
+        if (tempoDoRastro >= 0.08f) {
+            rastro = meteoros;
+            tempoDoRastro = 0;
+        }
+        meteoros = controlador.getPartida().getMeteoros();
+        for (EventoDeVoo e : eventos) {
             ControladorDaPilotagem.som(e.tipo()).ifPresent(jogo.getSons()::tocar);
             if (e.tipo() == EventoDeVoo.Tipo.EXPLODIU) {
                 tempoDaExplosao = 0;
@@ -222,6 +242,9 @@ public class TelaPilotagem extends TelaBase {
         desenharCaverna(p.getCaverna());
         desenharPassageiros(p);
         desenharAsteroides(p.getCaverna());
+        desenharMeteoros(rastro, 0.76f, 0.35f);
+        desenharMeteoros(meteoros, 1.25f, 1);
+        p.getCapsulaVip().ifPresent(this::desenharVip);
         desenharSombras();
         desenharExplosoesDasSombras();
         desenharNave(nave);
@@ -229,9 +252,29 @@ public class TelaPilotagem extends TelaBase {
         lote().end();
 
         usarCameraDaTela();
+        desenharNevoa((float) p.intensidadeDaTempestade());
         desenharPainel(p);
         desenharMinimapa(p);
         desenharBotoesDeVoo();
+        sombras.mensagemDoEvento().ifPresent(this::desenharFaixaDoEvento);
+    }
+
+    private void desenharFaixaDoEvento(String aviso) {
+        Retangulo v = visivel();
+        Retangulo motor = layout.botoes().get(Botao.MOTOR);
+        float y = v.y() + MARGEM + (motor == null ? 60 : motor.altura() + 46);
+        float x = v.centroX() - 246;
+        formas().begin(ShapeType.Filled);
+        formas().setColor(PAINEL);
+        formas().rect(x, y, 492, 40);
+        formas().setColor(ALERTA);
+        formas().triangle(x + 12, y + 8, x + 38, y + 8, x + 25, y + 32);
+        formas().end();
+        lote().begin();
+        escrever("!", x + 23, y + 24, Color.BLACK, 1f);
+        // A fonte do jogo não inclui o pictograma; o triângulo acima o desenha em qualquer plataforma.
+        escreverCentralizado(aviso.replace("⚠", "").trim(), y + 28, Color.GOLD, 1.18f);
+        lote().end();
     }
 
     /** O céu cobre a tela, andando um pouco com a câmera (paralaxe: parece mais longe que a rocha). */
@@ -312,6 +355,35 @@ public class TelaPilotagem extends TelaBase {
         }
     }
 
+    private void desenharMeteoros(List<Meteoro> posicoes, float escala, float alfa) {
+        lote().setColor(1, 0.55f, 0.24f, alfa);
+        int quadro = (int) (relogio * 12) % Folha.ASTEROIDE.getQuadros();
+        for (Meteoro m : posicoes) {
+            desenharCentralizado(Folha.ASTEROIDE, quadro, (float) m.x(), (float) m.y(), (float) m.raio() * 2 * escala);
+        }
+        lote().setColor(Color.WHITE);
+    }
+
+    private void desenharVip(PlataformaDePouso vip) {
+        Folha folha = Folha.PLATAFORMA_PASSAGEIRO;
+        lote().setColor(Color.GOLD);
+        lote().draw(recursos().quadro(folha, 0), (float) vip.getX(),
+                (float) vip.getSuperficie() - (folha.getAltura() - 12), (float) vip.getLargura(), folha.getAltura());
+        lote().setColor(Color.WHITE);
+        escrever("VIP", (float) vip.getCentroX() - 15, (float) vip.getSuperficie() + 35, Color.GOLD, 1.4f);
+    }
+
+    private void desenharNevoa(float intensidade) {
+        if (intensidade <= 0) return;
+        Retangulo tela = visivel();
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        formas().begin(ShapeType.Filled);
+        formas().setColor(0.68f, 0.40f, 0.24f, intensidade * 0.66f);
+        formas().rect(tela.x(), tela.y(), tela.largura(), tela.altura());
+        formas().end();
+    }
+
     /** A nave tem 64 ângulos renderizados no Blender (a luz não gira com ela); a chama sai do bocal, girada. */
     private void desenharNave(NaveEmVoo nave) {
         if (nave.getEstado() == NaveEmVoo.Estado.DESTRUIDA) {
@@ -330,8 +402,7 @@ public class TelaPilotagem extends TelaBase {
         }
         int quadro = Math.round(angulo / GRAUS_POR_QUADRO_DA_NAVE);
         quadro = ((quadro % Folha.NAVE.getQuadros()) + Folha.NAVE.getQuadros()) % Folha.NAVE.getQuadros();
-        lote().draw(recursos().quadro(Folha.NAVE, quadro), x - Folha.NAVE.getLargura() / 2f,
-                y - Folha.NAVE.getAltura() / 2f);
+        desenharNave(quadro, x, y, Folha.NAVE.getLargura());
     }
 
     /** As naves dos outros pilotos: translúcidas, azuladas e com o nome em cima. */
@@ -350,11 +421,9 @@ public class TelaPilotagem extends TelaBase {
                 lote().setColor(1, 1, 1, 0.45f);
                 lote().draw(chama, bx - w / 2, by - h, w / 2, h, w, h, 0.8f, 1f, angulo);
             }
-            int quadro = Math.round(angulo / GRAUS_POR_QUADRO_DA_NAVE);
-            quadro = ((quadro % Folha.NAVE.getQuadros()) + Folha.NAVE.getQuadros()) % Folha.NAVE.getQuadros();
             lote().setColor(SOMBRA);
-            lote().draw(recursos().quadro(Folha.NAVE, quadro), x - Folha.NAVE.getLargura() / 2f,
-                    y - Folha.NAVE.getAltura() / 2f);
+            float lado = Folha.NAVE.getLargura();
+            lote().draw(jogo.getNaves().sombra(s.skin(), angulo), x - lado / 2, y - lado / 2, lado, lado);
             lote().setColor(Color.WHITE);
             escrever(s.nome(), x - s.nome().length() * 5.5f, y + Folha.NAVE.getAltura() / 2f + 22, NOME_DA_SOMBRA,
                     1.3f);
@@ -422,7 +491,7 @@ public class TelaPilotagem extends TelaBase {
         formas().end();
 
         lote().begin();
-        escrever("PILOTAGEM", x + 12, topo - 10, Color.ORANGE, 1.25f);
+        escrever(controlador.tituloDoVoo(), x + 12, topo - 10, Color.ORANGE, 1.25f);
         escrever(p.getPiloto() + "  |  " + p.getDificuldade(), x + 12, topo - 40, Color.WHITE, 0.95f);
         escrever("Pontos: " + p.getPontos(), x + 12, topo - 66, Color.WHITE, 1f);
         escrever("Vidas: " + p.getVidas(), x + 170, topo - 66, Color.WHITE, 1f);
@@ -477,6 +546,15 @@ public class TelaPilotagem extends TelaBase {
         for (AsteroideEmOrbita a : c.getAsteroides()) {
             formas().circle(m.x() + (float) a.getX() * escala, m.y() + (float) a.getY() * escala, 2.5f);
         }
+        formas().setColor(Color.ORANGE);
+        for (Meteoro meteoro : meteoros) {
+            formas().circle(m.x() + (float) meteoro.x() * escala, m.y() + (float) meteoro.y() * escala, 2.5f);
+        }
+        p.getCapsulaVip().ifPresent(vip -> {
+            formas().setColor(Color.GOLD);
+            formas().rect(m.x() + (float) vip.getX() * escala, m.y() + (float) vip.getSuperficie() * escala,
+                    (float) vip.getLargura() * escala, 5);
+        });
         formas().setColor(Color.SKY);
         for (Sombra s : sombras.getSombras()) {
             formas().circle(m.x() + (float) s.x() * escala, m.y() + (float) s.y() * escala, 3f);

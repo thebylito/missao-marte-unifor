@@ -21,6 +21,7 @@ public final class SessaoGuardada {
     static final String NOME = "sessao.nome";
     static final String TOKEN = "sessao.token";
     static final String EXPIRA_EM = "sessao.expiraEm";
+    static final String SKIN = "sessao.skin";
     static final String SERVIDOR = "sessao.servidor";
 
     private final ConfiguracaoDoServidor.Preferencias preferencias;
@@ -49,6 +50,7 @@ public final class SessaoGuardada {
         preferencias.gravar(NOME, sessao.nome());
         preferencias.gravar(TOKEN, sessao.token());
         preferencias.gravar(EXPIRA_EM, sessao.expiraEm() == null ? "" : sessao.expiraEm().toString());
+        preferencias.gravar(SKIN, sessao.skin());
         preferencias.gravar(SERVIDOR, servidor);
     }
 
@@ -79,7 +81,7 @@ public final class SessaoGuardada {
             esquecer();
             return Optional.empty();
         }
-        return Optional.of(new Sessao(nome, token, expiraEm));
+        return Optional.of(new Sessao(nome, token, expiraEm, preferencias.ler(SKIN)));
     }
 
     /** "Trocar de piloto" ou token recusado pelo servidor: o aparelho esquece a sessão. */
@@ -87,6 +89,7 @@ public final class SessaoGuardada {
         preferencias.gravar(NOME, "");
         preferencias.gravar(TOKEN, "");
         preferencias.gravar(EXPIRA_EM, "");
+        preferencias.gravar(SKIN, "");
         preferencias.gravar(SERVIDOR, "");
     }
 

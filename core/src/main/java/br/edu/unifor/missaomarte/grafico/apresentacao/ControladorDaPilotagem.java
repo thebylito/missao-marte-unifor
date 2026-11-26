@@ -12,6 +12,7 @@ import br.edu.unifor.missaomarte.grafico.online.PartidaParaEnviar;
 import br.edu.unifor.missaomarte.pilotagem.Comandos;
 import br.edu.unifor.missaomarte.pilotagem.EventoDeVoo;
 import br.edu.unifor.missaomarte.pilotagem.PartidaDePilotagem;
+import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
 import com.badlogic.gdx.Input.Keys;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +37,8 @@ public final class ControladorDaPilotagem {
     private final PartidaDePilotagem partida;
     private final ServicoRanking servicoRanking;
     private final Ranking rankingAntes;
+    private final Long horda;
+    private final String bilhete;
     private final Set<Integer> teclas = new HashSet<>();
     private final Map<Integer, float[]> dedos = new HashMap<>();
     private LayoutDaPilotagem layout = new LayoutDaPilotagem(new Retangulo(0, 0, 0, 0), Map.of());
@@ -46,7 +49,21 @@ public final class ControladorDaPilotagem {
     public ControladorDaPilotagem(PartidaDePilotagem partida, ServicoRanking servicoRanking) {
         this.partida = partida;
         this.servicoRanking = servicoRanking;
+        this.horda = null;
+        this.bilhete = null;
         this.rankingAntes = servicoRanking.carregar();   // como no clássico: para o recorde e para o Top 5
+    }
+
+    ControladorDaPilotagem(PartidaDePilotagem partida, long horda, String bilhete) {
+        this.partida = partida;
+        this.horda = horda;
+        this.bilhete = bilhete;
+        this.servicoRanking = null;
+        this.rankingAntes = Ranking.vazio();
+    }
+
+    public String sala() {
+        return horda == null ? "livre" : "horda-" + horda;
     }
 
     // ------------------------------------------------------------------ entrada
@@ -132,7 +149,12 @@ public final class ControladorDaPilotagem {
         List<EventoDeVoo> eventos = partida.consumirEventos();
         for (EventoDeVoo e : eventos) {
             if (!e.mensagem().isEmpty()) {
-                mensagem = e.mensagem();
+                mensagem = switch (e.tipo()) {
+                    case PERIGO_INICIOU -> TextosDaInterface.nomeDoEvento(TipoDeEvento.valueOf(e.mensagem()));
+                    case PERIGO_TERMINOU -> "Fim do perigo: " + TextosDaInterface.nomeDoEvento(TipoDeEvento.valueOf(e.mensagem()));
+                    case VIP_PEGO -> "Pouso na cápsula! Aguardando confirmação.";
+                    default -> e.mensagem();
+                };
                 tempoDaMensagem = DURACAO_DA_MENSAGEM;
             }
         }
@@ -161,7 +183,7 @@ public final class ControladorDaPilotagem {
                 partida.getBonus(), partida.getPousos());
         PartidaParaEnviar paraOServidor = new PartidaParaEnviar(estado.name(), partida.getDificuldade().name(),
                 Math.max(0, partida.getPontos()), partida.getEntregues(), partida.getPousos(),
-                (long) partida.getTempo(), Modo.PILOTAGEM.name());
+                (long) partida.getTempo(), horda == null ? Modo.PILOTAGEM.name() : "HORDA", bilhete, horda);
         if (estado != Partida.Estado.VITORIA) {
             Evento ultimo = Evento.de(estado == Partida.Estado.ABORTADA ? Evento.Tipo.ABORTADA
                     : Evento.Tipo.NAVE_DESTRUIDA);
@@ -169,6 +191,10 @@ public final class ControladorDaPilotagem {
                     Optional.empty(), paraOServidor, Modo.PILOTAGEM, Optional.of(voo));
         }
         ResultadoPartida resultado = partida.getResultado().orElseThrow();
+        if (horda != null) {
+            return new FimDePartida(estado, List.of(Evento.de(Evento.Tipo.VITORIA)), Optional.of(resultado),
+                    Optional.empty(), false, Optional.empty(), paraOServidor, Modo.PILOTAGEM, Optional.of(voo));
+        }
         ServicoRanking.Registro registro = servicoRanking.registrarVitoria(rankingAntes, resultado);
         return new FimDePartida(estado, List.of(Evento.de(Evento.Tipo.VITORIA)), Optional.of(resultado),
                 rankingAntes.getLider(), registro.entrou(), Optional.ofNullable(registro.erroAoSalvar()),
@@ -176,6 +202,10 @@ public final class ControladorDaPilotagem {
     }
 
     // ------------------------------------------------------------------ leitura
+
+    public String tituloDoVoo() {
+        return horda == null ? "PILOTAGEM" : "HORDA " + horda;
+    }
 
     public PartidaDePilotagem getPartida() {
         return partida;

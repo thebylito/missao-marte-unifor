@@ -1,100 +1,58 @@
 {
   "blenderVersion": "5.2.3 LTS",
   "assets": {
-    "nave": {
-      "seconds": 3.413,
+    "padrao_2": {
+      "seconds": 3.645,
       "engines": [
         "CYCLES"
       ],
       "frames": 64
     },
-    "chama": {
-      "seconds": 0.06,
+    "padrao_3": {
+      "seconds": 3.8,
       "engines": [
         "CYCLES"
       ],
-      "frames": 4
+      "frames": 64
     },
-    "explosao": {
-      "seconds": 1.525,
+    "padrao_4": {
+      "seconds": 4.554,
       "engines": [
         "CYCLES"
       ],
-      "frames": 16
+      "frames": 64
     },
-    "asteroide": {
-      "seconds": 1.007,
+    "padrao_5": {
+      "seconds": 4.965,
       "engines": [
         "CYCLES"
       ],
-      "frames": 32
+      "frames": 64
     },
-    "plataforma_base": {
-      "seconds": 0.208,
+    "guara_2": {
+      "seconds": 3.481,
       "engines": [
         "CYCLES"
       ],
-      "frames": 1
+      "frames": 64
     },
-    "plataforma_passageiro": {
-      "seconds": 0.111,
+    "guara_3": {
+      "seconds": 3.855,
       "engines": [
         "CYCLES"
       ],
-      "frames": 1
+      "frames": 64
     },
-    "astronauta": {
-      "seconds": 0.213,
+    "guara_4": {
+      "seconds": 5.863,
       "engines": [
         "CYCLES"
       ],
-      "frames": 8
-    },
-    "engenheiro": {
-      "seconds": 0.176,
-      "engines": [
-        "CYCLES"
-      ],
-      "frames": 8
-    },
-    "professor": {
-      "seconds": 0.197,
-      "engines": [
-        "CYCLES"
-      ],
-      "frames": 8
-    },
-    "rocha_tile": {
-      "seconds": 1.132,
-      "engines": [
-        "CYCLES"
-      ],
-      "frames": 1
-    },
-    "fundo": {
-      "seconds": 2.099,
-      "engines": [
-        "CYCLES"
-      ],
-      "frames": 1
-    },
-    "icone": {
-      "seconds": 0.205,
-      "engines": [
-        "CYCLES"
-      ],
-      "frames": 1
-    },
-    "inimigo": {
-      "seconds": 0.239,
-      "engines": [
-        "CYCLES"
-      ],
-      "frames": 8
+      "frames": 64
     }
   },
   "complete": true,
-  "renderSeconds": 10.585,
+  "renderSeconds": 30.165,
   "underTenMinutes": true,
-  "totalSeconds": 10.678
+  "totalSeconds": 30.165
 }
