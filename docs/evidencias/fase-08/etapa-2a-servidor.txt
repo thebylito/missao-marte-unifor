@@ -1,0 +1,46 @@
+Fase 8, etapa 2a (lado do servidor) — moedas, bilhete de partida, loja de skins e a skin na sombra
+Executado em 2026-11-26, macOS (Apple Silicon), JDK 17. Branch fase-8-etapa-2a-servidor (com a fase-8-etapa-1
+mesclada, que traz o dialeto H2SemCheckDeEnum).
+
+1) Build do servidor
+   cd servidor && ./gradlew --no-daemon build
+   -> BUILD SUCCESSFUL; 114 testes, 0 falhas.
+      Os 52 de antes passam sem mudança, mais os 2 do EsquemaNovoTeste (etapa 1) e 60 novos:
+        ApiDeBilhetesTeste 18 (CT-13), MoedasPorVitoriaTeste 9 e ExtratoDeMoedasTeste 7 (CT-14),
+        ApiDaLojaTeste 14, CompraSimultaneaTeste 2 e CatalogoDeSkinsTeste 8 (CT-14, CA-13),
+        CanalDeSombrasTeste +1 (CT-16: a sombra leva a skin do perfil, não a da mensagem),
+        MigracaoDoEsquemaTeste +1 (a Veterana do banco da 7.x fica com a skin padrao).
+   -> Prova de que os testes pegam o erro (rodados com o código quebrado de propósito e depois restaurado):
+        a. compra sem a trava (findById no lugar de travar): CompraSimultaneaTeste falha já na rodada 1, com
+           duas compras 201 com saldo para uma só (o saldo iria a -60) e um 500 na mesma skin comprada duas vezes;
+        b. dialeto padrão do Hibernate (sem H2SemCheckDeEnum): as tabelas moedas e bilhetes ganham 1 e 3
+           restrições CHECK, e os dois testes de esquema falham.
+
+2) Execução real: o jar num banco novo, com o relógio de verdade (porta 18090)
+   GET /api/loja sem token -> 200, as 9 skins (padrao, padrao_2..5, guara, guara_2..4), com id, nome, linha,
+      nivel e preco
+   GET /api/jogadores/eu/hangar -> {"saldo":0,"skins":["padrao"],"equipada":"padrao"}
+   POST /api/partidas/inicio {"dificuldade":"FACIL"} -> 201 {"bilhete":"<uuid>","validoAte":"<agora + 2 h>"}
+   vitória do Clássico citando o bilhete 2 s depois -> 201, moedasGanhas 0 (tempo real curto), saldo 0
+   bilhete novo, vitória 5 s depois                 -> 201, moedasGanhas 1, saldo 1
+   o mesmo bilhete de novo                          -> 201, moedasGanhas 0, saldo 1
+   vitória da Pilotagem sem bilhete (cliente 7.x)   -> 201, moedasGanhas 0; entra no ranking da Pilotagem
+   GET /api/partidas/minhas -> as 4 partidas, sem moedasGanhas, saldo nem bilhete (o histórico não mudou)
+   compra guara com saldo 1 -> 409 motivo SALDO_INSUFICIENTE, preco 60, saldo 1
+   compra padrao -> 409 motivo JA_POSSUI; compra bruma -> 404 "skin não encontrada"
+   equipar padrao_5 -> 409 motivo NAO_POSSUI; equipar padrao -> 200 {"equipada":"padrao"}
+   hangar sem token -> 401
+   Banco depois (H2 Shell): 0 restrições CHECK em todas as tabelas; ORIGEM, MODO, DIFICULDADE e ESTADO são
+   CHARACTER VARYING(20); JOGADORES.SKIN é CHARACTER VARYING(32) DEFAULT 'padrao' NOT NULL; extrato com uma
+   linha (VITORIA_CLASSICO, partida:2, 1); os dois bilhetes USADO (pelas partidas 1 e 2).
+   Nenhuma linha ERROR no log do servidor.
+
+3) Banco com o esquema exato da 7.x (src/test/resources/esquema-fase-7.sql), o jar desta branch por cima
+   (porta 18091) -> health UP; GET /api/ranking?modo=PILOTAGEM igual (Veterana, 60 pontos).
+   Depois: Veterana com SKIN = padrao, 0 movimentos de moedas (sem retroativo), 0 restrições CHECK, tabelas
+   BILHETES, MOEDAS e SKINS_DO_JOGADOR criadas. Nenhuma linha ERROR no log.
+
+4) Contrato da API
+   docs/api/openapi.json exportado do servidor rodando (/v3/api-docs | python3 -m json.tool), o mesmo
+   procedimento das fases anteriores: antes da mudança, a exportação da base desta branch era idêntica, byte a
+   byte, ao arquivo versionado.

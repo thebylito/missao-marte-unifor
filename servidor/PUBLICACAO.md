@@ -56,8 +56,10 @@ Regras:
 - Para restaurar, copie o arquivo de volta para o volume com o servidor parado.
 - **Atualizar uma versão já publicada:** o esquema do banco evolui sozinho (`spring.jpa.hibernate.ddl-auto=update`).
   Na Fase 7, a coluna `modo` é criada com o valor padrão `CLASSICO`, e as partidas já gravadas passam a contar como
-  do modo clássico. Isso foi testado num banco com partidas das Fases 5 e 6. Faça uma cópia de segurança antes de
-  atualizar, como em qualquer migração.
+  do modo clássico. Isso foi testado num banco com partidas das Fases 5 e 6. Na Fase 8 (etapa 2a), entram as
+  tabelas `moedas`, `bilhetes` e `skins_do_jogador` e a coluna `skin` dos jogadores, com o valor padrão `padrao`:
+  quem já tinha conta fica com a nave de sempre e saldo zero (as vitórias antigas não rendem moedas). Isso foi
+  testado num banco com o esquema da 7.x. Faça uma cópia de segurança antes de atualizar, como em qualquer migração.
 
 ## 4. Verificação de saúde
 
