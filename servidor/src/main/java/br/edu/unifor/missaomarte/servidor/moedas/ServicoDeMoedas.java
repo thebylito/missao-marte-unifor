@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,11 +58,8 @@ public class ServicoDeMoedas {
         if (valor <= 0) {
             throw new IllegalArgumentException("o crédito precisa ser positivo: " + valor);
         }
-        if (extrato.existsByJogadorIdAndOrigemAndReferencia(jogadorId, origem, referencia)) {
-            return 0;
-        }
-        lancar(jogadorId, origem, referencia, valor);
-        return valor;
+        return extrato.inserirCredito(jogadorId, origem.name(), referencia, valor,
+                relogio.instant().atOffset(ZoneOffset.UTC)) * valor;
     }
 
     /**

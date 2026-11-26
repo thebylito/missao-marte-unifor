@@ -45,7 +45,8 @@ public class ConfiguracaoDeSeguranca {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.POST, "/api/jogadores", "/api/sessoes").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/ranking", "/api/loja", "/api/hordas/atual").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ranking", "/api/ranking/semanal", "/api/loja",
+                                "/api/hordas/atual").permitAll()
                         .requestMatchers("/actuator/health/**", "/v3/api-docs/**", "/swagger-ui/**",
                                 "/swagger-ui.html", "/error").permitAll()
                         // publicação: a página do jogo (ranking ao vivo e downloads), na mesma origem da API

@@ -81,6 +81,7 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'missaomarte.agendador.habilitado', 'false'
     testLogging {
         events 'failed'
         exceptionFormat = 'full'

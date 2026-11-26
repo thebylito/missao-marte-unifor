@@ -17,10 +17,12 @@ public class ControladorDeRanking {
     private final ServicoDeRanking servico;
 
     private final Clock relogio;
+    private final PlacarSemanal placar;
 
-    public ControladorDeRanking(ServicoDeRanking servico, Clock relogio) {
+    public ControladorDeRanking(ServicoDeRanking servico, Clock relogio, PlacarSemanal placar) {
         this.relogio = relogio;
         this.servico = servico;
+        this.placar = placar;
     }
 
     /** Sem o parâmetro, o modo clássico: os clientes das Fases 5 e 6 continuam recebendo o mesmo ranking. */
@@ -30,5 +32,9 @@ public class ControladorDeRanking {
         Long numero = modo == Modo.HORDA && horda == null ? Long.valueOf(ServicoDeHordas.numeroEm(relogio.instant()))
                 : horda;
         return servico.top10(modo, numero);
+    }
+    @GetMapping("/semanal")
+    public PlacarSemanal.Placar semanal() {
+        return placar.placarDe(PlacarSemanal.semanaDe(relogio.instant()));
     }
 }
