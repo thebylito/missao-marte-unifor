@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
- * Fase 8 (DA-41): o servidor inteiro sobre um PostgreSQL de verdade (o mesmo 17 da publicação), num contêiner. A
+ * Fase 8 (DA-41): o servidor inteiro sobre um PostgreSQL de verdade (o mesmo 18 da publicação), num contêiner. A
  * migração V1 roda, o Hibernate confere o esquema ({@code ddl-auto=validate}) e a API funciona. Sem Docker, os
  * testes são pulados; os outros testes da API usam o H2 em modo PostgreSQL.
  */
@@ -26,7 +26,7 @@ class EsquemaNoPostgresTeste extends ApiTeste {
 
     @Container
     @ServiceConnection
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine");
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18");
 
     @Autowired
     private JdbcTemplate jdbc;
