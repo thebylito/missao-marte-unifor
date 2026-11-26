@@ -15,8 +15,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-/** Uma partida concluída, sempre de um jogador (o dono do token que a enviou). */
+/**
+ * Uma partida concluída, sempre de um jogador (o dono do token que a enviou).
+ *
+ * <p>Fase 8 (DA-40): as colunas de enum são texto ({@code @JdbcTypeCode(SqlTypes.VARCHAR)}). Sem isso, o Hibernate
+ * cria um {@code ENUM} nativo do H2, que recusa qualquer valor novo, e o {@code ddl-auto=update} nunca muda o tipo
+ * de uma coluna. O banco que já existia é convertido por {@code migracoes/enums-para-texto.sql}.
+ */
 @Entity
 @Table(name = "partidas", indexes = {
         @Index(name = "ix_partidas_jogador", columnList = "jogador_id, registrada_em"),
@@ -33,11 +41,13 @@ public class Partida {
     private Jogador jogador;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 20)
     private Resultado resultado;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 20)
     private Dificuldade dificuldade;
 
     @Column(nullable = false)
@@ -60,8 +70,9 @@ public class Partida {
      * criada num banco que já tem dados.
      */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @ColumnDefault("'CLASSICO'")
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 20)
     private Modo modo = Modo.CLASSICO;
 
     protected Partida() {
