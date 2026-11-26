@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.grafico.online;
 
+import com.badlogic.gdx.utils.StreamUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -60,7 +61,7 @@ public final class ConfiguracaoDoServidor {
             return padraoDaPlataforma;
         }
         try (InputStream in = recurso) {
-            String texto = new String(in.readAllBytes(), StandardCharsets.UTF_8).trim();
+            String texto = new String(StreamUtils.copyStreamToByteArray(in), StandardCharsets.UTF_8).trim();
             return texto.isEmpty() || problema(texto).isPresent() ? padraoDaPlataforma : normalizar(texto);
         } catch (IOException e) {
             return padraoDaPlataforma;
