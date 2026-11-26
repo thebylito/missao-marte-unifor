@@ -93,6 +93,8 @@ antes.
   Sem Docker, `./gradlew bootRun` usa um H2 em arquivo em modo PostgreSQL. Na publicação, o banco vem de
   `MISSAOMARTE_DB_URL`, `MISSAOMARTE_DB_USUARIO` e `MISSAOMARTE_DB_SENHA`, e `MISSAOMARTE_HORDA_SEGREDO` é opcional.
   Na produção, o servidor gera um segredo a cada subida e relê do banco as sementes das hordas já publicadas.
+  Os ajustes do jogo (limites de pouso, tanque, asteroides, meteoros e duração dos eventos) mudam pelas variáveis
+  `MISSAOMARTE_AJUSTE_*`, sem lançar outro jogo (DA-48, `servidor/PUBLICACAO.md`, seção 12).
 
 Detalhes, decisões e validação no [tutorial da Fase 8](docs/fase-08-tutorial.md).
 

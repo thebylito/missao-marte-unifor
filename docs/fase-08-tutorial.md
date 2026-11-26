@@ -160,6 +160,7 @@ As etapas seguem a seção 8 da análise. As evidências versionadas ficam em `d
 | 5 | Horda no jogo | `fase-8-etapa-5-jogo` (PR #32) |
 | 6 | Eventos ao vivo: efeitos no `nucleo`, canal, agendador, painel e placar | `fase-8-nucleo-efeitos` e `fase-8-servidor` (PR #32) |
 | 7 | Página e documentação | `pagina-ordem-dos-modos` (#28), `pagina-data-e-hora` (#29), `pagina-semana` (#31) e `fase-8-docs` (#32) |
+| — | Ajustes do jogo por variável de ambiente (DA-48) | `fase-8-ajustes` (PR #33) |
 
 O PR #32 reuniu as branches do servidor e do jogo em `fase-8-final`, inclusive `fase-8-jogo-completo`.
 
@@ -298,11 +299,11 @@ A partida ganhou métodos novos. Nenhum é chamado na Pilotagem sem eventos.
 | `eventosAplicados()` | o histórico: `EventoAplicado(tipo, semente, passo)` |
 | `getMeteoros()`, `intensidadeDaTempestade()`, `getCapsulaVip()` | o que a tela desenha |
 
-Como cada efeito funciona (`TipoDeEvento` guarda a duração):
+Como cada efeito funciona (`TipoDeEvento` guarda a duração padrão; desde a DA-48, o servidor pode ajustá-la):
 
 - **Chuva de meteoros (20 s).** `ChuvaDeMeteoros` sorteia, com a semente do evento, de 6 a 10 trajetórias retas:
-  - entram pelo teto ou por um lado e saem pela borda oposta. Se a travessia levar mais de 10 s, cruzam em linha reta entre as bordas mais próximas;
-  - têm velocidade de 150 a 250 e raio de 18 a 28;
+  - entram pelo teto ou por um lado e saem pela borda oposta. Se a travessia levar mais da metade da chuva (10 s no padrão), cruzam em linha reta entre as bordas mais próximas;
+  - têm velocidade de 150 a 250 no padrão (ajustável, DA-48) e raio de 18 a 28;
   - as entradas se espalham pelos 20 s.
 
   A posição é calculada pela idade da chuva, sem acumular nada, então a mesma semente dá as mesmas posições. O
@@ -414,6 +415,24 @@ Como cada efeito funciona (`TipoDeEvento` guarda a duração):
 - Na aba Horda, a contagem até o fim parte de `segundosParaAcabar`. A aba Semana mostra o placar de
   `GET /api/ranking/semanal` e atualiza a cada 30 s enquanto a página está visível (PR #31).
 
+### 7.12 Ajustes por variável de ambiente (DA-48)
+
+Depois do teste no celular (DA-47), o usuário pediu para ajustar o jogo sem lançar outro APK. A física roda no jogo,
+então o servidor publica os números e o jogo os usa:
+
+1. **No `nucleo`.** `AjustesDeVoo` reúne, por dificuldade, o tanque, os limites de pouso e a velocidade dos
+   asteroides, além dos meteoros e da duração dos eventos. `AjustesDeVoo.PADRAO` são os números da Fase 8, e
+   `ConfigDeVoo.para(dificuldade, ajustes)` monta a configuração. Cada valor tem uma faixa, conferida no construtor.
+2. **No servidor.** `AjustesDoAmbiente` lê as 21 variáveis `MISSAOMARTE_AJUSTE_*`, e `GET /api/ajustes` as publica.
+   Um nome desconhecido ou um valor fora da faixa impedem a subida. A horda grava os ajustes do sorteio em
+   `descricao.ajustes` e fica com eles até o fim, e os eventos dela duram o que eles dizem.
+3. **No jogo.** A Pilotagem Livre pede os ajustes a cada volta ao menu (`AjustesDoServidor`). A Horda usa os gravados
+   nela. O evento ao vivo dura o que a mensagem `evento-inicio` diz.
+4. **Jogo antigo.** O APK anterior continua com o padrão. Numa horda com ajustes diferentes, o bilhete dele é
+   recusado (409 `JOGO_DESATUALIZADO`), para ninguém disputar o mesmo Top 10 com outra regra.
+
+Os nomes, os padrões e as faixas estão em [`servidor/PUBLICACAO.md`](../servidor/PUBLICACAO.md), seção 12.
+
 ## 8. Código antes e depois
 
 **A física sem efeitos não muda.** Os efeitos só rodam quando há algo pendente ou ativo:
@@ -491,7 +510,8 @@ return valor;
 
 As decisões ficam em [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md). A análise (seção 10) listava as da
 Fase 8 como DA-39 a DA-45. Como a DA-41 passou a ser o PostgreSQL, as seguintes foram renumeradas para DA-42 a
-DA-46. O ajuste de pouso e meteoros entrou no mesmo PR, como DA-47.
+DA-46. O ajuste de pouso e meteoros entrou no mesmo PR, como DA-47. Os ajustes por variável de ambiente vieram no
+PR #33, como DA-48.
 
 | DA | Decisão | Por quê |
 |---|---|---|
@@ -504,6 +524,7 @@ DA-46. O ajuste de pouso e meteoros entrou no mesmo PR, como DA-47.
 | DA-45 | Canal das sombras com salas e eventos | Revisa a DA-31. Na Horda, só se vê quem está na mesma caverna. Os eventos vão a todas as salas. O cliente sem sala cai na `livre`. A sombra leva a skin do perfil |
 | DA-46 | Evento só atrapalha a partida | Quem estava no menu quando o evento caiu não pode sair em desvantagem no ranking. Por isso nada de evento soma na partida: sobreviver (+3) e pegar o VIP (+5) valem só no placar da semana, e o Top 10 da horda guarda a melhor partida |
 | DA-47 | Pouso mais tolerante e meteoros mais lentos | O teste no celular levou aos limites de inclinação de 25°, 20° e 15° no Fácil, Médio e Difícil e a meteoros de 150 a 250 unidades/s |
+| DA-48 | Ajustes do jogo por variável de ambiente | Ajustar sem lançar outro jogo. O servidor publica os ajustes, a Pilotagem Livre os usa, e cada horda congela os dela para todos disputarem com a mesma regra. Um valor errado impede a subida |
 
 Outras escolhas, e o que mudou em relação à análise:
 
@@ -641,8 +662,8 @@ python3 validacao/android/conferir_api_minima.py --sdk $ANDROID_HOME --min 26 \
 
 | Verificação | Resultado |
 |---|---|
-| Testes do jogo | `nucleo` 185, `core` 287, `console` 3 e `lwjgl3` 3. Nenhum pulado ou com falha. O Android não tem testes unitários próprios |
-| Testes do servidor | 182, todos passaram, inclusive os 14 com PostgreSQL no Testcontainers |
+| Testes do jogo | `nucleo` 207, `core` 298, `console` 3 e `lwjgl3` 3, depois do PR #33. Nenhum pulado ou com falha. O Android não tem testes unitários próprios |
+| Testes do servidor | 209 depois do PR #33, todos passaram, inclusive os 14 com PostgreSQL no Testcontainers |
 | Física sem efeitos (CT-04) | `PilotagemSemEfeitosTeste`: a assinatura de 600 passos é igual à da Fase 7, e os 27 testes da `PartidaDePilotagemTeste` passam sem mudança |
 | Sorteio e validador (CT-01 a CT-03) | mesma semente, mesma horda; as faixas da análise; o Difícil nunca corta o tanque; a anterior só se repete quando há uma caverna só; cada regra do validador com um caso que passa e um que falha |
 | Efeitos (CT-05 a CT-08) | vento; roteiro em ordem com o passo e a semente registrados; evento ao vivo no próximo passo; tempestade com média zero em cinco ciclos; pane com teto; chuva igual para a mesma semente, que termina em 20 s; meteoro fatal; prioridade do asteroide; sobrevivência 1 e 0; VIP sem pontos e sem pouso |
