@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.servidor.sombras;
 
+import br.edu.unifor.missaomarte.pilotagem.Caverna;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.HashMap;
@@ -55,9 +56,12 @@ public class CanalDeSombras extends TextWebSocketHandler {
      */
     static final long INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS = 1000;
     static final int PILOTOS_MAXIMOS = 50;
-    /** O tamanho da caverna da pilotagem (o mesmo do jogo): posições fora dela são recusadas. */
-    static final double LARGURA_DA_CAVERNA = 3840;
-    static final double ALTURA_DA_CAVERNA = 1440;
+    /**
+     * O tamanho da caverna da pilotagem: posições fora dela são recusadas. Desde a Fase 8 (DA-39) vem do próprio
+     * jogo ({@code nucleo}), não de uma cópia dos números; quando houver salas, cada sala terá o tamanho da sua.
+     */
+    static final double LARGURA_DA_CAVERNA = Caverna.marciana().getLargura();
+    static final double ALTURA_DA_CAVERNA = Caverna.marciana().getAltura();
     private static final int ESPERA_DE_ENVIO_MS = 1000;
     private static final int FILA_DE_ENVIO_BYTES = 16 * 1024;
 

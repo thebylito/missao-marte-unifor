@@ -1,5 +1,6 @@
 // Fase 5 — servidor Spring Boot: cadastro, login (JWT), histórico de partidas e ranking Top 10.
-// Persistência com JPA + H2 em arquivo. Não conhece o jogo: só guarda jogadores e pontuações.
+// Persistência com JPA + H2 em arquivo.
+// Fase 8 (DA-39): compila também o módulo nucleo do jogo (só ele), para gerar e conferir as hordas.
 plugins {
     id 'java'
     id 'org.springframework.boot' version '4.1.2'
@@ -19,7 +20,32 @@ repositories {
     mavenCentral()
 }
 
+// O nucleo é configurado aqui, porque o build.gradle dele herda o toolchain e o JUnit do build da raiz do jogo,
+// que este build não lê. A saída fica em servidor/build/nucleo (o build do jogo continua dono de nucleo/build).
+// Os testes do nucleo não rodam aqui: o build da raiz já os roda, com o JUnit dele.
+project(':nucleo') {
+    layout.buildDirectory = rootProject.layout.buildDirectory.dir('nucleo')
+    repositories {
+        mavenCentral()
+    }
+    pluginManager.withPlugin('java') {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(17)
+            }
+        }
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+            options.compilerArgs << '-Xlint:all'
+        }
+        tasks.named('compileTestJava') { enabled = false }
+        tasks.named('processTestResources') { enabled = false }
+        tasks.named('test') { enabled = false }
+    }
+}
+
 dependencies {
+    implementation project(':nucleo')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
