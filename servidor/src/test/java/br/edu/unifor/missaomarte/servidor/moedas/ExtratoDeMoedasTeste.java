@@ -97,9 +97,9 @@ class ExtratoDeMoedasTeste extends ApiTeste {
     void aOrigemEhTextoNoBanco() throws SQLException {                              // DA-40
         try (Connection c = banco.getConnection(); Statement s = c.createStatement();
              ResultSet r = s.executeQuery("SELECT DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS "
-                     + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'MOEDAS' AND COLUMN_NAME = 'ORIGEM'")) {
+                     + "WHERE TABLE_SCHEMA = 'public' AND TABLE_NAME = 'moedas' AND COLUMN_NAME = 'origem'")) {
             assertTrue(r.next(), "coluna MOEDAS.ORIGEM");
-            assertEquals("CHARACTER VARYING", r.getString(1));
+            assertEquals("character varying", r.getString(1).toLowerCase(java.util.Locale.ROOT));
             assertEquals(20, r.getInt(2));
         }
     }
@@ -107,9 +107,11 @@ class ExtratoDeMoedasTeste extends ApiTeste {
     @Test
     void oExtratoNaoTemListaFechadaDeOrigens() throws Exception {                   // DA-40
         Integer restricoes = jdbc.queryForObject("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS "
-                + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'MOEDAS' AND CONSTRAINT_TYPE = 'CHECK'",
+                + "WHERE TABLE_SCHEMA = 'public' AND TABLE_NAME = 'moedas' AND CONSTRAINT_TYPE = 'CHECK'",
                 Integer.class);
         assertEquals(0, restricoes);
+        assertEquals(1, jdbc.queryForObject(
+                "select count(*) from flyway_schema_history where version = '2' and success", Integer.class));
 
         // uma origem que o enum ainda não conhece cabe na coluna (quem valida é o Java)
         long ana = idDe(novoJogador("Ana"));

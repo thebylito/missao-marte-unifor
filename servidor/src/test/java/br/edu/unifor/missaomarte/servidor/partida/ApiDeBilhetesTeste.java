@@ -235,14 +235,16 @@ class ApiDeBilhetesTeste extends ApiComMoedasTeste {
 
     @Test
     void asColunasDeEnumDoBilheteSaoTextoSemListaFechada() {                       // DA-40
-        for (String coluna : List.of("MODO", "DIFICULDADE", "ESTADO")) {
-            assertEquals("CHARACTER VARYING", jdbc.queryForObject("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
-                    + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'BILHETES' AND COLUMN_NAME = ?",
+        for (String coluna : List.of("modo", "dificuldade", "estado")) {
+            assertEquals("character varying", jdbc.queryForObject("SELECT lower(DATA_TYPE) FROM INFORMATION_SCHEMA.COLUMNS "
+                    + "WHERE TABLE_SCHEMA = 'public' AND TABLE_NAME = 'bilhetes' AND COLUMN_NAME = ?",
                     String.class, coluna), coluna);
         }
         Integer restricoes = jdbc.queryForObject("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS "
-                + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'BILHETES' AND CONSTRAINT_TYPE = 'CHECK'",
+                + "WHERE TABLE_SCHEMA = 'public' AND TABLE_NAME = 'bilhetes' AND CONSTRAINT_TYPE = 'CHECK'",
                 Integer.class);
         assertEquals(0, restricoes);
+        assertEquals(1, jdbc.queryForObject(
+                "select count(*) from flyway_schema_history where version = '2' and success", Integer.class));
     }
 }

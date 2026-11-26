@@ -32,7 +32,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /**
  * Fase 8 (DA-41): a cópia do banco H2 da Fase 7 para o banco novo, sem Spring e sem Docker. O destino é um H2 em
- * memória em modo PostgreSQL, com o esquema da V1 do Flyway; o PostgreSQL de verdade, com o servidor inteiro, fica
+ * memória em modo PostgreSQL, com o esquema do Flyway; o PostgreSQL de verdade, com o servidor inteiro, fica
  * em {@code ImportacaoDoH2NoPostgresTeste}.
  */
 class ImportadorDoH2Teste {
@@ -63,6 +63,14 @@ class ImportadorDoH2Teste {
 
         assertEquals(linhasDaOrigem(origem, JOGADORES), linhas(destino.getConnection(), JOGADORES));
         assertEquals(linhasDaOrigem(origem, PARTIDAS), linhas(destino.getConnection(), PARTIDAS));
+    }
+
+    @Test
+    void importadosComecamComSkinPadraoESaldoZero() throws Exception {
+        new ImportadorDoH2(destino).importar(BancoDaFase7.criar(pasta));
+
+        assertEquals(List.of("padrao"), jdbc.queryForList("select distinct skin from jogadores", String.class));
+        assertEquals(0, jdbc.queryForObject("select coalesce(sum(valor), 0) from moedas", Integer.class));
     }
 
     @Test
