@@ -112,6 +112,23 @@ class HangarEFaseOitoTeste {
                 controle.itens().stream().map(SkinDaLoja::id).toList());
     }
 
+    @ParameterizedTest
+    @CsvSource({"padrao,1,Linha Padrão · Nível I", "guara,2,Linha Guará · Nível II",
+            "guara,3,Linha Guará · Nível III", "guara,4,Linha Guará · Nível IV",
+            "aurora,5,Linha Aurora · Nível V"})
+    void rotuloDaLinhaUsaNomeDoCatalogoOuCapitalizaId(String linha, int nivel, String esperado) {
+        var catalogo = CatalogoDeNaves.ler("""
+                [{"id":"guara-2","linha":"guara","nivel":2,"nome":"Guará Solar"},
+                 {"id":"padrao","linha":"padrao","nivel":1,"nome":"Padrão"},
+                 {"id":"guara","linha":"guara","nivel":1,"nome":"Guará"},
+                 {"id":"aurora-5","linha":"aurora","nivel":5,"nome":"Estelar"}]
+                """);
+        var controle = new ControladorDoHangar(servidor, Optional.of(ANA), catalogo,
+                atualizacoes::add, equipadas::add, falha -> fail());
+        var skin = new SkinDaLoja(nivel == 1 ? linha : linha + "-" + nivel, "Nave da loja", linha, nivel, 0);
+        assertEquals(esperado, controle.rotuloDaLinha(skin));
+    }
+
     @Test
     void compraNivelDoisDiretoEAtualizaSaldoEPosseSemEquipar() {
         var controle = carregar();
