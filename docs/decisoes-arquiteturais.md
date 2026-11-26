@@ -883,8 +883,12 @@ números, e o jogo precisa usá-los.
   - **Horda:** o jogo novo diz `comAjustes: true` ao pedir o bilhete. Numa horda com ajustes diferentes do padrão, o
     servidor recusa o bilhete de quem não diz isso, com 409 `JOGO_DESATUALIZADO` e o texto "Atualize o jogo". Sem
     bilhete não há Top 10 da horda, então ninguém disputa a mesma horda com outra regra.
-  - **Pilotagem Livre:** não há essa trava. O jogo antigo continua entrando no ranking com o padrão. Se um ajuste
-    for longe do padrão, peça a todos que atualizem.
+  - **Pilotagem Livre** (decisão do usuário, depois do PR #33): o jogo novo manda `comAjustes: true` também no
+    resultado. Com ajustes diferentes do padrão, o resultado da Pilotagem sem esse campo é recusado (409
+    `JOGO_DESATUALIZADO`, "Esta partida usou as regras antigas"), a menos que a partida tenha começado com um
+    bilhete emitido quando os ajustes ainda eram o padrão. O bilhete guarda isso (`ajustes_padrao`, migração V6).
+    Assim ninguém perde a partida por causa do momento da mudança; só é recusado quem começou a jogar com a regra
+    velha depois dela. A partida continua no ranking local do aparelho. O Clássico não muda.
   - **Eventos:** num evento mais longo que o padrão, o jogo antigo termina o perigo mais cedo; num mais curto, mais
     tarde. O servidor aceita o resultado do início da duração mais curta até 15 s depois da mais longa, entre a
     configurada e a padrão, para não tirar os +3 de ninguém. O VIP continua valendo só até o fim do evento.

@@ -138,6 +138,7 @@ public final class ServidorHttp implements ServidorDoJogo {
         corpo.addChild("movimentos", new JsonValue(p.movimentos()));
         corpo.addChild("tempoSegundos", new JsonValue(p.tempoSegundos()));
         corpo.addChild("modo", new JsonValue(p.modo()));   // Fase 7 (um servidor antigo ignora o campo)
+        corpo.addChild("comAjustes", new JsonValue(true));   // DA-48: este jogo segue os ajustes do servidor
         if (p.horda() != null) {
             corpo.addChild("horda", new JsonValue(p.horda()));
         }

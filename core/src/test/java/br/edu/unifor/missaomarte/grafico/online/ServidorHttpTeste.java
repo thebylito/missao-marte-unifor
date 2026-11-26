@@ -196,6 +196,7 @@ class ServidorHttpTeste {
         assertEquals(20, corpo.getInt("movimentos"));
         assertEquals(35, corpo.getLong("tempoSegundos"));
         assertEquals("CLASSICO", corpo.getString("modo"), "Fase 7: o resumo clássico diz o modo");
+        assertTrue(corpo.getBoolean("comAjustes"), "DA-48: este jogo segue os ajustes do servidor");
     }
 
     @Test

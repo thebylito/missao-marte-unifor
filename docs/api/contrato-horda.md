@@ -36,7 +36,9 @@ padrão.
 - Na Horda, o corpo é `{"modo":"HORDA","dificuldade":"DIFICIL","horda":123}`. Ele devolve 201
   `{"bilhete":"<uuid>","validoAte":"<instant>"}`, como nos outros modos.
 - Na Horda, o bilhete é **obrigatório**: sem ele, não há partida da Horda.
-- O jogo que aplica `descricao.ajustes` manda também `"comAjustes":true` (DA-48). Numa horda com ajustes diferentes
+- O jogo que aplica `descricao.ajustes` manda também `"comAjustes":true` (DA-48), aqui e no registro da partida
+  (`POST /api/partidas`). Na Pilotagem, com ajustes diferentes do padrão, o registro sem esse campo recebe 409
+  `JOGO_DESATUALIZADO`, a menos que cite um bilhete emitido quando os ajustes eram o padrão. Numa horda com ajustes diferentes
   do padrão, o pedido sem esse campo recebe 409 com `"motivo":"JOGO_DESATUALIZADO"`, e o `detail` pede para
   atualizar o jogo.
 

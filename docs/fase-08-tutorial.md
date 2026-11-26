@@ -429,7 +429,8 @@ então o servidor publica os números e o jogo os usa:
 3. **No jogo.** A Pilotagem Livre pede os ajustes a cada volta ao menu (`AjustesDoServidor`). A Horda usa os gravados
    nela. O evento ao vivo dura o que a mensagem `evento-inicio` diz.
 4. **Jogo antigo.** O APK anterior continua com o padrão. Numa horda com ajustes diferentes, o bilhete dele é
-   recusado (409 `JOGO_DESATUALIZADO`), para ninguém disputar o mesmo Top 10 com outra regra.
+   recusado (409 `JOGO_DESATUALIZADO`), para ninguém disputar o mesmo Top 10 com outra regra. Na Pilotagem Livre,
+   o resultado dele só entra se a partida começou quando os ajustes ainda eram o padrão (o bilhete guarda isso).
 
 Os nomes, os padrões e as faixas estão em [`servidor/PUBLICACAO.md`](../servidor/PUBLICACAO.md), seção 12.
 

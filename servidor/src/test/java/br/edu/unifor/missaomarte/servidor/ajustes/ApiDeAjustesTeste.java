@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDaHorda;
 import br.edu.unifor.missaomarte.pilotagem.horda.SorteioDaHorda;
 import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
-import br.edu.unifor.missaomarte.servidor.ApiTeste;
+import br.edu.unifor.missaomarte.servidor.ApiComMoedasTeste;
 import br.edu.unifor.missaomarte.servidor.evento.EventoAoVivo;
 import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
 import br.edu.unifor.missaomarte.servidor.horda.CatalogoDeCavernas;
@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ import tools.jackson.databind.node.ObjectNode;
         "MISSAOMARTE_AJUSTE_DIFICIL_TANQUE=120",
         "MISSAOMARTE_AJUSTE_METEOROS_MAX=300",
         "MISSAOMARTE_AJUSTE_DURACAO_TEMPESTADE=40"})
-class ApiDeAjustesTeste extends ApiTeste {
+class ApiDeAjustesTeste extends ApiComMoedasTeste {
 
     private static final Instant MEIO_DA_HORDA = Instant.parse("2026-11-26T21:30:00Z");
 
@@ -47,6 +48,7 @@ class ApiDeAjustesTeste extends ApiTeste {
     @Autowired JsonMapper json;
     @Autowired ServicoDeEventos eventos;
     @Autowired CatalogoDeCavernas catalogo;
+    @jakarta.persistence.PersistenceContext jakarta.persistence.EntityManager contexto;
 
     @BeforeEach
     void noMeioDeUmaHorda() {
@@ -140,6 +142,65 @@ class ApiDeAjustesTeste extends ApiTeste {
 
         assertThat(eventos.ativos(inicio.plusSeconds(39))).extracting(EventoAoVivo::id).contains("e-curto");
         assertThat(eventos.ativos(inicio.plusSeconds(41))).extracting(EventoAoVivo::id).doesNotContain("e-curto");
+    }
+
+    // ---- Pilotagem Livre e o jogo antigo (DA-48): o servidor recusa só o que foi começado com a regra velha ----
+
+    @Test
+    void naLivreOResultadoDoJogoAntigoSemBilheteERecusado() throws Exception {
+        String token = novoJogador("Antiga");
+
+        registrar(token, partida("VITORIA", "PILOTAGEM", "MEDIO", 120, null))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.motivo").value("JOGO_DESATUALIZADO"))
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("regras antigas")));
+        mvc.perform(get("/api/ranking?modo=PILOTAGEM")).andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void naLivreOResultadoDoJogoNovoEAceito() throws Exception {
+        registrar(novoJogador("Nova"), comAjustes(partida("VITORIA", "PILOTAGEM", "MEDIO", 120, null)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void oClassicoDoJogoAntigoContinuaAceito() throws Exception {
+        registrar(novoJogador("Antiga"), partida("VITORIA", "CLASSICO", "MEDIO", 30, null))
+                .andExpect(status().isCreated());
+    }
+
+    /** O bilhete foi emitido quando os ajustes eram o padrão: o jogo antigo jogou com a regra que valia. */
+    @Test
+    void aPartidaQueOJogoAntigoComecouAntesDaMudancaEAceita() throws Exception {
+        String token = novoJogador("Antiga");
+        String codigo = bilhete(token, "PILOTAGEM", "MEDIO");
+        assertThat(ajustesPadraoDoBilhete(codigo)).isFalse();
+        // Como se o servidor anterior, ainda com o padrão, tivesse emitido o bilhete.
+        jdbc.update("update bilhetes set ajustes_padrao = true where codigo = ?", UUID.fromString(codigo));
+        contexto.clear();   // o JPA relê o bilhete do banco (o teste e o pedido dividem a mesma transação)
+        relogio.avancar(Duration.ofSeconds(45));
+
+        registrar(token, partida("VITORIA", "PILOTAGEM", "MEDIO", 40, codigo)).andExpect(status().isCreated());
+    }
+
+    @Test
+    void aPartidaQueOJogoAntigoComecouDepoisDaMudancaERecusada() throws Exception {
+        String token = novoJogador("Antiga");
+        String codigo = bilhete(token, "PILOTAGEM", "MEDIO");
+        relogio.avancar(Duration.ofSeconds(45));
+
+        registrar(token, partida("VITORIA", "PILOTAGEM", "MEDIO", 40, codigo))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.motivo").value("JOGO_DESATUALIZADO"));
+    }
+
+    private Boolean ajustesPadraoDoBilhete(String codigo) {
+        return jdbc.queryForObject("select ajustes_padrao from bilhetes where codigo = ?", Boolean.class,
+                UUID.fromString(codigo));
+    }
+
+    private static String comAjustes(String json) {
+        return json.substring(0, json.length() - 1) + ",\"comAjustes\":true}";
     }
 
     private String atual() throws Exception {

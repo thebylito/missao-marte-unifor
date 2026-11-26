@@ -47,3 +47,11 @@ servidor desta branch (java -jar build/libs/missao-marte-servidor.jar, H2 local,
 
    GET /api/hordas/atual — os ajustes gravados na horda sorteada por este servidor
    horda 3952 | medio.inclinacaoMaxima 22.0 | facil.velocidadeDosAsteroides 0.9 | eventos.duracaoDaChuva 30.0
+
+4) Pilotagem Livre e o jogo antigo (decisão do usuário depois do PR #33). Servidor com
+   MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO=22; vitória da Pilotagem registrada por um jogador cadastrado:
+   sem comAjustes (como o APK antigo):
+     {"detail":"Esta partida usou as regras antigas. Atualize o jogo pelo site para entrar no ranking.","instance":"/api/partidas","status":409,"title":"Conflict","motivo":"JOGO_DESATUALIZADO"}
+     HTTP 409
+   com comAjustes (APK novo):
+     HTTP 201
