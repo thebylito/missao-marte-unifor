@@ -4,12 +4,12 @@ import br.edu.unifor.missaomarte.dominio.Passageiro;
 import java.util.Optional;
 
 /**
- * Onde a nave pode pousar: a base (entrega e reabastecimento) ou a plataforma de um passageiro. A superfície é a
+ * Onde a nave pode pousar: a base (entrega e reabastecimento), a plataforma de um passageiro ou a cápsula VIP. A superfície é a
  * altura em que os pés tocam; o corpo sólido fica abaixo dela.
  */
 public final class PlataformaDePouso {
 
-    public enum Tipo { BASE, PASSAGEIRO }
+    public enum Tipo { BASE, PASSAGEIRO, VIP }
 
     private final Tipo tipo;
     private final double x;
