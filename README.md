@@ -13,6 +13,7 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 | 5 — Servidor e ranking global (Spring Boot) | validada | `fase-5` | [tutorial](docs/fase-05-tutorial.md) · [API (OpenAPI)](docs/api/openapi.json) |
 | 6 — Android e toque | validada | `fase-6` | [tutorial](docs/fase-06-tutorial.md) · [publicação do servidor](servidor/PUBLICACAO.md) |
 | 7 — Evolução livre: Modo Pilotagem | validada | `fase-7` | [análise](docs/fase-07-analise.md) · [tutorial](docs/fase-07-tutorial.md) |
+| 8 — Horda, eventos ao vivo, moedas e skins | em andamento | `fase-8` (ainda não criada) | [análise](docs/fase-08-analise.md) · [tutorial](docs/fase-08-tutorial.md) · [contrato da Horda](docs/api/contrato-horda.md) |
 
 **No ar:** https://missao-marte.thebylito.dev: ranking global ao vivo, downloads do APK e do jogo desktop (já
 apontando para o servidor) e a API. Publicado no Dokploy pelo GitHub Actions a cada merge na `main`
@@ -26,6 +27,7 @@ Entrega final (Sprint 5): [relatório técnico](docs/relatorio-tecnico.md) ([PDF
 [revisão final](docs/evidencias/sprint-5/revisao-final.txt).
 
 ## Executar (estado atual: Fase 7)
+<!-- CONFERIR: trocar para "Fase 8" quando a tag fase-8 for criada -->
 
 Requisito: **um JDK 17 instalado**. O Gradle o encontra sozinho (toolchain), mesmo que o `java` padrão seja outro.
 Não é preciso instalar o Gradle: o wrapper (`gradlew`) baixa a versão certa (8.14.3).
@@ -60,6 +62,39 @@ Controles na janela: na entrada, `1` entrar, `2` criar conta, `3` convidado, `4`
 `↑`/`↓` o tamanho do mapa e `Enter` decola; na partida, `WASD` ou setas movem, `C` ou espaço embarcam, `Q` ou
 `Esc` abortam, `M` liga e desliga o som. No terminal: `w/a/s/d` movem a nave, `c` embarca o passageiro da célula, `q` aborta a missão.
 Para testar os controles de toque com o mouse: `./gradlew :lwjgl3:run -Dmissaomarte.toque=true`.
+
+### Fase 8: Horda, eventos ao vivo, moedas e skins
+
+Em andamento. A Horda, os eventos, as moedas e o Hangar exigem uma conta e o servidor no ar; o convidado joga como
+antes.
+- **Horda:** a cada 2 horas, nas horas pares de Fortaleza, um desafio igual para todos (caverna, passageiros,
+  dificuldade e variações), com Top 10 próprio. No menu, `H` (ou um toque na faixa da horda, no rodapé) joga a horda
+  atual. Os controles são os da Pilotagem (abaixo).
+- **Eventos ao vivo:** na Pilotagem e na Horda, o servidor dispara chuva de meteoros, tempestade de poeira, pane de
+  gravidade ou passageiro VIP, com aviso 15 s antes. O evento só atrapalha a partida. Sobreviver a um perigo (+3) e
+  pegar o VIP primeiro (+5) contam no placar da semana.
+- **Moedas:** só na vitória, e só se a partida começou com um bilhete do servidor. Clássico 1 (até 20 por dia),
+  Pilotagem 3 (+1 no Difícil), Horda 5, mais a colocação no fechamento de cada horda e da semana. O saldo aparece no
+  menu e no fim da partida. <!-- CONFERIR: as 5 moedas da Horda, as moedas de colocação (horda e semana) e os pontos do placar da semana dependem do servidor da fase-8-servidor -->
+- **Hangar:** `7` no menu. Setas escolhem, `Enter` compra ou equipa, `Esc` volta (no toque: Anterior, Próxima e o
+  botão da ação). Duas linhas de naves, Padrão (II a V) e Guará (I a IV), por 60, 120, 200 e 300 moedas. A skin só
+  muda a aparência, também na sombra que os outros veem.
+- **Ranking:** `↑`/`↓` alternam Clássico, Pilotagem e Horda. Na Horda, `←`/`→` alternam "Esta horda" e "Semana".
+- **Servidor com PostgreSQL:** desde a Fase 8, o servidor compila também o `nucleo` (DA-39) e guarda os dados num
+  PostgreSQL, com o esquema no Flyway (DA-41). O compose já sobe o banco ao lado:
+
+  ```bash
+  cd servidor
+  cp .env.exemplo .env          # preencha MISSAOMARTE_JWT_SEGREDO; MISSAOMARTE_DB_SENHA é opcional
+  docker compose up --build     # PostgreSQL 18 + servidor em http://localhost:8080
+  docker compose exec postgres psql -U missaomarte   # abre o banco
+  ```
+
+  Sem Docker, `./gradlew bootRun` usa um H2 em arquivo em modo PostgreSQL. Na publicação, o banco vem de
+  `MISSAOMARTE_DB_URL`, `MISSAOMARTE_DB_USUARIO` e `MISSAOMARTE_DB_SENHA`, e a semente das hordas usa o segredo
+  `MISSAOMARTE_HORDA_SEGREDO`. <!-- CONFERIR: nome da variável do segredo das hordas, na fase-8-servidor -->
+
+Detalhes, decisões e validação no [tutorial da Fase 8](docs/fase-08-tutorial.md).
 
 ### Modo Pilotagem (Fase 7)
 
@@ -108,6 +143,7 @@ O servidor fica em [`servidor/`](servidor), um projeto Gradle separado, que não
 Boot 4.1.2, H2 em arquivo e token JWT. Também precisa só de um JDK 17 instalado: o arquivo
 `servidor/gradle/gradle-daemon-jvm.properties` faz o Gradle rodar nele, porque o plugin do Spring Boot 4 não aceita
 um Gradle em Java mais antigo. Rode em outro terminal:
+<!-- CONFERIR: esta seção ainda descreve o servidor da Fase 5 ("não depende do código do jogo", "H2 em arquivo", "21 testes", MISSAOMARTE_DADOS); atualizar com a DA-39 e a DA-41 no fechamento da Fase 8 -->
 
 ```bash
 cd servidor
