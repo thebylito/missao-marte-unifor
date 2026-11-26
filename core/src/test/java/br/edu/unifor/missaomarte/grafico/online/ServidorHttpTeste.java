@@ -2,9 +2,11 @@ package br.edu.unifor.missaomarte.grafico.online;
 
 import br.edu.unifor.missaomarte.aplicacao.Modo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration;
 import com.badlogic.gdx.backends.headless.HeadlessNet;
@@ -202,6 +204,79 @@ class ServidorHttpTeste {
         ServidorHttpTeste.<Void>esperar(resposta -> cliente.registrarPartida(new Sessao("Ana", "tok"),
                 new PartidaParaEnviar("VITORIA", "MEDIO", 61, 3, 6, 140, "PILOTAGEM"), resposta));
         assertEquals("PILOTAGEM", json(pedidos.get(0).corpo()).getString("modo"));
+    }
+
+
+    @Test
+    void pedeBilheteComModoDificuldadeEToken() throws Exception {
+        Sessao ana = new Sessao("Ana", "tok");
+        responder(201, """
+                {"bilhete":"12345678-1234-1234-1234-123456789abc","validoAte":"2026-11-26T18:00:00Z"}
+                """);
+        Retorno<Bilhete> r = esperar(resposta -> cliente.iniciarPartida(ana, Modo.PILOTAGEM,
+                Dificuldade.MEDIO, resposta));
+        assertEquals(new Bilhete("12345678-1234-1234-1234-123456789abc",
+                Instant.parse("2026-11-26T18:00:00Z")), r.valor());
+        Pedido p = pedidos.get(0);
+        assertEquals("POST /api/partidas/inicio", p.metodo() + " " + p.rota());
+        assertEquals("Bearer tok", p.autorizacao());
+        assertEquals("PILOTAGEM", json(p.corpo()).getString("modo"));
+        assertEquals("MEDIO", json(p.corpo()).getString("dificuldade"));
+    }
+
+    @Test
+    void enviaBilheteELeRecompensaSomenteQuandoServidorManda() throws Exception {
+        Sessao ana = new Sessao("Ana", "tok");
+        var partida = new PartidaParaEnviar("VITORIA", "MEDIO", 61, 3, 6, 140, "PILOTAGEM");
+        responder(201, "{\"id\":4,\"moedasGanhas\":3,\"saldo\":42}");
+        Retorno<RegistroDePartida> novo = esperar(r -> cliente.registrarPartidaComMoedas(ana,
+                partida.comBilhete("12345678-1234-1234-1234-123456789abc"), r));
+        assertEquals(new RegistroDePartida(3, 42), novo.valor());
+        assertEquals("12345678-1234-1234-1234-123456789abc", json(pedidos.get(0).corpo()).getString("bilhete"));
+        responder(201, "{\"id\":5}");
+        Retorno<RegistroDePartida> antigo = esperar(r -> cliente.registrarPartidaComMoedas(ana, partida, r));
+        assertNull(antigo.valor());
+        assertNull(antigo.falha());
+        assertFalse(json(pedidos.get(1).corpo()).has("bilhete"));
+    }
+
+    @Test
+    void consultaLojaPublicaEHangarAutenticado() throws Exception {
+        responder(200, """
+                [{"id":"azul","nome":"Azul","linha":"Atlantis","nivel":2,"preco":70}]
+                """);
+        Retorno<List<SkinDaLoja>> loja = esperar(cliente::loja);
+        assertEquals(List.of(new SkinDaLoja("azul", "Azul", "Atlantis", 2, 70)), loja.valor());
+        assertEquals("GET /api/loja", pedidos.get(0).metodo() + " " + pedidos.get(0).rota());
+        assertNull(pedidos.get(0).autorizacao());
+
+        responder(200, """
+                {"saldo":85,"skins":["padrao","azul"],"equipada":"azul"}
+                """);
+        Retorno<Hangar> hangar = esperar(r -> cliente.hangar(new Sessao("Ana", "tok"), r));
+        assertEquals(new Hangar(85, List.of("padrao", "azul"), "azul"), hangar.valor());
+        assertEquals("GET /api/jogadores/eu/hangar", pedidos.get(1).metodo() + " " + pedidos.get(1).rota());
+        assertEquals("Bearer tok", pedidos.get(1).autorizacao());
+    }
+
+    @Test
+    void compraEEquipaEConservaMotivoDoConflito() throws Exception {
+        Sessao ana = new Sessao("Ana", "tok");
+        responder(201, "{\"saldo\":15,\"skins\":[\"padrao\",\"azul\"]}");
+        Retorno<Hangar> compra = esperar(r -> cliente.comprar(ana, "azul", r));
+        assertEquals(new Hangar(15, List.of("padrao", "azul"), null), compra.valor());
+        assertEquals("POST /api/loja/compras", pedidos.get(0).metodo() + " " + pedidos.get(0).rota());
+        assertEquals("azul", json(pedidos.get(0).corpo()).getString("skin"));
+
+        responder(200, "{\"equipada\":\"azul\"}");
+        Retorno<String> equipada = esperar(r -> cliente.equipar(ana, "azul", r));
+        assertEquals("azul", equipada.valor());
+        assertEquals("PUT /api/jogadores/eu/skin", pedidos.get(1).metodo() + " " + pedidos.get(1).rota());
+        assertEquals("azul", json(pedidos.get(1).corpo()).getString("skin"));
+
+        responder(409, "{\"detail\":\"moedas insuficientes\",\"motivo\":\"SALDO_INSUFICIENTE\"}");
+        Retorno<Hangar> conflito = esperar(r -> cliente.comprar(ana, "verde", r));
+        assertEquals(new Falha(Falha.Motivo.CONFLITO, "Moedas insuficientes.", "SALDO_INSUFICIENTE"), conflito.falha());
     }
 
     @Test
