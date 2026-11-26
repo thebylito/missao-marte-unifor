@@ -1,0 +1,149 @@
+{
+  "numero" : 42,
+  "dificuldade" : "Fácil",
+  "caverna" : {
+    "id" : "marciana",
+    "nome" : "Caverna Marciana",
+    "largura" : 3840.0,
+    "altura" : 1440.0,
+    "rochas" : [ {
+      "x" : 0.0,
+      "y" : 0.0,
+      "largura" : 3840.0,
+      "altura" : 80.0
+    }, {
+      "x" : 0.0,
+      "y" : 1360.0,
+      "largura" : 3840.0,
+      "altura" : 80.0
+    }, {
+      "x" : 0.0,
+      "y" : 0.0,
+      "largura" : 40.0,
+      "altura" : 1440.0
+    }, {
+      "x" : 3800.0,
+      "y" : 0.0,
+      "largura" : 40.0,
+      "altura" : 1440.0
+    }, {
+      "x" : 820.0,
+      "y" : 80.0,
+      "largura" : 120.0,
+      "altura" : 640.0
+    }, {
+      "x" : 1120.0,
+      "y" : 760.0,
+      "largura" : 150.0,
+      "altura" : 600.0
+    }, {
+      "x" : 1300.0,
+      "y" : 80.0,
+      "largura" : 520.0,
+      "altura" : 400.0
+    }, {
+      "x" : 1980.0,
+      "y" : 880.0,
+      "largura" : 160.0,
+      "altura" : 480.0
+    }, {
+      "x" : 2220.0,
+      "y" : 900.0,
+      "largura" : 440.0,
+      "altura" : 60.0
+    }, {
+      "x" : 2800.0,
+      "y" : 80.0,
+      "largura" : 140.0,
+      "altura" : 660.0
+    }, {
+      "x" : 3050.0,
+      "y" : 980.0,
+      "largura" : 420.0,
+      "altura" : 380.0
+    } ],
+    "base" : {
+      "x" : 260.0,
+      "superficie" : 128.0
+    },
+    "pontosDePouso" : [ {
+      "x" : 1480.0,
+      "superficie" : 516.0
+    }, {
+      "x" : 2360.0,
+      "superficie" : 996.0
+    }, {
+      "x" : 3360.0,
+      "superficie" : 116.0
+    }, {
+      "x" : 2000.0,
+      "superficie" : 116.0
+    }, {
+      "x" : 2790.0,
+      "superficie" : 776.0
+    }, {
+      "x" : 600.0,
+      "superficie" : 116.0
+    }, {
+      "x" : 3050.0,
+      "superficie" : 116.0
+    } ],
+    "asteroides" : [ {
+      "centroX" : 1040.0,
+      "centroY" : 520.0,
+      "raio" : 36.0,
+      "amplitudeX" : 0.0,
+      "amplitudeY" : 200.0,
+      "periodo" : 6.0,
+      "fase" : 0.0,
+      "giroGrausPorSegundo" : 40.0
+    }, {
+      "centroX" : 2480.0,
+      "centroY" : 560.0,
+      "raio" : 40.0,
+      "amplitudeX" : 220.0,
+      "amplitudeY" : 0.0,
+      "periodo" : 7.0,
+      "fase" : 1.2,
+      "giroGrausPorSegundo" : -55.0
+    }, {
+      "centroX" : 3240.0,
+      "centroY" : 600.0,
+      "raio" : 32.0,
+      "amplitudeX" : 120.0,
+      "amplitudeY" : 160.0,
+      "periodo" : 5.0,
+      "fase" : 2.4,
+      "giroGrausPorSegundo" : 70.0
+    } ],
+    "liberada" : true
+  },
+  "passageiros" : [ {
+    "tipo" : "ASTRONAUTA",
+    "ponto" : 2
+  }, {
+    "tipo" : "ENGENHEIRO",
+    "ponto" : 0
+  }, {
+    "tipo" : "PROFESSOR",
+    "ponto" : 6
+  } ],
+  "velocidadeDosAsteroides" : 0.8192673837277159,
+  "fasesDosAsteroides" : [ 6.062375343597668, 2.597835620122015, 0.447109787261378 ],
+  "modificadores" : [ {
+    "tipo" : "VENTO",
+    "valor" : 18.627877685732873
+  }, {
+    "tipo" : "TANQUE",
+    "valor" : 0.9230916067456735
+  } ],
+  "roteiro" : [ {
+    "tipo" : "CHUVA_DE_METEOROS",
+    "instante" : 24.308914625842775,
+    "semente" : 435916803858618890
+  }, {
+    "tipo" : "PANE_DE_GRAVIDADE",
+    "instante" : 45.77818079404612,
+    "semente" : -5032694206115545595
+  } ]
+}
