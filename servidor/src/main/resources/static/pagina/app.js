@@ -25,12 +25,12 @@ function tempo(segundos) {
   return `${m}:${s}`;
 }
 
-/** AAAA/MM/DD HH:MM no fuso de quem está vendo: com a hora, dá para saber quem chegou primeiro num empate. */
+/** AAAA-MM-DD HH:MM no fuso de quem está vendo: com a hora, dá para saber quem chegou primeiro num empate. */
 function quando(iso) {
   const data = new Date(iso);
   if (Number.isNaN(data.getTime())) return "";
   const dois = (n) => String(n).padStart(2, "0");
-  return `${data.getFullYear()}/${dois(data.getMonth() + 1)}/${dois(data.getDate())} `
+  return `${data.getFullYear()}-${dois(data.getMonth() + 1)}-${dois(data.getDate())} `
     + `${dois(data.getHours())}:${dois(data.getMinutes())}`;
 }
 
