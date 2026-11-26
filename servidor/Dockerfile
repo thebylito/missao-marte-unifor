@@ -3,8 +3,10 @@
 # Fase 8 (DA-39): o servidor compila o módulo nucleo do jogo, então o contexto do build é a RAIZ do repositório
 # (o que entra no contexto está em servidor/Dockerfile.dockerignore). Na raiz:
 #   docker build -f servidor/Dockerfile -t missao-marte-servidor .
-#   docker run -p 8080:8080 -e MISSAOMARTE_JWT_SEGREDO=... -v missao-marte-dados:/dados missao-marte-servidor
-# Ou, para desenvolvimento, use o compose.yaml da pasta servidor (cd servidor && docker compose up --build).
+#   docker run -p 8080:8080 -e MISSAOMARTE_JWT_SEGREDO=... -e MISSAOMARTE_DB_URL=jdbc:postgresql://<host>:5432/missaomarte \
+#       -e MISSAOMARTE_DB_USUARIO=missaomarte -e MISSAOMARTE_DB_SENHA=... missao-marte-servidor
+# Ou, para desenvolvimento, use o compose.yaml da pasta servidor (cd servidor && docker compose up --build), que já
+# sobe um PostgreSQL ao lado.
 
 # ---- 1) compila com o Gradle Wrapper do servidor num JDK 17 -----------------------------------------------------
 FROM eclipse-temurin:17-jdk AS compilacao
@@ -31,12 +33,14 @@ COPY --from=compilacao /fonte/servidor/build/libs/missao-marte-servidor.jar app.
 # página avisa.
 COPY servidor/downloads /app/downloads
 
-# Banco H2 no volume /dados (sobrevive à recriação do contêiner). O segredo do token NÃO tem valor aqui:
-# vem de fora (MISSAOMARTE_JWT_SEGREDO), nunca da imagem.
+# Fase 8 (DA-41): o banco é o PostgreSQL de MISSAOMARTE_DB_URL, MISSAOMARTE_DB_USUARIO e MISSAOMARTE_DB_SENHA, que
+# vêm de fora, como o segredo do token (MISSAOMARTE_JWT_SEGREDO): nada disso tem valor na imagem. Sem
+# MISSAOMARTE_DB_URL, um H2 em /dados/missaomarte; monte um volume em /dados para ele sobreviver à recriação do
+# contêiner. O /dados também é de onde a virada importa o H2 da Fase 7 (MISSAOMARTE_IMPORTAR_H2=/dados/missaomarte).
+# Sem VOLUME aqui: com o PostgreSQL, o /dados não é usado, e cada deploy criaria um volume anônimo à toa.
 ENV MISSAOMARTE_DADOS=/dados/missaomarte \
     MISSAOMARTE_DOWNLOADS=/app/downloads \
     PORT=8080
-VOLUME ["/dados"]
 EXPOSE 8080
 USER missao
 
