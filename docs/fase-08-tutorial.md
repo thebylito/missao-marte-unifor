@@ -29,7 +29,7 @@ o jogo e o servidor está em [`api/contrato-horda.md`](api/contrato-horda.md).
 
 O trabalho foi dividido em etapas. A seção 7 mostra por quais PRs elas chegaram à `main`.
 
-Ponto de partida: a tag `fase-7` e as entregas posteriores (DA-35 a DA-38). Resultado: a tag `fase-8`.
+Ponto de partida: a tag `fase-7` e as entregas posteriores (DA-35 a DA-38). A tag `fase-8` sai depois da validação final no celular (seção da validação, abaixo).
 
 ## 2. O que muda para quem joga
 

@@ -13,7 +13,7 @@ multiplataforma, com servidor de ranking. Cada fase validada recebe uma tag `fas
 | 5 — Servidor e ranking global (Spring Boot) | validada | `fase-5` | [tutorial](docs/fase-05-tutorial.md) · [API (OpenAPI)](docs/api/openapi.json) |
 | 6 — Android e toque | validada | `fase-6` | [tutorial](docs/fase-06-tutorial.md) · [publicação do servidor](servidor/PUBLICACAO.md) |
 | 7 — Evolução livre: Modo Pilotagem | validada | `fase-7` | [análise](docs/fase-07-analise.md) · [tutorial](docs/fase-07-tutorial.md) |
-| 8 — Horda, eventos ao vivo, moedas e skins | em produção | `fase-8` | [análise](docs/fase-08-analise.md) · [tutorial](docs/fase-08-tutorial.md) · [contrato da Horda](docs/api/contrato-horda.md) |
+| 8 — Horda, eventos ao vivo, moedas e skins | em produção | `fase-8` (depois da validação no celular) | [análise](docs/fase-08-analise.md) · [tutorial](docs/fase-08-tutorial.md) · [contrato da Horda](docs/api/contrato-horda.md) |
 
 **No ar:** https://missao-marte.thebylito.dev: ranking global ao vivo, downloads do APK e do jogo desktop (já
 apontando para o servidor) e a API. Publicado no Dokploy pelo GitHub Actions a cada merge na `main`
