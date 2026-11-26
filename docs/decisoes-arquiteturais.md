@@ -831,3 +831,18 @@ cada evento começa. O Top 10 da horda compara as melhores vitórias sob o desaf
 **Consequências.** Pontos de evento ficam no placar semanal. O Top 10 guarda a melhor vitória por jogador, com
 empate pela primeira pontuação registrada. Na segunda às 00h30 em Fortaleza, o fechamento semanal considera as
 hordas encerradas e premia os três primeiros uma vez.
+
+## DA-47 — Pouso mais tolerante e meteoros mais lentos (Fase 8, 2026-11-26)
+
+**Contexto.** No teste da Fase 8 no celular, o usuário explodiu ao pousar a 15° no Médio, e os meteoros da chuva
+(300 a 500 unidades/s, mais rápidos que a nave) não davam tempo de reagir.
+**Decisão** (do usuário):
+- **Inclinação máxima no pouso seguro:** Fácil 25°, Médio 20°, Difícil 15° (eram 18°, 14° e 12°). Os limites de
+  queda e de deslize não mudaram.
+- **Meteoros:** de 150 a 250 unidades/s. Uma travessia que levaria mais da metade da chuva vira a travessia reta
+  entre as bordas mais próximas (na caverna deitada, uma queda vertical). Assim as entradas continuam espalhadas
+  pelos 20 s.
+
+**Consequências.** A Pilotagem Livre fica um pouco mais fácil daqui para frente: os recordes anteriores foram feitos
+com a regra mais dura (o ranking não foi zerado). O HUD já mostra o ângulo em vermelho a partir do limite novo, porque
+lê a mesma configuração.

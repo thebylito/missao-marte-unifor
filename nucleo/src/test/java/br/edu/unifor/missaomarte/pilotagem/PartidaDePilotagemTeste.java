@@ -149,8 +149,10 @@ class PartidaDePilotagemTeste {
 
     @Test
     void pousoNosLimitesExatosESeguro() {                                 // CT-05
-        assertEquals(Optional.empty(), RegrasDePouso.problema(CONFIG, 50, -75, 14, true));
-        assertEquals(Optional.empty(), RegrasDePouso.problema(CONFIG, -50, -75, -14, true));
+        assertEquals(Optional.empty(), RegrasDePouso.problema(CONFIG, 50, -75, 20, true));
+        assertEquals(Optional.empty(), RegrasDePouso.problema(CONFIG, -50, -75, -20, true));
+        // Fase 8, pedido do usuário: um pouso a 15° no Médio não pode explodir
+        assertEquals(Optional.empty(), RegrasDePouso.problema(CONFIG, 0, -40, 15, true));
         assertEquals(Optional.empty(), RegrasDePouso.problema(CONFIG, 0, 10, 0, true), "subindo devagar também");
     }
 
@@ -158,7 +160,7 @@ class PartidaDePilotagemTeste {
     void pousoUmPoucoAcimaDeCadaLimiteExplode() {                         // CT-06
         assertTrue(RegrasDePouso.problema(CONFIG, 0, -75.5, 0, true).get().startsWith("Pouso duro!"));
         assertTrue(RegrasDePouso.problema(CONFIG, 50.5, 0, 0, true).get().startsWith("Pouso derrapando!"));
-        assertTrue(RegrasDePouso.problema(CONFIG, 0, 0, -14.5, true).get().startsWith("Pouso torto!"));
+        assertTrue(RegrasDePouso.problema(CONFIG, 0, 0, -20.5, true).get().startsWith("Pouso torto!"));
     }
 
     @Test
@@ -448,7 +450,7 @@ class PartidaDePilotagemTeste {
         assertEquals(List.of(90.0, 75.0, 65.0), List.of(facil.quedaMaxima(), medio.quedaMaxima(), dificil.quedaMaxima()));
         assertEquals(List.of(60.0, 50.0, 40.0),
                 List.of(facil.deslizeMaximo(), medio.deslizeMaximo(), dificil.deslizeMaximo()));
-        assertEquals(List.of(18.0, 14.0, 12.0),
+        assertEquals(List.of(25.0, 20.0, 15.0),
                 List.of(facil.inclinacaoMaxima(), medio.inclinacaoMaxima(), dificil.inclinacaoMaxima()));
         assertEquals(List.of(0.75, 1.0, 1.3), List.of(facil.velocidadeDosAsteroides(), medio.velocidadeDosAsteroides(),
                 dificil.velocidadeDosAsteroides()));
@@ -458,8 +460,8 @@ class PartidaDePilotagemTeste {
             assertEquals(medio.giroGrausPorSegundo(), c.giroGrausPorSegundo());
             assertEquals(medio.consumoPorSegundo(), c.consumoPorSegundo());
         }
-        assertEquals(new ConfigDeVoo(55, 145, 200, 0.06, 100, 3, 35, 75, 50, 14, 30, 24, -40, 0.6, 2, 3, 2.0, 1.0, 30),
-                medio, "os valores da POC");
+        assertEquals(new ConfigDeVoo(55, 145, 200, 0.06, 100, 3, 35, 75, 50, 20, 30, 24, -40, 0.6, 2, 3, 2.0, 1.0, 30),
+                medio, "os valores da POC, com a inclinação de 20° da Fase 8");
     }
 
     @Test

@@ -128,7 +128,7 @@ class EfeitosDePilotagemTeste {
                     ultimoSurgimento = i;
                 } else {
                     double velocidade = Math.hypot(meteoro.x() - anterior.x(), meteoro.y() - anterior.y()) / PASSO;
-                    assertTrue(velocidade >= 300 && velocidade <= 500);
+                    assertTrue(velocidade >= 150 - 1e-6 && velocidade <= 250 + 1e-6, "velocidade " + velocidade);
                 }
             }
         }
@@ -175,15 +175,21 @@ class EfeitosDePilotagemTeste {
 
     @Test
     void asteroideTemPrioridadeTambemSeAMesmaNaveEstiverPousada() {
-        Caverna caverna = new Caverna(3000, 1500).base(100, 70)
-                .asteroide(new AsteroideEmOrbita(228, 110, 20, 0, 0, 5, 0, 0));
-        PartidaDePilotagem partida = new PartidaDePilotagem("Ana", Dificuldade.MEDIO, caverna, MEDIO);
-        partida.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, 73);
-        avancar(partida, 2400);
-
-        EventoDeVoo explosao = partida.consumirEventos().stream().filter(e -> e.tipo() == Tipo.EXPLODIU)
-                .findFirst().orElseThrow();
-        assertEquals("Atingida por um asteroide!", explosao.mensagem());
+        // Procura uma chuva em que algum meteoro chega à nave pousada na base (a semente fixa deixou de servir quando
+        // os meteoros ficaram mais lentos, na Fase 8); nela, o asteroide sobre a nave tem prioridade na mensagem.
+        for (long semente = 1; semente <= 500; semente++) {
+            Caverna caverna = new Caverna(3000, 1500).base(100, 70)
+                    .asteroide(new AsteroideEmOrbita(228, 110, 20, 0, 0, 5, 0, 0));
+            PartidaDePilotagem partida = new PartidaDePilotagem("Ana", Dificuldade.MEDIO, caverna, MEDIO);
+            partida.iniciarEvento(TipoDeEvento.CHUVA_DE_METEOROS, semente);
+            avancar(partida, 2400);
+            var explosao = partida.consumirEventos().stream().filter(e -> e.tipo() == Tipo.EXPLODIU).findFirst();
+            if (explosao.isPresent()) {
+                assertEquals("Atingida por um asteroide!", explosao.get().mensagem());
+                return;
+            }
+        }
+        throw new AssertionError("nenhuma chuva de 1 a 500 chegou à nave pousada na base");
     }
 
     @Test

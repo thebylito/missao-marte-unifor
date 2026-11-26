@@ -8,6 +8,10 @@ import java.util.SplittableRandom;
 /** Trajetórias retilíneas sorteadas uma vez, calculadas a partir da idade da chuva. */
 final class ChuvaDeMeteoros {
 
+    /** Fase 8, pedido do usuário: metade da velocidade inicial (300 a 500), para dar tempo de ver e desviar. */
+    static final double VELOCIDADE_MINIMA = 150;
+    static final double VELOCIDADE_MAXIMA = 250;
+
     private final List<Trajetoria> trajetorias = new ArrayList<>();
 
     ChuvaDeMeteoros(Caverna caverna, long semente) {
@@ -32,10 +36,12 @@ final class ChuvaDeMeteoros {
             }
             double dx = destinoX - x;
             double dy = destinoY - y;
-            double velocidade = sorteio.nextDouble(300, 500);
+            double velocidade = sorteio.nextDouble(VELOCIDADE_MINIMA, VELOCIDADE_MAXIMA);
             double tempoDeTravessia = Math.hypot(dx, dy) / velocidade;
-            if (tempoDeTravessia > duracaoDaChuva) {
-                // Uma diagonal longa demais vira uma travessia reta entre as bordas mais próximas.
+            if (tempoDeTravessia > duracaoDaChuva / 2) {
+                // Uma travessia que levaria mais da metade da chuva vira uma travessia reta entre as bordas mais
+                // próximas (na caverna deitada, uma queda vertical). Assim, mesmo com os meteoros mais lentos da
+                // Fase 8, eles ainda podem entrar na segunda metade da chuva e sair antes de ela acabar.
                 if (altura <= largura) {
                     x = sorteio.nextDouble(largura);
                     y = altura;
@@ -48,7 +54,7 @@ final class ChuvaDeMeteoros {
                     dy = 0;
                 }
                 double distancia = Math.min(largura, altura);
-                velocidade = Math.max(velocidade, Math.min(500, distancia / duracaoDaChuva));
+                velocidade = Math.max(velocidade, Math.min(VELOCIDADE_MAXIMA, distancia / duracaoDaChuva));
                 tempoDeTravessia = distancia / velocidade;
             }
             double raio = sorteio.nextDouble(18, 28);
