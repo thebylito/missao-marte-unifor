@@ -13,11 +13,14 @@
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
 
         <!-- Sem orientação fixa: retrato e paisagem (o layout se adapta, e o Android 16 ignora orientação fixa).
-             configChanges: girar a tela não recria a Activity; a libGDX só chama resize(). -->
+             configChanges: girar a tela não recria a Activity; a libGDX só chama resize(). Recriar a Activity
+             reinicia o jogo do zero (tela de carregamento, partida perdida), então o tema claro/escuro (uiMode, que o
+             celular troca sozinho no pôr do sol), o idioma e o tamanho da fonte do sistema também ficam de fora:
+             o jogo não usa nenhum deles (DA-38). -->
         <activity
             android:name=".AndroidLauncher"
             android:exported="true"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode|locale|layoutDirection|fontScale"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
