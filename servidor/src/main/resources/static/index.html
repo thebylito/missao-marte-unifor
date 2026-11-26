@@ -109,6 +109,8 @@
         <div class="abas" role="tablist" aria-label="Modo de jogo">
           <button type="button" role="tab" id="aba-horda" aria-controls="painel-ranking" aria-selected="false"
                   tabindex="-1" data-modo="HORDA" hidden>Horda</button>
+          <button type="button" role="tab" id="aba-semana" aria-controls="painel-ranking" aria-selected="false"
+                  tabindex="-1" data-modo="SEMANA" hidden>Semana</button>
           <button type="button" role="tab" id="aba-pilotagem" aria-controls="painel-ranking" aria-selected="true"
                   tabindex="0" data-modo="PILOTAGEM">Pilotagem</button>
           <button type="button" role="tab" id="aba-classico" aria-controls="painel-ranking" aria-selected="false"
@@ -121,10 +123,11 @@
           O combustível que sobra no fim vale até 30 pontos de bônus. Com conta, você vê as naves de quem está
           jogando ao mesmo tempo.</p>
         <p class="nota" id="horda-atual" hidden></p>
+        <p class="nota" id="periodo-semana" hidden></p>
         <div class="tabela-rolagem">
           <table aria-describedby="descricao-modo">
             <thead>
-              <tr>
+              <tr id="colunas-ranking">
                 <th scope="col">#</th>
                 <th scope="col">Piloto</th>
                 <th scope="col" class="num">Pontos</th>
@@ -132,6 +135,13 @@
                 <th scope="col" class="num">Passageiros</th>
                 <th scope="col" class="num">Tempo</th>
                 <th scope="col">Quando</th>
+              </tr>
+              <tr id="colunas-semana" hidden>
+                <th scope="col">#</th>
+                <th scope="col">Piloto</th>
+                <th scope="col" class="num">Pontos</th>
+                <th scope="col" class="num">Hordas</th>
+                <th scope="col" class="num">Eventos</th>
               </tr>
             </thead>
             <tbody id="linhas"></tbody>

@@ -141,7 +141,7 @@ code, kbd {
 }
 .abas button[aria-selected="true"] { background: var(--destaque); color: #1c1417; }
 .abas button:focus-visible { outline-color: currentColor; outline-offset: -4px; }
-#horda-atual { color: var(--ouro); overflow-wrap: anywhere; }
+#horda-atual, #periodo-semana { color: var(--ouro); overflow-wrap: anywhere; }
 
 .tabela-rolagem { overflow-x: auto; border: 1px solid var(--painel-borda); border-radius: 10px; background: var(--painel); }
 table { width: 100%; border-collapse: collapse; min-width: 560px; }
@@ -176,4 +176,11 @@ footer p { margin: 0 0 6px; }
   .acoes { justify-content: center; }
   .abas button { padding-inline: 12px; }
   .tripulacao { gap: 20px; }
+}
+
+@media (max-width: 400px) {
+  .abas { width: 100%; }
+  .abas button { flex: 1; padding-inline: 4px; }
+  table:has(#colunas-semana:not([hidden])) { min-width: 0; }
+  table:has(#colunas-semana:not([hidden])) :is(th, td) { padding-inline: 4px; }
 }
