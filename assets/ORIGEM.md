@@ -50,17 +50,17 @@ as sete evoluções da Parte 3, recompor os atlas e verificar o conjunto, execut
 
 | Arquivo (a partir da raiz) | Origem |
 |---|---|
-| `assets/sprites/naves/guara.png` | `arte/blender/naves/guara_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/padrao_2.png` | `arte/blender/naves/padrao_2_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/padrao_3.png` | `arte/blender/naves/padrao_3_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/padrao_4.png` | `arte/blender/naves/padrao_4_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/padrao_5.png` | `arte/blender/naves/padrao_5_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/guara_2.png` | `arte/blender/naves/guara_2_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/guara_3.png` | `arte/blender/naves/guara_3_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/guara_4.png` | `arte/blender/naves/guara_4_modelo.py` (64 ângulos). |
-| `assets/sprites/naves/catalogo.json` | `arte/blender/naves/atlas.py` grava o catálogo ordenado de `arte/blender/specs.py`. |
-| `assets/sprites/naves/previas.png` | `arte/blender/naves/atlas.py` copia o quadro 0 de cada folha em células de 128 px e oito colunas. |
-| `assets/sprites/naves/sombras.png` | `arte/blender/naves/atlas.py` reduz por média 2×2 os quadros 0, 4, …, 60 em uma linha por skin. |
+| `sprites/naves/guara.png` | `arte/blender/naves/guara_modelo.py` (64 ângulos). |
+| `sprites/naves/padrao_2.png` | `arte/blender/naves/padrao_2_modelo.py` (64 ângulos). |
+| `sprites/naves/padrao_3.png` | `arte/blender/naves/padrao_3_modelo.py` (64 ângulos). |
+| `sprites/naves/padrao_4.png` | `arte/blender/naves/padrao_4_modelo.py` (64 ângulos). |
+| `sprites/naves/padrao_5.png` | `arte/blender/naves/padrao_5_modelo.py` (64 ângulos). |
+| `sprites/naves/guara_2.png` | `arte/blender/naves/guara_2_modelo.py` (64 ângulos). |
+| `sprites/naves/guara_3.png` | `arte/blender/naves/guara_3_modelo.py` (64 ângulos). |
+| `sprites/naves/guara_4.png` | `arte/blender/naves/guara_4_modelo.py` (64 ângulos). |
+| `sprites/naves/catalogo.json` | `arte/blender/naves/atlas.py` grava o catálogo ordenado de `arte/blender/specs.py`. |
+| `sprites/naves/previas.png` | `arte/blender/naves/atlas.py` copia o quadro 0 de cada folha em células de 128 px e oito colunas. |
+| `sprites/naves/sombras.png` | `arte/blender/naves/atlas.py` reduz por média 2×2 os quadros 0, 4, …, 60 em uma linha por skin. |
 
 A primeira posição dos dois atlas vem de `assets/sprites/nave.png`. As demais seguem a ordem do catálogo.
 
