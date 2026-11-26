@@ -106,15 +106,20 @@ Num celular na mesma rede Wi-Fi, toque em **4. Servidor** na tela de entrada e d
 
 O servidor fica em [`servidor/`](servidor), um projeto Gradle separado. Desde a Fase 8 ele compila o módulo `nucleo`
 (as regras do jogo, em Java puro), e só ele, para gerar as hordas ([DA-39](docs/decisoes-arquiteturais.md)). Spring
-Boot 4.1.2, H2 em arquivo e token JWT. Também precisa só de um JDK 17 instalado: o arquivo
-`servidor/gradle/gradle-daemon-jvm.properties` faz o Gradle rodar nele, porque o plugin do Spring Boot 4 não aceita
-um Gradle em Java mais antigo. Rode em outro terminal:
+Boot 4.1.2, PostgreSQL com o esquema nas migrações do Flyway ([DA-41](docs/decisoes-arquiteturais.md)) e token JWT.
+Sobe de dois jeitos:
+- com o PostgreSQL, por `docker compose up --build` (abaixo);
+- só com um JDK 17, por `./gradlew bootRun`, com um banco H2 local em modo PostgreSQL (`servidor/dados`), também com
+  o Flyway.
+
+O arquivo `servidor/gradle/gradle-daemon-jvm.properties` faz o Gradle rodar no JDK 17, porque o plugin do Spring
+Boot 4 não aceita um Gradle em Java mais antigo. Rode em outro terminal:
 
 ```bash
 cd servidor
 export MISSAOMARTE_JWT_SEGREDO="$(openssl rand -base64 48)"   # opcional em desenvolvimento (sem ele, um temporário)
 ./gradlew bootRun                                            # http://localhost:8080
-./gradlew build                                              # 21 testes
+./gradlew build                                              # 73 testes (os do PostgreSQL pedem Docker)
 ```
 
 ```powershell
@@ -124,9 +129,17 @@ cd servidor; .\gradlew.bat bootRun
 | Variável do servidor | Para quê | Padrão |
 |---|---|---|
 | `MISSAOMARTE_JWT_SEGREDO` | segredo do token (32 bytes ou mais); nunca versionar | temporário a cada início |
-| `MISSAOMARTE_DADOS` | arquivo do banco H2 (sem `.mv.db`) | `servidor/dados/missaomarte` |
+| `MISSAOMARTE_DB_URL` | o PostgreSQL (`jdbc:postgresql://<host>:5432/missaomarte`) | vazia: H2 local |
+| `MISSAOMARTE_DB_USUARIO` e `MISSAOMARTE_DB_SENHA` | usuário e senha do PostgreSQL; a senha nunca é versionada | `sa` e vazia (as do H2) |
+| `MISSAOMARTE_DADOS` | arquivo do banco H2 (sem `.mv.db`), só sem `MISSAOMARTE_DB_URL` | `servidor/dados/missaomarte` |
+| `MISSAOMARTE_IMPORTAR_H2` | só na virada: o H2 antigo a copiar para o PostgreSQL vazio | vazia |
 | `PORT` | porta HTTP | `8080` |
 | `MISSAOMARTE_URL_PUBLICA` | endereço público (Swagger), só na publicação | `http://localhost:8080` |
+
+Desde a Fase 8, o H2 local precisa ter sido criado com o Flyway. Um `servidor/dados` de antes (sem a tabela
+`flyway_schema_history`) não abre (`Schema "PUBLIC" not found`). Apague o arquivo, ou mova-o e importe os dados
+(a pasta `dados/` fica fora do Git):
+`mkdir dados/antigo && mv dados/missaomarte.mv.db dados/antigo/ && MISSAOMARTE_IMPORTAR_H2=./dados/antigo/missaomarte ./gradlew bootRun`.
 
 Fase 7: a API ganhou o modo de jogo. O campo `modo` (`CLASSICO` ou `PILOTAGEM`) é opcional em `POST /api/partidas`
 (sem ele, clássico) e vem no histórico; o ranking aceita `GET /api/ranking?modo=PILOTAGEM` (sem o parâmetro, o
@@ -134,18 +147,21 @@ clássico). Os clientes das Fases 5 e 6 continuam funcionando, e as partidas já
 O modo shadow usa o WebSocket `ws://<servidor>/ws/sombras` (com `https://`, `wss://`), com o mesmo token no cabeçalho
 `Authorization`.
 
-**Em contêiner** (Docker; não precisa de Java na máquina):
+**Em contêiner, com o PostgreSQL** (Docker; não precisa de Java na máquina):
 
 ```bash
 cd servidor
 cp .env.exemplo .env          # preencha MISSAOMARTE_JWT_SEGREDO (openssl rand -base64 48); o .env não vai para o Git
-docker compose up --build     # http://localhost:8080; os dados ficam no volume "dados"
+docker compose up --build     # http://localhost:8080, com um PostgreSQL 18 ao lado (dados no volume "banco")
 docker compose up --build --watch   # modo dev: reconstrói sozinho quando src/, o build.gradle ou o nucleo mudam
+docker compose exec postgres psql -U missaomarte    # abre o banco
 docker compose down           # para (docker compose down -v apaga também os dados)
 ```
 
 A imagem (`servidor/Dockerfile`) compila com o wrapper num JDK 17 e roda só com o JRE 17, com um usuário sem
-privilégios, o banco em `/dados` e verificação de saúde pelo `/actuator/health`.
+privilégios e verificação de saúde pelo `/actuator/health`. O banco vem de `MISSAOMARTE_DB_URL`. Quem já usava o
+compose antes da Fase 8 pode copiar os dados do volume antigo: `MISSAOMARTE_IMPORTAR_H2=/dados/missaomarte` no `.env`,
+na primeira subida.
 
 Para publicar (variáveis, saúde, volume, cópia de segurança e HTTPS por proxy): [`servidor/PUBLICACAO.md`](servidor/PUBLICACAO.md).
 
