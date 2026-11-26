@@ -148,6 +148,8 @@ registrada: não usamos `Intersector`, porque não há colisão contínua para d
 
 ## DA-14 — Servidor como build Gradle independente, com Spring Boot 4.1.2 (Fase 5)
 
+> Substituída em parte pela DA-39 (2026-11-26): o servidor passa a incluir o `nucleo`, e só ele.
+
 **Contexto.** O enunciado pede um servidor independente, que não dependa do código do cliente. A issue #7 pede um
 "subprojeto independente que inicia conforme o README". O README do curso trata cliente e servidor como projetos
 separados.
@@ -185,6 +187,9 @@ relógio é injetado). Nenhuma senha, token ou segredo apareceu nos logs do serv
 validação ponta a ponta.
 
 ## DA-16 — Regras do ranking global e limites do servidor (Fase 5)
+
+> Substituída em parte pela DA-39 (2026-11-26): o servidor passa a ter as regras do jogo (`nucleo`) para gerar e
+> conferir as hordas. Ele ainda não refaz as partidas: a limitação sobre a pontuação continua valendo nesta etapa.
 
 **Contexto.** A issue #8 pede o Top 10 com a maior pontuação de cada jogador e testes de ordenação, empate, limite e
 isolamento. O ranking local (Top 5) só guarda vitórias.
@@ -613,3 +618,59 @@ cliques roda com a pasta de trabalho em "/", onde o jogo não consegue gravar o 
   de 30 dias e de 2 min. O logcat mostra a sessão recuperada depois do `am kill`, nenhum `create:` ao trocar tema e
   fonte, a sessão apagada por "Trocar de piloto" e o 401 levando ao modo convidado. Desta vez as evidências ficam
   fora do repositório, por escolha do usuário.
+
+## DA-39 — O servidor inclui o `nucleo` (Fase 8, 2026-11-26)
+
+**Contexto.** A Fase 8 traz a Horda: um desafio novo a cada 2 horas, igual para todos, que o servidor gera e manda
+pronto ao jogo. Para sortear uma caverna, conferir se ela é válida e, mais tarde, refazer partidas contra trapaça, o
+servidor precisa das mesmas regras do jogo. Copiar essas regras para o servidor criaria duas versões que podem
+divergir. A DA-14 dizia que o servidor não inclui nenhum módulo do jogo, e a DA-16 que ele não executa o jogo.
+**Decisão.**
+- O `servidor/settings.gradle` inclui `../nucleo`, e só ele. O `nucleo` é Java puro: domínio, aplicação e
+  pilotagem, sem libGDX e sem nada do cliente (`core`, telas e rede ficam de fora).
+- O build do servidor configura o `nucleo` ali mesmo (toolchain 17 e UTF-8), porque hoje ele herda essas
+  configurações do `build.gradle` da raiz. A saída vai para `servidor/build/nucleo`, e o build do jogo continua dono
+  de `nucleo/build`.
+- Os testes do `nucleo` não rodam no build do servidor: o build da raiz já os roda, com o JUnit dele.
+- O contexto do Docker passa a ser a raiz do repositório (`-f servidor/Dockerfile .`). Um
+  `servidor/Dockerfile.dockerignore` deixa entrar só o servidor e o `nucleo`, num contexto de cerca de 520 kB. O
+  compose, o CI e o deploy usam esse contexto.
+- O contrato com o jogo continua sendo a API.
+
+**Consequências.**
+- Uma mudança no `nucleo` dispara o deploy do servidor (o `deploy.yml` já observava `nucleo/**`).
+- O canal das sombras passa a ler o tamanho da caverna do próprio jogo, em vez de uma cópia dos números.
+- O enunciado da Fase 5 pedia um servidor "que não dependa do código do cliente". O `nucleo` não é o cliente: são
+  as regras, usadas também pelo console, sem libGDX. Mesmo assim, a dependência fica registrada aqui, para quem
+  avaliar.
+- `docker build` dentro de `servidor/` deixa de funcionar: o comando agora roda na raiz. O
+  `cd servidor && docker compose up --build` continua igual.
+
+## DA-40 — Colunas de enum como texto (Fase 8, 2026-11-26)
+
+**Contexto.**
+- O Hibernate 7.4 cria as colunas `@Enumerated(EnumType.STRING)` como `ENUM` nativo do H2. Num banco gerado pela
+  versão da 7.x, isso dá `"MODO" ENUM('CLASSICO', 'PILOTAGEM')`.
+- Esse tipo recusa qualquer valor novo, e o `ddl-auto=update` não muda o tipo de uma coluna que já existe.
+- Por isso, a primeira partida da Horda (`modo = HORDA`) falharia no banco de produção, e os testes não pegariam,
+  porque recriam o banco do zero (`create-drop`).
+
+**Decisão.**
+- As colunas de enum passam a texto: `@JdbcTypeCode(SqlTypes.VARCHAR)` com `length = 20`. Toda coluna de enum nova
+  segue a mesma regra.
+- O script `migracoes/enums-para-texto.sql` converte o banco que já existe.
+  - Ele roda em toda subida, antes do Hibernate (`spring.sql.init`).
+  - Usa `ALTER TABLE IF EXISTS … ALTER COLUMN IF EXISTS … SET DATA TYPE CHARACTER VARYING(20)`, então pode rodar de
+    novo sem efeito e não faz nada num banco novo.
+  - Preserva os valores, o default e o `NOT NULL`.
+
+**Consequências.**
+- O teste `MigracaoDoEsquemaTeste` sobe o servidor sobre o esquema exato da 7.x
+  (`src/test/resources/esquema-fase-7.sql`, extraído de um banco real) e confere que:
+  - os tipos mudaram e as partidas antigas continuam iguais;
+  - o ranking da API não mudou;
+  - `HORDA` já cabe na coluna;
+  - o script pode rodar de novo.
+- O banco aceita, em tese, qualquer texto nessas colunas: quem valida o valor é o enum do Java, na entrada da API.
+- A primeira subida em produção converte as colunas. Por isso o backup do volume `/dados` vem antes do merge.
+
