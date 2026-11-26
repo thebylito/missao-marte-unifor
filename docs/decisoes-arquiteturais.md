@@ -658,6 +658,10 @@ divergir. A DA-14 dizia que o servidor não inclui nenhum módulo do jogo, e a D
 **Decisão.**
 - As colunas de enum passam a texto: `@JdbcTypeCode(SqlTypes.VARCHAR)` com `length = 20`. Toda coluna de enum nova
   segue a mesma regra.
+- O dialeto `H2SemCheckDeEnum` (`spring.jpa.database-platform`) tira a lista fechada de valores. Sem ele, mesmo com a
+  coluna em texto, o Hibernate cria toda tabela nova com `check (modo in ('CLASSICO','PILOTAGEM'))`. Isso vale para o
+  volume novo de quem sobe o compose pela primeira vez e para cada tabela que as próximas etapas criarem em produção.
+  O `ddl-auto=update` nunca muda essa lista. Achado na revisão da etapa 1, com um banco criado do zero.
 - O script `migracoes/enums-para-texto.sql` converte o banco que já existe.
   - Ele roda em toda subida, antes do Hibernate (`spring.sql.init`).
   - Usa `ALTER TABLE IF EXISTS … ALTER COLUMN IF EXISTS … SET DATA TYPE CHARACTER VARYING(20)`, então pode rodar de
@@ -671,6 +675,7 @@ divergir. A DA-14 dizia que o servidor não inclui nenhum módulo do jogo, e a D
   - o ranking da API não mudou;
   - `HORDA` já cabe na coluna;
   - o script pode rodar de novo.
-- O banco aceita, em tese, qualquer texto nessas colunas: quem valida o valor é o enum do Java, na entrada da API.
+- O banco aceita qualquer texto nessas colunas, tanto o convertido quanto o criado do zero (o teste `EsquemaNovoTeste`
+  confere que não há nenhum `CHECK` e que `HORDA` cabe). Quem valida o valor é o enum do Java, na entrada da API.
 - A primeira subida em produção converte as colunas. Por isso o backup do volume `/dados` vem antes do merge.
 

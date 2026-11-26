@@ -104,7 +104,8 @@ Num celular na mesma rede Wi-Fi, toque em **4. Servidor** na tela de entrada e d
 
 ### Servidor de ranking (Fase 5)
 
-O servidor fica em [`servidor/`](servidor), um projeto Gradle separado, que não depende do código do jogo. Spring
+O servidor fica em [`servidor/`](servidor), um projeto Gradle separado. Desde a Fase 8 ele compila o módulo `nucleo`
+(as regras do jogo, em Java puro), e só ele, para gerar as hordas ([DA-39](docs/decisoes-arquiteturais.md)). Spring
 Boot 4.1.2, H2 em arquivo e token JWT. Também precisa só de um JDK 17 instalado: o arquivo
 `servidor/gradle/gradle-daemon-jvm.properties` faz o Gradle rodar nele, porque o plugin do Spring Boot 4 não aceita
 um Gradle em Java mais antigo. Rode em outro terminal:
@@ -139,7 +140,7 @@ O modo shadow usa o WebSocket `ws://<servidor>/ws/sombras` (com `https://`, `wss
 cd servidor
 cp .env.exemplo .env          # preencha MISSAOMARTE_JWT_SEGREDO (openssl rand -base64 48); o .env não vai para o Git
 docker compose up --build     # http://localhost:8080; os dados ficam no volume "dados"
-docker compose up --build --watch   # modo dev: reconstrói sozinho quando src/ ou o build.gradle mudam
+docker compose up --build --watch   # modo dev: reconstrói sozinho quando src/, o build.gradle ou o nucleo mudam
 docker compose down           # para (docker compose down -v apaga também os dados)
 ```
 
