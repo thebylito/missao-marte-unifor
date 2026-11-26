@@ -95,7 +95,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Partida registrada",
+                        "description": "Partida registrada. Na Horda, repetir a mesma partida com o mesmo bilhete devolve o registro existente.",
                         "content": {
                             "*/*": {
                                 "schema": {
@@ -391,7 +391,8 @@
                             }
                         }
                     }
-                }
+                },
+                "security": []
             }
         },
         "/api/jogadores/eu": {
