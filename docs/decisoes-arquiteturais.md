@@ -849,3 +849,51 @@ hordas encerradas e premia os três primeiros uma vez.
 **Consequências.** A Pilotagem Livre fica um pouco mais fácil daqui para frente: os recordes anteriores foram feitos
 com a regra mais dura (o ranking não foi zerado). O HUD já mostra o ângulo em vermelho a partir do limite novo, porque
 lê a mesma configuração.
+
+## DA-48 — Ajustes do jogo por variável de ambiente (Fase 8, 2026-11-26)
+
+**Contexto.** A DA-47 mudou os limites de pouso e a velocidade dos meteoros num APK novo. O usuário pediu para fazer
+esse tipo de ajuste sem lançar outro jogo: "é possível deixar isso por variável de ambiente? para ser mais dinâmico".
+A física roda no jogo, então uma variável só no servidor não muda nada no celular. O servidor precisa publicar os
+números, e o jogo precisa usá-los.
+**Decisão** (aprovada pelo usuário):
+- **21 variáveis `MISSAOMARTE_AJUSTE_*`, todas opcionais.** Por dificuldade: tanque, queda, deslize, inclinação e
+  velocidade dos asteroides. Também a velocidade mínima e a máxima dos meteoros e a duração de cada evento. Sem elas,
+  vale o padrão da Fase 8 (`AjustesDeVoo.PADRAO`, no `nucleo`). Cada valor tem uma faixa. Um nome desconhecido, um
+  valor fora da faixa ou uma duração que não é inteira impedem o servidor de subir, com o nome da variável no log.
+  No deploy start-first, o servidor anterior continua no ar.
+- **`GET /api/ajustes`** (público) publica os ajustes. A Pilotagem Livre os pede a cada volta ao menu. Sem resposta,
+  fica com os últimos que chegaram ou com o padrão.
+- **A horda congela os ajustes.** Cada horda grava os ajustes do servidor no sorteio (`descricao.ajustes`) e fica com
+  eles até o fim, mesmo depois de um deploy. Assim todos disputam o mesmo Top 10 com a mesma regra. Uma horda gravada
+  antes desta decisão não tem o campo e usa o padrão.
+- **Os eventos de uma horda usam a duração dela:** os do roteiro, os automáticos e os do painel. O evento ao vivo
+  chega ao jogo com a duração na mensagem (`duracao`), e o jogo usa essa duração, porque é no fim do evento do
+  servidor que o resultado passa a valer. Antes, a duração do `nucleo` governava; ela era sempre igual à do
+  servidor. A agenda continua sorteando os horários com o limite da duração mais longa, e com o padrão esse limite é
+  o de antes. Os horários das hordas já gravadas não mudam.
+- **Ficam fixos** a gravidade, o empuxo, o giro, o casco, os pés, o consumo e a pontuação: mudam a sensação do
+  controle e o placar.
+
+**Consequências.**
+- Mudar um ajuste muda a dificuldade da Pilotagem Livre para quem joga depois. Os recordes anteriores ficam no
+  ranking, como na DA-47.
+- O jogo publicado antes desta decisão continua com os números fixos e ignora a rota nova e `descricao.ajustes`.
+  Na revisão do PR #33 entraram três proteções para ele:
+  - **Horda:** o jogo novo diz `comAjustes: true` ao pedir o bilhete. Numa horda com ajustes diferentes do padrão, o
+    servidor recusa o bilhete de quem não diz isso, com 409 `JOGO_DESATUALIZADO` e o texto "Atualize o jogo". Sem
+    bilhete não há Top 10 da horda, então ninguém disputa a mesma horda com outra regra.
+  - **Pilotagem Livre:** não há essa trava. O jogo antigo continua entrando no ranking com o padrão. Se um ajuste
+    for longe do padrão, peça a todos que atualizem.
+  - **Eventos:** num evento mais longo que o padrão, o jogo antigo termina o perigo mais cedo; num mais curto, mais
+    tarde. O servidor aceita o resultado do início da duração mais curta até 15 s depois da mais longa, entre a
+    configurada e a padrão, para não tirar os +3 de ninguém. O VIP continua valendo só até o fim do evento.
+- Um servidor anterior a esta decisão (num rollback) ignora os ajustes. Se ele sortear uma horda, ela fica com o
+  padrão até o fim.
+- Um evento ao vivo de outra horda com outra duração (um piloto ainda na horda anterior, nos 30 min de tolerância)
+  pode trocar o resultado de dois perigos do mesmo tipo que se sobrepõem. É raro e só acontece depois de mudar a
+  duração; fica como limitação conhecida.
+- A ordem de carregamento dos padrões importa (`FaixaDosAjustes`): o jogo carrega a `ConfigDeVoo` antes dos
+  ajustes, e um teste carrega cada classe primeiro num carregador novo.
+- Os nomes, os padrões e as faixas estão em `servidor/PUBLICACAO.md`, seção 12.
+

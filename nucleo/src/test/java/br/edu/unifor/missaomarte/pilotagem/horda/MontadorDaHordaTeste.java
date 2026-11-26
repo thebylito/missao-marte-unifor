@@ -12,6 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
 import br.edu.unifor.missaomarte.dominio.TipoPassageiro;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDaDificuldade;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDosEventos;
 import br.edu.unifor.missaomarte.pilotagem.AsteroideEmOrbita;
 import br.edu.unifor.missaomarte.pilotagem.Caverna;
 import br.edu.unifor.missaomarte.pilotagem.Comandos;
@@ -194,6 +197,26 @@ class MontadorDaHordaTeste {
         assertEquals(b.tanque(), m.config().tanque());
         assertEquals(b.velocidadeDosAsteroides(), m.config().velocidadeDosAsteroides());
         assertEquals(0, m.ventoConstante());
+    }
+
+    /** Fase 8 (DA-48): a horda monta com os ajustes gravados nela, e os modificadores valem por cima deles. */
+    @Test
+    void aHordaMontaComOsAjustesDelaEOsModificadoresPorCima() {
+        AjustesDosEventos eventos = new AjustesDosEventos(200, 300, 30, 25, 20, 45);
+        AjustesDeVoo ajustes = new AjustesDeVoo(AjustesDeVoo.PADRAO.facil(), AjustesDeVoo.PADRAO.medio(),
+                new AjustesDaDificuldade(120, 70, 45, 18, 1.2), eventos);
+        DescricaoDaHorda h = comModificadores(Dificuldade.DIFICIL, 1.1,
+                new Modificador(TipoDeModificador.TANQUE, 0.9)).comAjustes(ajustes);
+
+        ConfigDeVoo config = MontadorDaHorda.montar(h).config();
+
+        assertEquals(120 * 0.9, config.tanque(), 1e-9);
+        assertEquals(70, config.quedaMaxima());
+        assertEquals(45, config.deslizeMaximo());
+        assertEquals(18, config.inclinacaoMaxima());
+        assertEquals(1.2 * 1.1, config.velocidadeDosAsteroides(), 1e-9);
+        assertEquals(eventos, config.eventos());
+        assertEquals(ConfigDeVoo.para(Dificuldade.DIFICIL).gravidade(), config.gravidade());
     }
 
     @Test

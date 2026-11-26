@@ -102,10 +102,10 @@ tasks.named('jar') {
     enabled = false
 }
 
-// CT-10 lê o mesmo contrato versionado que o jogo usará.
+// CT-10 lê o mesmo contrato versionado que o jogo usará (e a DA-48, o dos ajustes).
 tasks.named('processTestResources') {
     from('../docs/api/exemplos') {
-        include 'horda.json'
+        include 'horda.json', 'ajustes.json'
         into 'exemplos'
     }
 }

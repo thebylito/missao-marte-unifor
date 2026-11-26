@@ -36,7 +36,8 @@ final class LeitorDaHorda {
                 lista(d.get("modificadores"), m -> new Modificador(TipoDeModificador.valueOf(m.getString("tipo")),
                         m.getDouble("valor"))),
                 lista(d.get("roteiro"), p -> new PerigoDoRoteiro(TipoDeEvento.valueOf(p.getString("tipo")),
-                        p.getDouble("instante"), p.getLong("semente"))));
+                        p.getDouble("instante"), p.getLong("semente"))),
+                LeitorDeAjustes.ouPadrao(d.get("ajustes")));
     }
 
     private static Dificuldade dificuldade(String texto) {

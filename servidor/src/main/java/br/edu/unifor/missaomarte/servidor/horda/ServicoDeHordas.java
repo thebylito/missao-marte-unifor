@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.servidor.horda;
 
 import static br.edu.unifor.missaomarte.servidor.moedas.ServicoDeMoedas.FORTALEZA;
 
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
 import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDaHorda;
 import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDeCaverna;
 import br.edu.unifor.missaomarte.pilotagem.horda.SorteioDaHorda;
@@ -42,11 +43,14 @@ public class ServicoDeHordas {
     private final Clock relogio;
     private final byte[] segredo;
     private final DescricaoDeCaverna cavernaDeEnsaio;
+    private final AjustesDeVoo ajustes;
 
     public ServicoDeHordas(CatalogoDeCavernas catalogo, JdbcTemplate jdbc, JsonMapper json, Clock relogio,
+                           AjustesDeVoo ajustes,
                            @Value("${missaomarte.hordas.segredo:}") String segredo,
                            @Value("${missaomarte.hordas.ensaio:}") String ensaio) {
         this.catalogo = catalogo;
+        this.ajustes = ajustes;
         this.jdbc = jdbc;
         this.json = json;
         this.relogio = relogio;
@@ -74,6 +78,11 @@ public class ServicoDeHordas {
             return sortearEnsaio(numero);
         }
         return gravada(numero).orElseGet(() -> gerar(numero));
+    }
+
+    /** Os ajustes gravados nesta horda (DA-48); o padrão, se ela não estiver gravada. */
+    public AjustesDeVoo ajustesDa(long numero, Instant agora) {
+        return sala(numero, agora).map(horda -> horda.descricao().ajustes()).orElse(AjustesDeVoo.PADRAO);
     }
 
     /** Salas só são abertas para hordas publicadas, dentro da janela das partidas. */
@@ -162,7 +171,7 @@ public class ServicoDeHordas {
         String anterior = jdbc.query("select caverna from hordas where numero = ?",
                 (r, i) -> r.getString(1), numero - 1).stream().findFirst().orElse(null);
         long semente = semente(numero);
-        Horda horda = sortear(numero, semente, sementeAgenda(numero), catalogo.liberadas(), anterior);
+        Horda horda = sortear(numero, semente, sementeAgenda(numero), catalogo.liberadas(), anterior, ajustes);
         jdbc.update("""
                 insert into hordas (numero, inicio, fim, semente, caverna, dificuldade, descricao, semente_agenda)
                 values (?, ?, ?, ?, ?, ?, ?, ?) on conflict do nothing
@@ -175,18 +184,19 @@ public class ServicoDeHordas {
         DescricaoDeCaverna c = cavernaDeEnsaio;
         var liberada = new DescricaoDeCaverna(c.id(), c.nome(), c.largura(), c.altura(), c.rochas(), c.base(),
                 c.pontosDePouso(), c.asteroides(), true);
-        Horda horda = sortear(numero, semente(numero), sementeAgenda(numero), List.of(liberada), null);
+        Horda horda = sortear(numero, semente(numero), sementeAgenda(numero), List.of(liberada), null, ajustes);
         DescricaoDaHorda d = horda.descricao();
         return new Horda(numero, horda.inicio(), horda.fim(), horda.semente(), horda.sementeAgenda(),
                 new DescricaoDaHorda(numero, d.dificuldade(), c, d.passageiros(), d.velocidadeDosAsteroides(),
-                        d.fasesDosAsteroides(), d.modificadores(), d.roteiro()));
+                        d.fasesDosAsteroides(), d.modificadores(), d.roteiro(), d.ajustes()));
     }
 
+    /** A horda sorteada leva os ajustes do servidor de agora (DA-48) e fica com eles depois de gravada. */
     private static Horda sortear(long numero, long semente, String sementeAgenda,
-                                List<DescricaoDeCaverna> cavernas, String anterior) {
+                                List<DescricaoDeCaverna> cavernas, String anterior, AjustesDeVoo ajustes) {
         Instant inicio = inicioDe(numero);
         return new Horda(numero, inicio, inicio.plus(DURACAO), semente, sementeAgenda,
-                SorteioDaHorda.sortear(numero, semente, cavernas, anterior));
+                SorteioDaHorda.sortear(numero, semente, cavernas, anterior).comAjustes(ajustes));
     }
 
     private long semente(long numero) {

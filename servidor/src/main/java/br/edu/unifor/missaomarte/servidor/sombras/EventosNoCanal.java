@@ -1,6 +1,6 @@
 package br.edu.unifor.missaomarte.servidor.sombras;
 
-import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
+import br.edu.unifor.missaomarte.pilotagem.AjustesDosEventos;
 import br.edu.unifor.missaomarte.servidor.evento.EventoAoVivo;
 import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
 import br.edu.unifor.missaomarte.servidor.seguranca.Sementes;
@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import tools.jackson.databind.JsonNode;
@@ -26,8 +25,8 @@ import tools.jackson.databind.json.JsonMapper;
 class EventosNoCanal {
 
     static final long ATIVIDADE_SEGUNDOS = 3;
-    static final long HISTORICO_SEGUNDOS = ATIVIDADE_SEGUNDOS + Stream.of(TipoDeEvento.values())
-            .filter(TipoDeEvento::perigo).mapToLong(tipo -> (long) tipo.duracaoSegundos()).max().orElseThrow();
+    /** Cobre o perigo mais longo que os ajustes aceitam (DA-48). */
+    static final long HISTORICO_SEGUNDOS = ATIVIDADE_SEGUNDOS + (long) AjustesDosEventos.DURACAO_MAXIMA;
 
     private static final class Transmissao {
         final EventoAoVivo evento;
@@ -52,8 +51,7 @@ class EventosNoCanal {
     }
 
     synchronized void verificar(Instant agora, Collection<Piloto> pilotos) {
-        transmissoes.values().removeIf(t -> agora.isAfter(t.evento.fim()
-                .plusSeconds(EventoAoVivo.FOLGA_RESULTADO_SEGUNDOS)));
+        transmissoes.values().removeIf(t -> agora.isAfter(t.evento.fimDosResultados()));
         if (pilotos.isEmpty()) {
             return;
         }

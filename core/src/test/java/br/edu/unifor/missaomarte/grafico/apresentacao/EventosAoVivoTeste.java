@@ -141,12 +141,44 @@ class EventosAoVivoTeste {
         assertFalse(canal.enviadas("evento-resultado").get(0).getBoolean("sobreviveu"));
     }
 
-    @Test void aDuracaoDoNucleoGovernaOResultadoMesmoQueOServidorAnuncieOutra() {
+    /**
+     * DA-48: o servidor manda a duração gravada na horda, e o resultado só vale a partir do fim do evento dele. Até a
+     * Fase 8 sem ajustes, a duração do núcleo governava (e era sempre a mesma do servidor).
+     */
+    @Test void aDuracaoAnunciadaPeloServidorGovernaOPerigoAoVivo() {
         conectar();
         canal.ouvinte.mensagem("{\"tipo\":\"evento-inicio\",\"evento\":\"e-pane\",\"nome\":\"PANE_DE_GRAVIDADE\","
-                + "\"semente\":42,\"duracao\":19}");
-        passos(2401);
+                + "\"semente\":42,\"duracao\":12}");
+        sombras.atualizar(11.5f, voo);
+        assertTrue(sombras.mensagemDoEvento().isPresent(), "o nome do evento fica na tela enquanto ele dura");
+        sombras.atualizar(1, voo);
+        assertTrue(sombras.mensagemDoEvento().isEmpty());
+        passos(12 * 120);
+        assertTrue(canal.enviadas("evento-resultado").isEmpty());
+        passos(1);
         assertEquals("e-pane", canal.enviadas("evento-resultado").get(0).getString("evento"));
+    }
+
+    @Test void semDuracaoNaMensagemOPerigoUsaADaConfiguracao() {
+        conectar();
+        canal.ouvinte.mensagem("{\"tipo\":\"evento-inicio\",\"evento\":\"e-pane\",\"nome\":\"PANE_DE_GRAVIDADE\","
+                + "\"semente\":42}");
+        passos(20 * 120);
+        assertTrue(canal.enviadas("evento-resultado").isEmpty());
+        passos(1);
+        assertEquals("e-pane", canal.enviadas("evento-resultado").get(0).getString("evento"));
+    }
+
+    @Test void aCapsulaVipFicaODaDuracaoAnunciada() {
+        conectar();
+        canal.ouvinte.mensagem("{\"tipo\":\"evento-inicio\",\"evento\":\"vip-30\",\"nome\":\"PASSAGEIRO_VIP\","
+                + "\"semente\":0,\"duracao\":30,\"vip\":{\"x\":2000,\"superficie\":116}}");
+        passos(1);
+        assertTrue(voo.getCapsulaVip().isPresent());
+        passos(30 * 120 - 1);
+        assertTrue(voo.getCapsulaVip().isPresent());
+        passos(1);
+        assertTrue(voo.getCapsulaVip().isEmpty());
     }
 
     @Test void pousarMarcaUmaVezEQuemGanhaPodeFicarNaCapsula() {

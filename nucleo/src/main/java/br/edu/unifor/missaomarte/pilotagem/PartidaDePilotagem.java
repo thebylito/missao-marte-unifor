@@ -55,7 +55,7 @@ public final class PartidaDePilotagem {
     private final NaveEmVoo nave;
     private final List<EventoDeVoo> eventos = new ArrayList<>();
     private final Deque<PerigoDoRoteiro> roteiro = new ArrayDeque<>();
-    private final List<EventoAplicado> eventosAoVivo = new ArrayList<>();
+    private final List<PerigoAoVivo> eventosAoVivo = new ArrayList<>();
     private final List<EventoAplicado> eventosAplicados = new ArrayList<>();
     private final List<PerigoAtivo> perigos = new ArrayList<>();
     private final List<Meteoro> meteoros = new ArrayList<>();
@@ -70,6 +70,7 @@ public final class PartidaDePilotagem {
     private boolean paneDeGravidade;
     private PlataformaDePouso capsulaVip;
     private PlataformaDePouso capsulaPendente;
+    private double duracaoDoVipPendente;
     private long passoFinalDoVip;
     private double acumulador;
     private double tempoPousada;
@@ -99,7 +100,12 @@ public final class PartidaDePilotagem {
 
     /** A partida do jogo: a caverna marciana com os números da dificuldade. */
     public static PartidaDePilotagem nova(String piloto, Dificuldade dificuldade) {
-        return new PartidaDePilotagem(piloto, dificuldade, Caverna.marciana(), ConfigDeVoo.para(dificuldade));
+        return nova(piloto, dificuldade, AjustesDeVoo.PADRAO);
+    }
+
+    /** Fase 8 (DA-48): a partida da Pilotagem Livre com os ajustes publicados pelo servidor. */
+    public static PartidaDePilotagem nova(String piloto, Dificuldade dificuldade, AjustesDeVoo ajustes) {
+        return new PartidaDePilotagem(piloto, dificuldade, Caverna.marciana(), ConfigDeVoo.para(dificuldade, ajustes));
     }
 
     // ------------------------------------------------------------------ tempo
@@ -167,10 +173,19 @@ public final class PartidaDePilotagem {
         this.roteiro.addAll(emOrdem);
     }
 
-    /** Agenda um perigo ao vivo para o próximo passo. */
+    /** Agenda um perigo ao vivo para o próximo passo, com a duração dos ajustes da configuração. */
     public void iniciarEvento(TipoDeEvento tipo, long semente) {
+        iniciarEvento(tipo, semente, config.eventos().duracao(tipo));
+    }
+
+    /**
+     * Agenda um perigo ao vivo para o próximo passo, com a duração que o servidor mandou (DA-48: a da horda, que
+     * pode ser outra que a dos ajustes desta partida).
+     */
+    public void iniciarEvento(TipoDeEvento tipo, long semente, double duracaoSegundos) {
         exigirPerigo(tipo);
-        eventosAoVivo.add(new EventoAplicado(tipo, semente, passo + 1));
+        exigirDuracao(duracaoSegundos);
+        eventosAoVivo.add(new PerigoAoVivo(new EventoAplicado(tipo, semente, passo + 1), duracaoSegundos));
     }
 
     private static void exigirPerigo(TipoDeEvento tipo) {
@@ -179,14 +194,26 @@ public final class PartidaDePilotagem {
         }
     }
 
+    private static void exigirDuracao(double duracaoSegundos) {
+        if (!(duracaoSegundos > 0) || Double.isInfinite(duracaoSegundos)) {
+            throw new IllegalArgumentException("A duração do evento precisa ser positiva: " + duracaoSegundos);
+        }
+    }
+
+    /** Um perigo ao vivo à espera do próximo passo, com a duração dele. */
+    private record PerigoAoVivo(EventoAplicado evento, double duracaoSegundos) {}
+
     private void atualizarPerigos() {
         // O relógio da física original acumula arredondamento. O roteiro usa o instante do passo inteiro.
         double instanteDoPasso = passo * PASSO;
         while (!roteiro.isEmpty() && roteiro.peekFirst().instante() <= instanteDoPasso) {
             PerigoDoRoteiro proximo = roteiro.removeFirst();
-            aplicarPerigo(new EventoAplicado(proximo.tipo(), proximo.semente(), passo));
+            aplicarPerigo(new EventoAplicado(proximo.tipo(), proximo.semente(), passo),
+                    config.eventos().duracao(proximo.tipo()));
         }
-        eventosAoVivo.forEach(this::aplicarPerigo);
+        for (PerigoAoVivo aoVivo : eventosAoVivo) {
+            aplicarPerigo(aoVivo.evento(), aoVivo.duracaoSegundos());
+        }
         eventosAoVivo.clear();
 
         rajada = 0;
@@ -212,16 +239,27 @@ public final class PartidaDePilotagem {
         }
     }
 
-    private void aplicarPerigo(EventoAplicado evento) {
+    private void aplicarPerigo(EventoAplicado evento, double duracaoSegundos) {
         eventosAplicados.add(evento);
-        perigos.add(new PerigoAtivo(evento, nave.estado != NaveEmVoo.Estado.DESTRUIDA, caverna));
+        perigos.add(new PerigoAtivo(evento, duracaoSegundos, nave.estado != NaveEmVoo.Estado.DESTRUIDA, caverna,
+                config.eventos()));
         emitir(EventoDeVoo.Tipo.PERIGO_INICIOU, evento.tipo().name(), 0);
     }
 
-    /** Agenda a cápsula no próximo passo em que o lugar do VIP estiver livre. X é a borda esquerda. */
+    /**
+     * Agenda a cápsula no próximo passo em que o lugar do VIP estiver livre, pela duração dos ajustes da
+     * configuração. X é a borda esquerda.
+     */
     public void iniciarVip(double x, double superficie) {
+        iniciarVip(x, superficie, config.eventos().duracao(TipoDeEvento.PASSAGEIRO_VIP));
+    }
+
+    /** Como {@link #iniciarVip(double, double)}, com a duração que o servidor mandou (DA-48). */
+    public void iniciarVip(double x, double superficie, double duracaoSegundos) {
+        exigirDuracao(duracaoSegundos);
         capsulaPendente = new PlataformaDePouso(PlataformaDePouso.Tipo.VIP, x, superficie,
                 Caverna.LARGURA_DA_PLATAFORMA, Caverna.ALTURA_DA_PLATAFORMA);
+        duracaoDoVipPendente = duracaoSegundos;
     }
 
     /** Outro piloto pegou o VIP. Uma cápsula ocupada ainda sustenta a nave até ela sair. */
@@ -242,9 +280,8 @@ public final class PartidaDePilotagem {
         if (capsulaPendente != null) {
             capsulaVip = capsulaPendente;
             capsulaPendente = null;
-            TipoDeEvento tipo = TipoDeEvento.PASSAGEIRO_VIP;
-            passoFinalDoVip = passo + Math.round(tipo.duracaoSegundos() / PASSO);
-            eventosAplicados.add(new EventoAplicado(tipo, 0, passo));
+            passoFinalDoVip = passo + Math.round(duracaoDoVipPendente / PASSO);
+            eventosAplicados.add(new EventoAplicado(TipoDeEvento.PASSAGEIRO_VIP, 0, passo));
             emitir(EventoDeVoo.Tipo.VIP_SURGIU, "Cápsula VIP à vista!", 0);
         }
     }

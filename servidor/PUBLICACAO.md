@@ -33,6 +33,7 @@ com GitHub Actions, está na [seção 10](#10-publicação-no-dokploy-com-github
 | `MISSAOMARTE_IMPORTAR_H2` | só na virada | o banco H2 da Fase 7, sem a extensão `.mv.db` (`/dados/missaomarte`). É copiado para o PostgreSQL na subida, se este estiver vazio (seção 10) | vazia: não importa nada |
 | `MISSAOMARTE_DADOS` | não | caminho do H2, sem a extensão `.mv.db`. Só vale sem `MISSAOMARTE_DB_URL` | `/dados/missaomarte` na imagem |
 | `MISSAOMARTE_PERMITIR_H2` | não | `false` na imagem: sem `MISSAOMARTE_DB_URL`, o servidor recusa subir, em vez de abrir ou criar um H2 (DA-41). Fora da imagem, o H2 continua permitido | `false` na imagem |
+| `MISSAOMARTE_AJUSTE_*` | não | ajustes do jogo: pouso, tanque, asteroides, meteoros e duração dos eventos (seção 12, DA-48) | os da Fase 8 |
 | `PORT` | não | porta HTTP dentro do contêiner | `8080` |
 | `SPRINGDOC_APIDOCS_ENABLED` e `SPRINGDOC_SWAGGERUI_ENABLED` | não | `false` desliga a documentação (`/v3/api-docs` e `/swagger-ui.html` passam a dar 404). Ligada, ela não expõe dados, só o contrato | ligadas |
 | `JAVA_TOOL_OPTIONS` | não | opções da JVM, por exemplo `-XX:MaxRAMPercentage=75` para usar mais da memória do contêiner | padrão da JVM (25% da memória do contêiner) |
@@ -355,3 +356,43 @@ O ensaio desta virada, com a imagem que está em produção, está em
 - Para testes, `missaomarte.agendador.habilitado=false` desliga o agendamento e a recuperação automática.
   Em um servidor local com banco separado, `missaomarte.hordas.ensaio=<id>` força a caverna sem publicar
   a descrição da horda no banco.
+
+## 12. Ajustes do jogo (DA-48)
+
+Os números abaixo mudam o jogo sem lançar um APK novo. Todas as variáveis são opcionais: sem elas, vale o padrão.
+No Dokploy, acrescente as linhas na aba **Environment** do `missao-marte-api` e faça o deploy.
+
+| Variável | O que muda | Padrão (Fácil / Médio / Difícil) | Faixa |
+|---|---|---|---|
+| `MISSAOMARTE_AJUSTE_FACIL_TANQUE`, `_MEDIO_TANQUE`, `_DIFICIL_TANQUE` | combustível máximo | 130 / 100 / 100 | 50 a 300 |
+| `MISSAOMARTE_AJUSTE_FACIL_QUEDA`, `_MEDIO_QUEDA`, `_DIFICIL_QUEDA` | maior velocidade de queda num pouso seguro | 90 / 75 / 65 | 20 a 200 |
+| `MISSAOMARTE_AJUSTE_FACIL_DESLIZE`, `_MEDIO_DESLIZE`, `_DIFICIL_DESLIZE` | maior velocidade lateral num pouso seguro | 60 / 50 / 40 | 10 a 150 |
+| `MISSAOMARTE_AJUSTE_FACIL_INCLINACAO`, `_MEDIO_INCLINACAO`, `_DIFICIL_INCLINACAO` | maior inclinação num pouso seguro, em graus | 25 / 20 / 15 | 5 a 45 |
+| `MISSAOMARTE_AJUSTE_FACIL_ASTEROIDES`, `_MEDIO_ASTEROIDES`, `_DIFICIL_ASTEROIDES` | multiplica a velocidade dos asteroides | 0,75 / 1 / 1,3 | 0,25 a 3 |
+| `MISSAOMARTE_AJUSTE_METEOROS_MIN` e `MISSAOMARTE_AJUSTE_METEOROS_MAX` | velocidade dos meteoros da chuva, em unidades/s | 150 e 250 | 50 a 600, mínima menor que a máxima |
+| `MISSAOMARTE_AJUSTE_DURACAO_CHUVA`, `_TEMPESTADE`, `_PANE`, `_VIP` | duração de cada evento, em segundos inteiros | 20, 25, 20 e 45 | 10 a 90 |
+
+Os nomes abreviados com `_` seguem o mesmo começo. Por exemplo, `_MEDIO_INCLINACAO` é
+`MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO`. O valor aceita vírgula ou ponto (`0,9` ou `0.9`). Um valor vazio conta como
+não definido.
+
+Quando cada mudança vale:
+- **Pilotagem Livre:** na próxima partida de quem voltar ao menu depois do deploy.
+- **Horda:** a partir da próxima horda. A horda em andamento continua com os ajustes gravados nela.
+- **Eventos ao vivo:** a duração é a da horda em andamento, inclusive nos eventos disparados pelo painel.
+- **Jogo publicado antes da DA-48:** continua com os números da Fase 8 até a pessoa instalar o jogo novo. Numa
+  horda com ajustes diferentes do padrão, ele não recebe o bilhete e mostra "Atualize o jogo pelo site". Na
+  Pilotagem Livre ele continua jogando, com o padrão, e entra no mesmo ranking.
+
+Se algo estiver errado, o servidor novo não sobe e o log diz o quê, por exemplo:
+`Ajuste do jogo inválido em MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO: inclinacaoMaxima precisa estar entre 5 e 45 (veio 46)`.
+Isso vale para um nome com erro de digitação (também no começo, como `MISSAOMARTE_AJUSTES_...`), um valor que não é
+número, uma duração com casas decimais ou um valor fora da faixa. No deploy start-first, o servidor anterior continua atendendo: corrija a variável e faça o deploy de
+novo. Na subida, o log mostra os ajustes em uso (`Ajustes do jogo: {...}`), e `GET /api/ajustes` mostra o resultado.
+
+Num rollback para uma imagem anterior à DA-48, os ajustes deixam de valer, e uma horda sorteada por ela fica com o
+padrão até o fim.
+
+Mudar um ajuste muda a dificuldade da Pilotagem Livre para quem joga depois. O ranking não é zerado: os recordes
+anteriores foram feitos com a regra de antes.
+

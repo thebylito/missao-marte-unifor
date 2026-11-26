@@ -1,25 +1,24 @@
 package br.edu.unifor.missaomarte.pilotagem;
 
-import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
 
-/** Trajetórias retilíneas sorteadas uma vez, calculadas a partir da idade da chuva. */
+/**
+ * Trajetórias retilíneas sorteadas uma vez, calculadas a partir da idade da chuva. A velocidade e a duração vêm dos
+ * ajustes (DA-48); o padrão é a metade da velocidade inicial (de 300 a 500 para 150 a 250, DA-47), para dar tempo de
+ * ver e desviar.
+ */
 final class ChuvaDeMeteoros {
-
-    /** Fase 8, pedido do usuário: metade da velocidade inicial (300 a 500), para dar tempo de ver e desviar. */
-    static final double VELOCIDADE_MINIMA = 150;
-    static final double VELOCIDADE_MAXIMA = 250;
 
     private final List<Trajetoria> trajetorias = new ArrayList<>();
 
-    ChuvaDeMeteoros(Caverna caverna, long semente) {
+    ChuvaDeMeteoros(Caverna caverna, long semente, double duracaoDaChuva, double velocidadeMinima,
+                    double velocidadeMaxima) {
         SplittableRandom sorteio = new SplittableRandom(semente);
         int quantidade = sorteio.nextInt(6, 11);
         double largura = caverna.getLargura();
         double altura = caverna.getAltura();
-        double duracaoDaChuva = TipoDeEvento.CHUVA_DE_METEOROS.duracaoSegundos();
         for (int i = 0; i < quantidade; i++) {
             int borda = sorteio.nextInt(3);
             double x, y, destinoX, destinoY;
@@ -36,7 +35,7 @@ final class ChuvaDeMeteoros {
             }
             double dx = destinoX - x;
             double dy = destinoY - y;
-            double velocidade = sorteio.nextDouble(VELOCIDADE_MINIMA, VELOCIDADE_MAXIMA);
+            double velocidade = sorteio.nextDouble(velocidadeMinima, velocidadeMaxima);
             double tempoDeTravessia = Math.hypot(dx, dy) / velocidade;
             if (tempoDeTravessia > duracaoDaChuva / 2) {
                 // Uma travessia que levaria mais da metade da chuva vira uma travessia reta entre as bordas mais
@@ -54,7 +53,7 @@ final class ChuvaDeMeteoros {
                     dy = 0;
                 }
                 double distancia = Math.min(largura, altura);
-                velocidade = Math.max(velocidade, Math.min(VELOCIDADE_MAXIMA, distancia / duracaoDaChuva));
+                velocidade = Math.max(velocidade, Math.min(velocidadeMaxima, distancia / duracaoDaChuva));
                 tempoDeTravessia = distancia / velocidade;
             }
             double raio = sorteio.nextDouble(18, 28);

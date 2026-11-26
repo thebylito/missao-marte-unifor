@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.servidor.partida;
 
+import br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo;
 import br.edu.unifor.missaomarte.servidor.erro.NaoEncontrado;
 import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.jogador.Jogador;
@@ -60,6 +61,10 @@ public class ServicoDeBilhetes {
     public BilheteResposta emitir(long jogadorId, InicioDePartida pedido) {
         boolean horda = pedido.modo() == Modo.HORDA;
         Instant admitidaEm = horda ? hordas.conferirPartida(pedido.horda(), pedido.dificuldade()) : null;
+        if (horda && !Boolean.TRUE.equals(pedido.comAjustes())
+                && !hordas.ajustesDa(pedido.horda(), admitidaEm).equals(AjustesDeVoo.PADRAO)) {
+            throw jogoDesatualizado();
+        }
         Jogador jogador = jogadores.travar(jogadorId).orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
         Instant agora = horda ? admitidaEm : relogio.instant();
         bilhetes.findByJogadorIdAndEstado(jogadorId, EstadoDoBilhete.ATIVO).forEach(b -> b.anular(agora));
@@ -116,6 +121,17 @@ public class ServicoDeBilhetes {
             exigido = minimo(partida.getModo());
         }
         return Duration.between(bilhete.getEmitidoEm(), agora).compareTo(exigido) >= 0;
+    }
+
+    /**
+     * DA-48, revisão do PR #33: o jogo publicado antes dos ajustes joga a horda com o padrão. Numa horda com outros
+     * ajustes, ele ficaria com outra regra no mesmo Top 10.
+     */
+    private static ResponseStatusException jogoDesatualizado() {
+        var erro = new ResponseStatusException(HttpStatus.CONFLICT,
+                "Esta horda usa ajustes novos. Atualize o jogo pelo site para jogar.");
+        erro.getBody().setProperty("motivo", "JOGO_DESATUALIZADO");
+        return erro;
     }
 
     /** Um código que não é UUID não é bilhete: a partida entra sem moedas, sem erro para o jogo. */
