@@ -6,7 +6,27 @@ package br.edu.unifor.missaomarte.grafico.online;
  * Fase 7: o modo (CLASSICO ou PILOTAGEM); na pilotagem, os "movimentos" são os pousos.
  */
 public record PartidaParaEnviar(String resultado, String dificuldade, int pontos, int passageiros, int movimentos,
-                                long tempoSegundos, String modo) {
+                                long tempoSegundos, String modo, String bilhete, Long horda) {
+
+    public PartidaParaEnviar(String resultado, String dificuldade, int pontos, int passageiros, int movimentos,
+                             long tempoSegundos, String modo, String bilhete) {
+        this(resultado, dificuldade, pontos, passageiros, movimentos, tempoSegundos, modo, bilhete, null);
+    }
+
+    public PartidaParaEnviar comHorda(long numero) {
+        return new PartidaParaEnviar(resultado, dificuldade, pontos, passageiros, movimentos, tempoSegundos,
+                modo, bilhete, numero);
+    }
+
+    public PartidaParaEnviar(String resultado, String dificuldade, int pontos, int passageiros, int movimentos,
+                             long tempoSegundos, String modo) {
+        this(resultado, dificuldade, pontos, passageiros, movimentos, tempoSegundos, modo, null);
+    }
+
+    public PartidaParaEnviar comBilhete(String novoBilhete) {
+        return new PartidaParaEnviar(resultado, dificuldade, pontos, passageiros, movimentos, tempoSegundos,
+                modo, novoBilhete, horda);
+    }
 
     /** Uma partida clássica (o formato das Fases 5 e 6, sem o campo modo). */
     public PartidaParaEnviar(String resultado, String dificuldade, int pontos, int passageiros, int movimentos,

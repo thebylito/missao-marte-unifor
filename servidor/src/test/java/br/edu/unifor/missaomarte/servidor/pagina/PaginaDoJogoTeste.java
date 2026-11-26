@@ -60,6 +60,16 @@ class PaginaDoJogoTeste extends ApiTeste {
     }
 
     @Test
+    void painelDeEventosEntregaOsFormulariosEOJavaScriptSemToken() throws Exception {
+        mvc.perform(get("/pagina/admin.html")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"login\"")))
+                .andExpect(content().string(containsString("id=\"evento\"")));
+        mvc.perform(get("/pagina/admin.js")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("/api/sessoes")))
+                .andExpect(content().string(containsString("/api/admin/eventos")));
+    }
+
+    @Test
     void osDownloadsVemDaPastaConfiguradaSemToken() throws Exception {
         mvc.perform(get("/downloads/missao-marte.apk"))
                 .andExpect(status().isOk())

@@ -98,6 +98,13 @@ class ImportacaoDoH2NoPostgresTeste {
     }
 
     @Test
+    void jogadoresImportadosRecebemSkinPadraoESaldoZero() {
+        JdbcTemplate jdbc = new JdbcTemplate(servidor.getBean(DataSource.class));
+        assertEquals(List.of("padrao"), jdbc.queryForList("select distinct skin from jogadores", String.class));
+        assertEquals(0, jdbc.queryForObject("select coalesce(sum(valor), 0) from moedas", Integer.class));
+    }
+
+    @Test
     void oRankingClassicoEODaFase7() throws Exception {
         Instant veterana = registradaEmNaOrigem(1);
         assertEquals(List.of(

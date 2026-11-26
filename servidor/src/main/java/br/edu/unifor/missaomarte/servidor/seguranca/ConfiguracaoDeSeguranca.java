@@ -27,8 +27,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Quem pode o quê. Público: cadastro, login, ranking, saúde, documentação, a página do jogo e os downloads (só
- * leitura). O resto exige o token JWT no cabeçalho
+ * Quem pode o quê. Público: cadastro, login, ranking, o catálogo da loja (Fase 8), saúde, documentação, a página do
+ * jogo e os downloads (só leitura). O resto exige o token JWT no cabeçalho
  * {@code Authorization: Bearer ...}, validado aqui (assinatura HS256 e validade). Sem sessão no servidor
  * (stateless): cada pedido traz o próprio token.
  */
@@ -45,7 +45,8 @@ public class ConfiguracaoDeSeguranca {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.POST, "/api/jogadores", "/api/sessoes").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/ranking").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ranking", "/api/ranking/semanal", "/api/loja",
+                                "/api/hordas/atual").permitAll()
                         .requestMatchers("/actuator/health/**", "/v3/api-docs/**", "/swagger-ui/**",
                                 "/swagger-ui.html", "/error").permitAll()
                         // publicação: a página do jogo (ranking ao vivo e downloads), na mesma origem da API

@@ -14,6 +14,20 @@ import br.edu.unifor.missaomarte.dominio.Dificuldade;
  */
 public final class FormularioNovaPartida {
 
+    public enum ModoDaMissao {
+        HORDA("Horda"), PILOTAGEM(Modo.PILOTAGEM.getNome()), CLASSICO(Modo.CLASSICO.getNome());
+
+        private final String nome;
+
+        ModoDaMissao(String nome) {
+            this.nome = nome;
+        }
+
+        public String getNome() {
+            return nome;
+        }
+    }
+
     public static final String PILOTO_PADRAO = "Piloto Anônimo";
     public static final int TAMANHO_PADRAO = 5;
     public static final int TAMANHO_MINIMO = 2;
@@ -23,8 +37,19 @@ public final class FormularioNovaPartida {
     private final StringBuilder nome = new StringBuilder();
     private Dificuldade dificuldade = Dificuldade.MEDIO;
     private int tamanho = TAMANHO_PADRAO;
-    /** A pilotagem é o padrão (pedido do usuário, 2026-11-25); Tab ou "Trocar" volta ao clássico. */
-    private Modo modo = Modo.PILOTAGEM;
+    private ModoDaMissao modo = ModoDaMissao.PILOTAGEM;
+    private boolean hordaDisponivel;
+    private boolean escolheuModo;
+
+    public void atualizarDisponibilidadeDaHorda(boolean disponivel) {
+        if (disponivel == hordaDisponivel) return;
+        hordaDisponivel = disponivel;
+        if (disponivel && !escolheuModo) {
+            modo = ModoDaMissao.HORDA;
+        } else if (!disponivel && modo == ModoDaMissao.HORDA) {
+            modo = ModoDaMissao.PILOTAGEM;
+        }
+    }
 
     /** Caractere digitado. Teclas de controle (Enter, Backspace, Tab...) não entram no nome. */
     public void digitar(char c) {
@@ -82,12 +107,20 @@ public final class FormularioNovaPartida {
         return dificuldade;
     }
 
-    /** Fase 7: clássico (o padrão, como antes) ou pilotagem. */
-    public void alternarModo() {
-        modo = modo.outro();
+    public ModoDaMissao proximoModo() {
+        return switch (modo) {
+            case HORDA -> ModoDaMissao.PILOTAGEM;
+            case PILOTAGEM -> ModoDaMissao.CLASSICO;
+            case CLASSICO -> hordaDisponivel ? ModoDaMissao.HORDA : ModoDaMissao.PILOTAGEM;
+        };
     }
 
-    public Modo getModo() {
+    public void alternarModo() {
+        modo = proximoModo();
+        escolheuModo = true;
+    }
+
+    public ModoDaMissao getModo() {
         return modo;
     }
 

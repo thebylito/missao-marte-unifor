@@ -1,22 +1,22 @@
 package br.edu.unifor.missaomarte.grafico.apresentacao;
 
-import br.edu.unifor.missaomarte.aplicacao.Modo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import br.edu.unifor.missaomarte.dominio.Dificuldade;
+import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida.ModoDaMissao;
 import org.junit.jupiter.api.Test;
 
 /** As perguntas do console antes da partida, com os mesmos padrões. */
 class FormularioNovaPartidaTeste {
 
     @Test
-    void oModoComecaNaPilotagemEAlterna() {                    // CT-19 (Fase 7); a pilotagem é o padrão desde 2026-11-25
+    void semHordaOModoComecaNaPilotagemEAlterna() {
         FormularioNovaPartida f = new FormularioNovaPartida();
-        assertEquals(Modo.PILOTAGEM, f.getModo());
+        assertEquals(ModoDaMissao.PILOTAGEM, f.getModo());
         f.alternarModo();
-        assertEquals(Modo.CLASSICO, f.getModo());
+        assertEquals(ModoDaMissao.CLASSICO, f.getModo());
         f.alternarModo();
-        assertEquals(Modo.PILOTAGEM, f.getModo());
+        assertEquals(ModoDaMissao.PILOTAGEM, f.getModo());
     }
 
     private final FormularioNovaPartida form = new FormularioNovaPartida();

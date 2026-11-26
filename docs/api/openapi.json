@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "Miss\u00e3o Marte \u2014 servidor de ranking",
-        "description": "Cadastro e login de jogadores (token JWT), hist\u00f3rico de partidas e ranking global Top 10. O servidor guarda pontua\u00e7\u00f5es; n\u00e3o executa o jogo.",
+        "description": "Cadastro e login, hist\u00f3rico, moedas e skins, Horda, placares e painel de eventos. O canal WebSocket /ws/sombras est\u00e1 documentado em docs/api/contrato-horda.md.",
         "version": "5.0.0"
     },
     "servers": [
@@ -17,6 +17,36 @@
         }
     ],
     "paths": {
+        "/api/jogadores/eu/skin": {
+            "put": {
+                "tags": [
+                    "controlador-do-hangar"
+                ],
+                "operationId": "equipar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PedidoDeSkin"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SkinEquipada"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/sessoes": {
             "post": {
                 "tags": [
@@ -64,12 +94,124 @@
                     "required": true
                 },
                 "responses": {
+                    "201": {
+                        "description": "Partida registrada. Na Horda, repetir a mesma partida com o mesmo bilhete devolve o registro existente.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PartidaRegistrada"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados ou bilhete inv\u00e1lidos",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "HORDA_ENCERRADA",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                },
+                                "example": {
+                                    "status": 409,
+                                    "title": "Conflict",
+                                    "detail": "a horda est\u00e1 encerrada",
+                                    "motivo": "HORDA_ENCERRADA"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/partidas/inicio": {
+            "post": {
+                "tags": [
+                    "controlador-de-partidas"
+                ],
+                "operationId": "iniciar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InicioDePartida"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Bilhete emitido",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BilheteResposta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados da partida inv\u00e1lidos",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "HORDA_ENCERRADA",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetail"
+                                },
+                                "example": {
+                                    "status": 409,
+                                    "title": "Conflict",
+                                    "detail": "a horda est\u00e1 encerrada",
+                                    "motivo": "HORDA_ENCERRADA"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/loja/compras": {
+            "post": {
+                "tags": [
+                    "controlador-da-loja"
+                ],
+                "operationId": "comprar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PedidoDeSkin"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
                     "200": {
                         "description": "OK",
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PartidaResposta"
+                                    "$ref": "#/components/schemas/CompraResposta"
                                 }
                             }
                         }
@@ -107,6 +249,35 @@
                 }
             }
         },
+        "/api/admin/eventos": {
+            "post": {
+                "tags": [
+                    "controlador-de-eventos"
+                ],
+                "operationId": "disparar",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Pedido"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "description": "Evento agendado com aviso de 15 segundos"
+                    },
+                    "401": {
+                        "description": "Token ausente ou inv\u00e1lido"
+                    },
+                    "403": {
+                        "description": "Jogador sem acesso ao painel"
+                    }
+                }
+            }
+        },
         "/api/ranking": {
             "get": {
                 "tags": [
@@ -123,8 +294,18 @@
                             "default": "CLASSICO",
                             "enum": [
                                 "CLASSICO",
-                                "PILOTAGEM"
+                                "PILOTAGEM",
+                                "HORDA"
                             ]
+                        }
+                    },
+                    {
+                        "name": "horda",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     }
                 ],
@@ -142,7 +323,29 @@
                             }
                         }
                     }
-                }
+                },
+                "security": []
+            }
+        },
+        "/api/ranking/semanal": {
+            "get": {
+                "tags": [
+                    "controlador-de-ranking"
+                ],
+                "operationId": "semanal",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Placar"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
             }
         },
         "/api/partidas/minhas": {
@@ -168,6 +371,30 @@
                 }
             }
         },
+        "/api/loja": {
+            "get": {
+                "tags": [
+                    "controlador-da-loja"
+                ],
+                "operationId": "catalogo",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Skin"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
         "/api/jogadores/eu": {
             "get": {
                 "tags": [
@@ -187,10 +414,71 @@
                     }
                 }
             }
+        },
+        "/api/jogadores/eu/hangar": {
+            "get": {
+                "tags": [
+                    "controlador-do-hangar"
+                ],
+                "operationId": "hangar",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Hangar"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/hordas/atual": {
+            "get": {
+                "tags": [
+                    "controlador-de-hordas"
+                ],
+                "operationId": "atual",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HordaAtual"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
         }
     },
     "components": {
         "schemas": {
+            "PedidoDeSkin": {
+                "type": "object",
+                "properties": {
+                    "skin": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "skin"
+                ]
+            },
+            "SkinEquipada": {
+                "type": "object",
+                "properties": {
+                    "equipada": {
+                        "type": "string"
+                    }
+                }
+            },
             "Credenciais": {
                 "type": "object",
                 "properties": {
@@ -289,8 +577,18 @@
                         "type": "string",
                         "enum": [
                             "CLASSICO",
-                            "PILOTAGEM"
+                            "PILOTAGEM",
+                            "HORDA"
                         ]
+                    },
+                    "bilhete": {
+                        "type": "string",
+                        "description": "Bilhete emitido no in\u00edcio da partida. Obrigat\u00f3rio no modo HORDA."
+                    },
+                    "horda": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "N\u00famero da horda. Obrigat\u00f3rio no modo HORDA."
                     }
                 },
                 "required": [
@@ -301,6 +599,271 @@
                     "resultado",
                     "tempoSegundos"
                 ]
+            },
+            "ProblemDetail": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "detail": {
+                        "type": "string"
+                    },
+                    "instance": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "properties": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                }
+            },
+            "PartidaRegistrada": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "resultado": {
+                        "type": "string",
+                        "enum": [
+                            "VITORIA",
+                            "DERROTA",
+                            "ABORTADA"
+                        ]
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "FACIL",
+                            "MEDIO",
+                            "DIFICIL"
+                        ]
+                    },
+                    "pontos": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "passageiros": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "movimentos": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "tempoSegundos": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "registradaEm": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "modo": {
+                        "type": "string",
+                        "enum": [
+                            "CLASSICO",
+                            "PILOTAGEM",
+                            "HORDA"
+                        ]
+                    },
+                    "moedasGanhas": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "saldo": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "colocacao": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "format": "int32",
+                        "description": "Posi\u00e7\u00e3o do jogador no Top 10 da horda, ou null."
+                    }
+                }
+            },
+            "InicioDePartida": {
+                "type": "object",
+                "properties": {
+                    "modo": {
+                        "type": "string",
+                        "enum": [
+                            "CLASSICO",
+                            "PILOTAGEM",
+                            "HORDA"
+                        ]
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "FACIL",
+                            "MEDIO",
+                            "DIFICIL"
+                        ]
+                    },
+                    "horda": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "N\u00famero da horda. Obrigat\u00f3rio no modo HORDA."
+                    }
+                },
+                "required": [
+                    "dificuldade"
+                ]
+            },
+            "BilheteResposta": {
+                "type": "object",
+                "properties": {
+                    "bilhete": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "validoAte": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "CompraResposta": {
+                "type": "object",
+                "properties": {
+                    "saldo": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "skins": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "CadastroDeJogador": {
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "type": "string",
+                        "maxLength": 20,
+                        "minLength": 3,
+                        "pattern": "[\\p{L}\\p{N} ._-]*"
+                    },
+                    "senha": {
+                        "type": "string",
+                        "maxLength": 72,
+                        "minLength": 6
+                    }
+                },
+                "required": [
+                    "nome",
+                    "senha"
+                ]
+            },
+            "Pedido": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "CHUVA_DE_METEOROS",
+                            "TEMPESTADE",
+                            "PANE_DE_GRAVIDADE",
+                            "PASSAGEIRO_VIP"
+                        ]
+                    }
+                },
+                "required": [
+                    "tipo"
+                ]
+            },
+            "PosicaoNoRanking": {
+                "type": "object",
+                "properties": {
+                    "posicao": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "pontos": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "FACIL",
+                            "MEDIO",
+                            "DIFICIL"
+                        ]
+                    },
+                    "passageiros": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "tempoSegundos": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "registradaEm": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "Placar": {
+                "type": "object",
+                "properties": {
+                    "semana": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "posicoes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Posicao"
+                        }
+                    }
+                }
+            },
+            "Posicao": {
+                "type": "object",
+                "properties": {
+                    "posicao": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "pontos": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "hordas": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "eventos": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
             },
             "PartidaResposta": {
                 "type": "object",
@@ -349,44 +912,220 @@
                         "type": "string",
                         "enum": [
                             "CLASSICO",
-                            "PILOTAGEM"
+                            "PILOTAGEM",
+                            "HORDA"
                         ]
                     }
                 }
             },
-            "CadastroDeJogador": {
+            "Skin": {
                 "type": "object",
                 "properties": {
-                    "nome": {
-                        "type": "string",
-                        "maxLength": 20,
-                        "minLength": 3,
-                        "pattern": "[\\p{L}\\p{N} ._-]*"
-                    },
-                    "senha": {
-                        "type": "string",
-                        "maxLength": 72,
-                        "minLength": 6
-                    }
-                },
-                "required": [
-                    "nome",
-                    "senha"
-                ]
-            },
-            "PosicaoNoRanking": {
-                "type": "object",
-                "properties": {
-                    "posicao": {
-                        "type": "integer",
-                        "format": "int32"
+                    "id": {
+                        "type": "string"
                     },
                     "nome": {
                         "type": "string"
                     },
-                    "pontos": {
+                    "linha": {
+                        "type": "string"
+                    },
+                    "nivel": {
                         "type": "integer",
                         "format": "int32"
+                    },
+                    "preco": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "Hangar": {
+                "type": "object",
+                "properties": {
+                    "saldo": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "skins": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "equipada": {
+                        "type": "string"
+                    }
+                }
+            },
+            "AsteroideDescrito": {
+                "type": "object",
+                "properties": {
+                    "centroX": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "centroY": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "raio": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "amplitudeX": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "amplitudeY": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "periodo": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "fase": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "giroGrausPorSegundo": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "CavernaResumida": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "nome": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DescricaoDaHorda": {
+                "type": "object",
+                "properties": {
+                    "numero": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "dificuldade": {
+                        "type": "string",
+                        "enum": [
+                            "F\u00e1cil",
+                            "M\u00e9dio",
+                            "Dif\u00edcil"
+                        ]
+                    },
+                    "caverna": {
+                        "$ref": "#/components/schemas/DescricaoDeCaverna"
+                    },
+                    "passageiros": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PassageiroNaHorda"
+                        }
+                    },
+                    "velocidadeDosAsteroides": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "fasesDosAsteroides": {
+                        "type": "array",
+                        "items": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    "modificadores": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Modificador"
+                        }
+                    },
+                    "roteiro": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PerigoDoRoteiro"
+                        }
+                    }
+                }
+            },
+            "DescricaoDeCaverna": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "largura": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "altura": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "rochas": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RochaDescrita"
+                        }
+                    },
+                    "base": {
+                        "$ref": "#/components/schemas/PontoDePouso"
+                    },
+                    "pontosDePouso": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PontoDePouso"
+                        }
+                    },
+                    "asteroides": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AsteroideDescrito"
+                        }
+                    },
+                    "liberada": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "HordaAtual": {
+                "type": "object",
+                "properties": {
+                    "numero": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "inicio": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "fim": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "segundosParaAcabar": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "segundosParaProxima": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "proximaAs": {
+                        "type": "string"
+                    },
+                    "caverna": {
+                        "$ref": "#/components/schemas/CavernaResumida"
                     },
                     "dificuldade": {
                         "type": "string",
@@ -396,17 +1135,104 @@
                             "DIFICIL"
                         ]
                     },
-                    "passageiros": {
+                    "modificadores": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Modificador"
+                        }
+                    },
+                    "descricao": {
+                        "$ref": "#/components/schemas/DescricaoDaHorda"
+                    }
+                }
+            },
+            "Modificador": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "VENTO",
+                            "GRAVIDADE",
+                            "TANQUE"
+                        ]
+                    },
+                    "valor": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "PassageiroNaHorda": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "PROFESSOR",
+                            "ENGENHEIRO",
+                            "ASTRONAUTA"
+                        ]
+                    },
+                    "ponto": {
                         "type": "integer",
                         "format": "int32"
+                    }
+                }
+            },
+            "PerigoDoRoteiro": {
+                "type": "object",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "CHUVA_DE_METEOROS",
+                            "TEMPESTADE",
+                            "PANE_DE_GRAVIDADE",
+                            "PASSAGEIRO_VIP"
+                        ]
                     },
-                    "tempoSegundos": {
+                    "instante": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "semente": {
                         "type": "integer",
                         "format": "int64"
+                    }
+                }
+            },
+            "PontoDePouso": {
+                "type": "object",
+                "properties": {
+                    "x": {
+                        "type": "number",
+                        "format": "double"
                     },
-                    "registradaEm": {
-                        "type": "string",
-                        "format": "date-time"
+                    "superficie": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "RochaDescrita": {
+                "type": "object",
+                "properties": {
+                    "x": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "y": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "largura": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "altura": {
+                        "type": "number",
+                        "format": "double"
                     }
                 }
             }

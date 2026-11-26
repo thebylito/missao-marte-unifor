@@ -32,13 +32,24 @@ public class ServicoDeRanking {
      * correto para o volume do projeto; com muitos dados, a mesma regra caberia numa consulta com função de janela.
      */
     @Transactional(readOnly = true)
-    public List<PosicaoNoRanking> top10(Modo modo) {
-        List<PosicaoNoRanking> ranking = new ArrayList<>();
+    public List<PosicaoNoRanking> top10(Modo modo, Long horda) {
+        return melhores(modo, horda).stream().map(v -> {
+            Partida p = v.partida();
+            return new PosicaoNoRanking(v.posicao(), p.getJogador().getNome(), p.getPontos(), p.getDificuldade(),
+                    p.getPassageiros(), p.getTempoSegundos(), p.getRegistradaEm());
+        }).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<VitoriaNoRanking> melhores(Modo modo, Long horda) {
+        List<Partida> ordenadas = modo == Modo.HORDA
+                ? partidas.melhoresDaHorda(Resultado.VITORIA, modo, horda)
+                : partidas.melhoresPrimeiro(Resultado.VITORIA, modo);
+        List<VitoriaNoRanking> ranking = new ArrayList<>();
         Set<Long> jaListados = new HashSet<>();
-        for (Partida p : partidas.melhoresPrimeiro(Resultado.VITORIA, modo)) {
+        for (Partida p : ordenadas) {
             if (jaListados.add(p.getJogador().getId())) {
-                ranking.add(new PosicaoNoRanking(ranking.size() + 1, p.getJogador().getNome(), p.getPontos(),
-                        p.getDificuldade(), p.getPassageiros(), p.getTempoSegundos(), p.getRegistradaEm()));
+                ranking.add(new VitoriaNoRanking(ranking.size() + 1, p));
                 if (ranking.size() == TAMANHO) {
                     break;
                 }
@@ -46,4 +57,6 @@ public class ServicoDeRanking {
         }
         return ranking;
     }
+
+    public record VitoriaNoRanking(int posicao, Partida partida) {}
 }

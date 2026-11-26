@@ -11,10 +11,7 @@ import com.badlogic.gdx.graphics.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Menu principal: as 4 opções do console e as 2 da Fase 5, escolhidas pelas teclas 1 a 6 ou, na Fase 6, por toque
- * (tocar numa opção aperta a tecla dela; na confirmação de apagar, os botões Sim e Não apertam S e N).
- */
+/** Menu principal. O toque em uma opção ou na faixa da Horda usa a mesma ação do teclado. */
 public class TelaMenu extends TelaBase {
 
     private static final String[] OPCOES = {
@@ -24,9 +21,12 @@ public class TelaMenu extends TelaBase {
         "4. Sair do Jogo",
         "5. Meu Histórico (online)",
         "6. Trocar de Piloto",
+        "7. Hangar",
     };
     private static final float Y_DAS_OPCOES = 385;
     private static final float PASSO = 36;
+    private static final Retangulo FAIXA_HORDA = new Retangulo(40, 8, 720, 100);
+    private static final Color FUNDO_HORDA = new Color(0.36f, 0.19f, 0.10f, 0.96f);
     private static final Retangulo BOTAO_SIM = new Retangulo(250, 70, 140, 60);
     private static final Retangulo BOTAO_NAO = new Retangulo(410, 70, 140, 60);
 
@@ -35,7 +35,8 @@ public class TelaMenu extends TelaBase {
 
     public TelaMenu(MissaoMarteGame jogo) {
         super(jogo);
-        this.controlador = new ControladorDoMenu(jogo.getServicos().ranking());
+        this.controlador = new ControladorDoMenu(jogo.getServicos().ranking(), jogo.getFaixaDaHorda(),
+                () -> jogo.getSessao().isPresent());
     }
 
     @Override
@@ -49,6 +50,8 @@ public class TelaMenu extends TelaBase {
                     case SAIR: jogo.sair(); break;
                     case HISTORICO: jogo.irParaHistorico(); break;
                     case TROCAR_PILOTO: jogo.irParaEntrada(); break;
+                    case HORDA: jogo.iniciarHorda(controlador.hordaAtual(), controlador::falhaAoIniciarHorda); break;
+                    case HANGAR: jogo.irParaHangar(); break;
                     default: break;
                 }
                 return true;
@@ -64,6 +67,7 @@ public class TelaMenu extends TelaBase {
             alvos.add(tecla(BOTAO_NAO, Keys.N, 'n'));
             return alvos;
         }
+        alvos.add(tecla(FAIXA_HORDA, Keys.H, 'h'));
         for (int i = 0; i < OPCOES.length; i++) {
             alvos.add(tecla(linha(240, Y_DAS_OPCOES - i * PASSO, 460, PASSO - 2), Keys.NUM_1 + i, (char) ('1' + i)));
         }
@@ -73,6 +77,7 @@ public class TelaMenu extends TelaBase {
     @Override
     protected void atualizar(float delta) {
         tempo += delta;
+        controlador.atualizarHorda();
     }
 
     @Override
@@ -80,7 +85,7 @@ public class TelaMenu extends TelaBase {
         lote().begin();
         if (recursosProntos()) {
             // a nave flutua ao lado das opções e um asteroide gira do outro lado
-            desenharCentralizado(Folha.NAVE, 0, 150, 320 + 8 * (float) Math.sin(tempo * 1.8), 120);
+            desenharNave(0, 150, 320 + 8 * (float) Math.sin(tempo * 1.8), 120);
             desenharCentralizado(Folha.ASTEROIDE, FolhaDeSprites.quadroEmLaco(Folha.ASTEROIDE, tempo, 10), 660, 300, 80);
         }
         escreverTitulo("MISSÃO MARTE UNIFOR", 520, Color.ORANGE, 2.4f);
@@ -94,15 +99,26 @@ public class TelaMenu extends TelaBase {
         String quem = jogo.getSessao().map(s -> "Piloto conectado: " + s.nome() + " (ranking global ativo)")
                 .orElse("Jogando como convidado (só o ranking local)");
         escreverCentralizado(quem, 430, jogo.getSessao().isPresent() ? Color.LIME : Color.LIGHT_GRAY, 1f);
+        ControladorDoMenu.textoDoSaldo(jogo.getSessao(), jogo.getSaldo())
+                .ifPresent(saldo -> escreverCentralizado(saldo, 407, Color.ORANGE, 1f));
         Color corDaMensagem = controlador.isConfirmandoApagar() ? Color.YELLOW : Color.SKY;
-        escreverCentralizado(controlador.getMensagem(), 150, corDaMensagem, 1.2f);
-        if (!toque()) {
-            escreverCentralizado("Escolha uma opção (teclas 1 a 6)", 60, Color.GRAY, 1f);
-        } else if (!controlador.isConfirmandoApagar()) {
-            escreverCentralizado("Toque numa opção", 60, Color.GRAY, 1f);
-        }
+        escreverComQuebra(controlador.getMensagem(), 42, 145, 716, corDaMensagem, 1f);
         lote().end();
-        if (toque() && controlador.isConfirmandoApagar()) {
+        if (!controlador.isConfirmandoApagar()) {
+            boolean conectado = jogo.getSessao().isPresent();
+            if (conectado) desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1, FUNDO_HORDA);
+            else desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1);
+            lote().begin();
+            escreverTitulo(conectado ? "▶ Jogar a Horda" : ControladorDoMenu.CONVITE_PARA_ENTRAR,
+                    104, conectado ? Color.GOLD : Color.ORANGE, conectado ? 1.6f : 1.25f);
+            if (conectado && !toque()) escrever("[H]", 706, 98, Color.GOLD, 1.1f);
+            float yDaFaixa = 75;
+            for (String linha : controlador.faixaDaHorda()) {
+                escreverCentralizado(linha, yDaFaixa, Color.WHITE, 1f);
+                yDaFaixa -= 21;
+            }
+            lote().end();
+        } else if (toque()) {
             desenharBotoes(List.of(BOTAO_SIM, BOTAO_NAO), List.of("Sim", "Não"), 1.1f);
         }
     }

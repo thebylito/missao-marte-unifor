@@ -54,9 +54,9 @@ public record ConfigDeVoo(
     public static ConfigDeVoo para(Dificuldade dificuldade) {
         switch (dificuldade) {
             case FACIL:
-                return medio().com(130, 90, 60, 18, 0.75);
+                return medio().com(130, 90, 60, 25, 0.75);
             case DIFICIL:
-                return medio().com(100, 65, 40, 12, 1.3);
+                return medio().com(100, 65, 40, 15, 1.3);
             default:
                 return medio();
         }
@@ -67,7 +67,7 @@ public record ConfigDeVoo(
         return new ConfigDeVoo(
                 55, 145, 200, 0.06,     // gravidade, empuxo, giro, arrasto
                 100, 3, 35,             // tanque, consumo (cerca de 33 s de motor), reabastecimento
-                75, 50, 14,             // limites do pouso seguro
+                75, 50, 20,             // limites do pouso seguro (inclinação: 14° até a Fase 7; 20° desde a Fase 8)
                 30, 24, -40,            // casco e pés
                 0.6, 2, 3, 2.0,         // embarque, capacidade (obriga duas viagens), vidas, renascer
                 1.0, 30);               // asteroides, bônus máximo

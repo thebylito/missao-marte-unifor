@@ -106,14 +106,14 @@ def _parts():
     return parts
 
 
-def geometry_radius_bound():
+def parts_radius_bound(parts):
     """Conservative XZ bound, including a full bevel-width safety allowance.
 
     Bevels cut inward. Rod bounds use endpoint distance + radius; ellipsoids
     use an enclosing XZ rectangle. This bound holds at all gameplay rotations.
     """
     bounds = []
-    for kind, name, _mat, args, bevel in _parts():
+    for kind, name, _mat, args, bevel in parts:
         if kind == 'mesh':
             radius = max(math.hypot(x, z) for x, _y, z in args[0])
         elif kind in ('cube', 'sphere'):
@@ -127,26 +127,44 @@ def geometry_radius_bound():
     return max(bounds)
 
 
+def geometry_radius_bound():
+    return parts_radius_bound(_parts())
+
+
+def ship_materials(overrides=None):
+    from common import material, emissive
+
+    finishes = {
+        # Reflected key/rim light supplies volume; structure has no self-emission.
+        'ceramic': ('Warm white ceramic', (.86, .85, .82, 1), .06, .35),
+        'graphite': ('Neutral graphite', (.12, .12, .12, 1), .4, .4),
+        'metal': ('Warm grey titanium', (.45, .43, .40, 1), .6, .3),
+        'refractory': ('Dark engine interior', (.013, .011, .009, 1), 0, .9),
+        # Opaque tinted glazing keeps the cyan mask solid at grazing angles.
+        # Low roughness gives glass-like reflections; a small cyan fill
+        # preserves saturation in shadow without replacing the key light.
+        'cyan': ('Glossy cyan cockpit', (.02, .45, .62, 1), 0, .15, .30),
+        'cyan_band': ('Glossy cyan band', (.02, .45, .62, 1), 0, .15, .25),
+    }
+    finishes.update(overrides or {})
+    mats = {key: material(*finish) for key, finish in finishes.items()}
+    mats['amber'] = emissive('Small amber markers', (1, .25, .015, 1), .85)
+    return mats
+
+
 def build_ship():
-    from common import root, material, emissive, mesh, cube, sphere, rod
+    from common import root
 
     bound, _ = geometry_radius_bound()
     assert bound < 56, 'Ship exceeds rotation-safe radius'
     ship = root('Original survey lander: collision center')
-    mats = {
-        # Reflected key/rim light supplies volume; structure has no self-emission.
-        'ceramic': material('Warm white ceramic', (.86, .85, .82, 1), .06, .35),
-        'graphite': material('Neutral graphite', (.12, .12, .12, 1), .4, .4),
-        'metal': material('Warm grey titanium', (.45, .43, .40, 1), .6, .3),
-        'refractory': material('Dark engine interior', (.013, .011, .009, 1), 0, .9),
-        # Opaque tinted glazing keeps the cyan mask solid at grazing angles.
-        # Low roughness gives glass-like reflections; a small cyan fill
-        # preserves saturation in shadow without replacing the key light.
-        'cyan': material('Glossy cyan cockpit', (.02, .45, .62, 1), 0, .15, .30),
-        'cyan_band': material('Glossy cyan band', (.02, .45, .62, 1), 0, .15, .25),
-        'amber': emissive('Small amber markers', (1, .25, .015, 1), .85),
-    }
-    for kind, name, mat, args, bevel in _parts():
+    return assemble(ship, _parts(), ship_materials(), bound)
+
+
+def assemble(ship, parts, mats, bound):
+    from common import mesh, cube, sphere, rod
+
+    for kind, name, mat, args, bevel in parts:
         if kind == 'mesh':
             obj = mesh(name, *args, mats[mat], ship)
             if bevel:

@@ -4,15 +4,21 @@ package br.edu.unifor.missaomarte.grafico.online;
  * Por que um pedido ao servidor não deu certo, já com uma mensagem para mostrar ao jogador. A partida nunca
  * depende disto: no pior caso o jogo segue sem o servidor.
  */
-public record Falha(Motivo motivo, String mensagem) {
+public record Falha(Motivo motivo, String mensagem, String codigo) {
+
+    public Falha(Motivo motivo, String mensagem) {
+        this(motivo, mensagem, null);
+    }
 
     public enum Motivo {
         /** Servidor desligado, endereço errado, sem rede ou tempo esgotado. */
         SEM_CONEXAO,
         /** 401: senha errada ou sessão expirada. */
         NAO_AUTORIZADO,
-        /** 409: nome já em uso. */
+        /** 409: conflito com o estado no servidor. */
         CONFLITO,
+        /** 404: recurso não encontrado. */
+        NAO_ENCONTRADO,
         /** 400: o servidor recusou os dados (com o motivo de cada campo). */
         DADOS_INVALIDOS,
         /** 5xx ou outro código inesperado. */

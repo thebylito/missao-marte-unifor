@@ -81,6 +81,7 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'missaomarte.agendador.habilitado', 'false'
     testLogging {
         events 'failed'
         exceptionFormat = 'full'
@@ -99,4 +100,12 @@ tasks.named('bootJar') {
 }
 tasks.named('jar') {
     enabled = false
+}
+
+// CT-10 lê o mesmo contrato versionado que o jogo usará.
+tasks.named('processTestResources') {
+    from('../docs/api/exemplos') {
+        include 'horda.json'
+        into 'exemplos'
+    }
 }

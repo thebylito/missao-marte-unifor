@@ -53,8 +53,17 @@ public final class ConexaoWebSocket implements ConexaoDeSombras {
 
     @Override
     public void abrir(String token, Ouvinte ouvinte) {
+        abrir(token, "livre", ouvinte);
+    }
+
+    @Override
+    public void abrir(String token, String sala, Ouvinte ouvinte) {
+        if (!sala.matches("livre|horda-[0-9]+")) {
+            throw new IllegalArgumentException("Sala de sombras inválida");
+        }
         fechar();
-        WebSocketClient cliente = new WebSocketClient(endereco, Map.of("Authorization", "Bearer " + token)) {
+        URI destino = URI.create(endereco + "?sala=" + sala);
+        WebSocketClient cliente = new WebSocketClient(destino, Map.of("Authorization", "Bearer " + token)) {
             @Override
             public void onOpen(ServerHandshake aperto) {
                 avisar(this, ouvinte::aberta);

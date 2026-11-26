@@ -75,6 +75,9 @@ public class Partida {
     @Column(nullable = false, length = 20)
     private Modo modo = Modo.CLASSICO;
 
+    @Column(name = "horda_numero")
+    private Long hordaNumero;
+
     protected Partida() {
         // exigido pelo JPA
     }
@@ -89,6 +92,7 @@ public class Partida {
         this.tempoSegundos = dados.tempoSegundos();
         this.registradaEm = registradaEm;
         this.modo = dados.modo();
+        this.hordaNumero = modo == Modo.HORDA ? dados.horda() : null;
     }
 
     public Long getId() { return id; }
@@ -101,4 +105,5 @@ public class Partida {
     public long getTempoSegundos() { return tempoSegundos; }
     public Instant getRegistradaEm() { return registradaEm; }
     public Modo getModo() { return modo; }
+    public Long getHordaNumero() { return hordaNumero; }
 }

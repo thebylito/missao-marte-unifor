@@ -2,17 +2,36 @@ package br.edu.unifor.missaomarte.servidor.sombras;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDeCaverna;
+import br.edu.unifor.missaomarte.pilotagem.horda.PontoDePouso;
+import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
+import br.edu.unifor.missaomarte.servidor.Agendador;
 import br.edu.unifor.missaomarte.servidor.ApiTeste;
 import br.edu.unifor.missaomarte.servidor.ApiTeste.RelogioDeTeste;
+import br.edu.unifor.missaomarte.servidor.evento.AgendaDeEventos;
+import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
+import br.edu.unifor.missaomarte.servidor.horda.CatalogoDeCavernas;
+import br.edu.unifor.missaomarte.servidor.horda.Horda;
+import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
+import br.edu.unifor.missaomarte.servidor.moedas.Origem;
+import br.edu.unifor.missaomarte.servidor.moedas.ServicoDeMoedas;
 import com.jayway.jsonpath.JsonPath;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -29,6 +48,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -43,7 +65,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "spring.datasource.url=jdbc:h2:mem:missaomarte-sombras;DB_CLOSE_DELAY=-1" + ApiTeste.MODO_POSTGRESQL,
-        "missaomarte.jwt.segredo=segredo-so-para-os-testes-com-32-bytes-ou-mais"})
+        "missaomarte.jwt.segredo=segredo-so-para-os-testes-com-32-bytes-ou-mais",
+        "MISSAOMARTE_ADMINS= aDmIn-Fase8 , admin-vip, ADMIN-PERIGO "})
 @AutoConfigureMockMvc
 class CanalDeSombrasTeste {
 
@@ -105,6 +128,24 @@ class CanalDeSombrasTeste {
     @Autowired
     CanalDeSombras canal;
 
+    @Autowired
+    ServicoDeMoedas moedas;
+
+    @Autowired
+    Agendador agendador;
+
+    @Autowired
+    ServicoDeHordas hordas;
+
+    @Autowired
+    JdbcTemplate jdbc;
+
+    @MockitoSpyBean
+    CatalogoDeCavernas catalogo;
+
+    @MockitoSpyBean
+    ServicoDeEventos eventos;
+
     private final List<Cliente> abertos = new ArrayList<>();
 
     @BeforeEach
@@ -142,13 +183,17 @@ class CanalDeSombrasTeste {
     }
 
     private Cliente conectar(String token) throws Exception {
+        return conectar(token, "");
+    }
+
+    private Cliente conectar(String token, String consulta) throws Exception {
         WebSocketHttpHeaders cabecalhos = new WebSocketHttpHeaders();
         if (token != null) {
             cabecalhos.add("Authorization", "Bearer " + token);
         }
         Cliente c = new Cliente();
         c.sessao = new StandardWebSocketClient().execute(c, cabecalhos,
-                URI.create("ws://localhost:" + porta + ConfiguracaoDasSombras.ENDERECO)).get(ESPERA_MS,
+                URI.create("ws://localhost:" + porta + ConfiguracaoDasSombras.ENDERECO + consulta)).get(ESPERA_MS,
                 TimeUnit.MILLISECONDS);
         abertos.add(c);
         return c;
@@ -203,6 +248,34 @@ class CanalDeSombrasTeste {
         assertThat((Boolean) JsonPath.read(sombra, "$.motor")).isTrue();
         assertThat((Integer) JsonPath.read(sombra, "$.piloto")).isPositive();
         a.nadaChegou();   // ninguém recebe a própria sombra
+    }
+
+    /** Fase 8: compra e equipa uma skin pela API (com um saldo dado direto no extrato). */
+    private void equipar(String token, String skin, int preco) throws Exception {
+        String eu = mvc.perform(get("/api/jogadores/eu").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        moedas.creditar(((Number) JsonPath.read(eu, "$.id")).longValue(), Origem.SEMANA, "teste:" + skin, preco);
+        mvc.perform(post("/api/loja/compras").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"skin\":\"" + skin + "\"}"))
+                .andExpect(status().isCreated());
+        mvc.perform(put("/api/jogadores/eu/skin").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"skin\":\"" + skin + "\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void aSombraLevaASkinEquipadaDoPerfilENuncaADaMensagem() throws Exception {     // CT-16
+        String tokenDaAna = token(nomeUnico("Ana"));
+        equipar(tokenDaAna, "guara", 60);
+        Cliente a = conectar(tokenDaAna);
+        Cliente b = conectar(token(nomeUnico("Bia")));
+        esperarConectados(2);
+
+        a.enviar("{\"tipo\":\"posicao\",\"x\":100,\"y\":100,\"angulo\":0,\"motor\":false,\"skin\":\"padrao_5\"}");
+        assertThat((String) JsonPath.read(b.proxima(), "$.skin")).isEqualTo("guara");   // do perfil, não da mensagem
+
+        b.enviar(posicao(200, 100, 0, false));   // quem não comprou nada voa com a padrão
+        assertThat((String) JsonPath.read(a.proxima(), "$.skin")).isEqualTo("padrao");
     }
 
     @Test
@@ -336,5 +409,355 @@ class CanalDeSombrasTeste {
 
         assertThat(a.fechou.await(ESPERA_MS, TimeUnit.MILLISECONDS)).isTrue();
         assertThat(a.statusDoFechamento.getCode()).isEqualTo(CloseStatus.TOO_BIG_TO_PROCESS.getCode());
+    }
+
+    @Test
+    void salasIsolamSombrasEValidamPelosLimitesDaCaverna() throws Exception {
+        relogio.agora = Instant.parse("2026-11-19T15:10:00Z");
+        Horda horda = publicarPocoPolar();
+        Cliente livre = conectar(token(nomeUnico("Livre")));
+        Cliente hordaA = conectar(token(nomeUnico("Horda")), "?sala=horda-" + horda.numero());
+        Cliente hordaB = conectar(token(nomeUnico("Horda")), "?sala=horda-" + horda.numero());
+        esperarConectados(3);
+
+        hordaA.enviar(posicao(2500, 100, 0, false)); // caberia na Marciana, mas ultrapassa a largura do Poço
+        hordaA.enviar(posicao(2000, 1500, 0, false)); // só cabe na altura do Poço
+        assertThat((Double) JsonPath.read(hordaB.proxima(), "$.y")).isEqualTo(1500.0);
+        livre.nadaChegou();
+        livre.enviar(posicao(100, 100, 0, false));
+        hordaB.nadaChegou();
+    }
+
+    @Test
+    void recusaSalaDesconhecidaInvalidaOuVencida() throws Exception {
+        relogio.agora = Instant.parse("2026-11-18T15:00:00Z");
+        String token = token(nomeUnico("Sala"));
+        long numero = ServicoDeHordas.numeroEm(relogio.instant());
+        recusa(conectar(token, "?sala=horda-" + numero));
+        recusa(conectar(token, "?sala=qualquer"));
+        hordas.atual(relogio.instant());
+        relogio.avancar(Duration.ofMinutes(151));
+        recusa(conectar(token, "?sala=horda-" + numero));
+        esperarConectados(0);
+    }
+
+    @Test
+    void painelUsaNomeDoBancoEExigeTokenDeAdministrador() throws Exception {
+        relogio.agora = Instant.parse("2026-11-20T12:00:00Z");
+        String admin = token("Admin-Fase8");
+        String piloto = token(nomeUnico("Piloto"));
+        disparar(null, "CHUVA_DE_METEOROS").andExpect(status().isUnauthorized());
+        disparar(piloto, "CHUVA_DE_METEOROS").andExpect(status().isForbidden());
+        disparar(admin, "CHUVA_DE_METEOROS").andExpect(status().isAccepted());
+        jdbc.update("update jogadores set nome = 'ExAdmin' where nome = 'Admin-Fase8'");
+        disparar(admin, "CHUVA_DE_METEOROS").andExpect(status().isForbidden());
+    }
+
+    @Test
+    void vipChegaAsDuasSalasComPontosDelasEPrimeiroPilotoGanha() throws Exception {
+        relogio.agora = Instant.parse("2026-11-21T15:10:00Z");
+        Horda horda = publicarPocoPolar();
+        String admin = token("Admin-VIP");
+        String vencedor = nomeUnico("Vencedor");
+        Cliente livre = conectar(token(vencedor));
+        Cliente rival = conectar(token(nomeUnico("Rival")), "?sala=horda-" + horda.numero());
+        esperarConectados(2);
+        disparar(admin, "PASSAGEIRO_VIP").andExpect(status().isAccepted());
+        agendador.verificar();
+
+        Map<String, Object> aviso = JsonPath.read(livre.proxima(), "$");
+        String evento = (String) aviso.get("evento");
+        assertThat(evento).startsWith("e-" + horda.numero() + "-");
+        assertThat(aviso).containsExactlyInAnyOrderEntriesOf(Map.of(
+                "tipo", "evento-aviso", "evento", evento, "nome", "PASSAGEIRO_VIP", "em", 15));
+        assertThat(JsonPath.<Map<String, Object>>read(rival.proxima(), "$")).isEqualTo(aviso);
+
+        relogio.avancar(Duration.ofSeconds(15));
+        agendador.verificar();
+        conferirInicioVip(livre.proxima(), evento, catalogo.porId("marciana").orElseThrow());
+        conferirInicioVip(rival.proxima(), evento, horda.descricao().caverna());
+
+        String pedidoVip = "{\"tipo\":\"vip\",\"evento\":\"" + evento + "\"}";
+        relogio.avancar(Duration.ofSeconds(3));
+        livre.enviar(pedidoVip);
+        Map<String, Object> pego = Map.of("tipo", "vip-pego", "evento", evento, "nome", vencedor);
+        assertThat(JsonPath.<Map<String, Object>>read(livre.proxima(), "$")).isEqualTo(pego);
+        assertThat(JsonPath.<Map<String, Object>>read(rival.proxima(), "$")).isEqualTo(pego);
+        for (int i = 0; i < 1000; i++) {
+            rival.enviar(pedidoVip);
+        }
+        Cliente outraSombra = conectar(token(nomeUnico("Sombra")), "?sala=horda-" + horda.numero());
+        esperarConectados(3);
+        rival.enviar(posicao(100, 100, 0, false)); // confirma que a fila do rival foi processada
+        assertThat(JsonPath.<String>read(outraSombra.proxima(), "$.tipo")).isEqualTo("sombra");
+        verify(eventos, times(1)).pegarVip(any(), anyLong(), any());
+        assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, evento))
+                .containsExactly(5);
+    }
+
+    @Test
+    void perigoPontuaUmaVezSoParaQuemEstavaConectadoESobreviveu() throws Exception {
+        relogio.agora = Instant.parse("2026-11-22T15:10:00Z");
+        String admin = token("Admin-Perigo");
+        String sobrevivente = nomeUnico("Sobreviveu");
+        Cliente a = conectar(token(sobrevivente));
+        Cliente explodiu = conectar(token(nomeUnico("Explodiu")));
+        esperarConectados(2);
+        disparar(admin, "CHUVA_DE_METEOROS").andExpect(status().isAccepted());
+        agendador.verificar();
+        String evento = JsonPath.read(a.proxima(), "$.evento");
+        assertThat(JsonPath.<String>read(explodiu.proxima(), "$.evento")).isEqualTo(evento);
+        relogio.avancar(Duration.ofSeconds(13));
+        a.enviar(posicao(100, 100, 0, false));
+        explodiu.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(a.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(JsonPath.<String>read(explodiu.proxima(), "$.tipo")).isEqualTo("sombra");
+        relogio.avancar(Duration.ofSeconds(2));
+        agendador.verificar();
+        Map<String, Object> inicio = JsonPath.read(a.proxima(), "$");
+        assertThat(inicio).containsEntry("tipo", "evento-inicio").containsEntry("evento", evento)
+                .containsEntry("nome", "CHUVA_DE_METEOROS").containsEntry("duracao", 20).doesNotContainKey("vip");
+        assertThat(inicio.get("semente")).isInstanceOf(Number.class);
+        assertThat(JsonPath.<String>read(explodiu.proxima(), "$.tipo")).isEqualTo("evento-inicio");
+        Cliente atrasado = conectar(token(nomeUnico("Atrasado")));
+        esperarConectados(3);
+        explodiu.enviar(explodiu(200, 150));
+        assertThat(JsonPath.<String>read(a.proxima(), "$.tipo")).isEqualTo("explosao");
+        assertThat(JsonPath.<String>read(atrasado.proxima(), "$.tipo")).isEqualTo("explosao");
+        String resultado = "{\"tipo\":\"evento-resultado\",\"evento\":\"" + evento + "\",\"sobreviveu\":true}";
+        relogio.avancar(Duration.ofSeconds(20));
+
+        explodiu.enviar(resultado);
+        explodiu.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(a.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(JsonPath.<String>read(atrasado.proxima(), "$.tipo")).isEqualTo("sombra");
+        for (int i = 0; i < 1000; i++) {
+            a.enviar(resultado);
+        }
+        a.enviar(posicao(100, 100, 0, false));
+        assertThat((String) JsonPath.read(atrasado.proxima(), "$.tipo")).isEqualTo("sombra");
+        relogio.avancar(Duration.ofSeconds(2));
+        a.enviar(resultado); // a deduplicação vale mesmo depois de passar o limite por segundo
+        a.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(atrasado.proxima(), "$.tipo")).isEqualTo("sombra");
+        atrasado.enviar(resultado);
+        atrasado.enviar(posicao(100, 100, 0, false));
+        assertThat((String) JsonPath.read(a.proxima(), "$.tipo")).isEqualTo("sombra");
+
+        verify(eventos, times(1)).sobreviver(any(), anyLong(), any());
+        assertThat(jdbc.queryForList("""
+                select j.nome, p.pontos from pontos_de_evento p join jogadores j on j.id = p.jogador_id
+                where p.evento = ?
+                """, evento)).containsExactly(Map.of("nome", sobrevivente, "pontos", 3));
+    }
+
+    @Test
+    void quemEntraComAvisoEmAndamentoRecebeOTempoRestante() throws Exception {
+        relogio.agora = Instant.parse("2026-11-24T15:00:00Z");
+        Cliente primeiro = conectar(token(nomeUnico("Primeiro")));
+        esperarConectados(1);
+        eventos.solicitar(TipoDeEvento.TEMPESTADE, relogio.instant());
+        agendador.verificar();
+        String id = JsonPath.read(primeiro.proxima(), "$.evento");
+
+        relogio.avancar(Duration.ofMillis(7200));
+        Cliente chegou = conectar(token(nomeUnico("Chegou")));
+        esperarConectados(2);
+        assertThat(JsonPath.<Map<String, Object>>read(chegou.proxima(), "$"))
+                .containsExactlyInAnyOrderEntriesOf(Map.of("tipo", "evento-aviso", "evento", id,
+                        "nome", "TEMPESTADE", "em", 8));
+        agendador.verificar();
+        chegou.nadaChegou();
+        primeiro.nadaChegou();
+    }
+
+    @Test
+    void posicaoAntigaOuPosteriorAoInicioNaoQualificaParaPontuar() throws Exception {
+        relogio.agora = Instant.parse("2026-11-24T17:00:00Z");
+        Cliente parado = conectar(token(nomeUnico("Parado")));
+        String nomeAtivo = nomeUnico("Ativo");
+        Cliente ativo = conectar(token(nomeAtivo));
+        esperarConectados(2);
+        eventos.solicitar(TipoDeEvento.CHUVA_DE_METEOROS, relogio.instant());
+        agendador.verificar();
+        String id = JsonPath.read(ativo.proxima(), "$.evento");
+        parado.proxima();
+        relogio.avancar(Duration.ofMillis(11999));
+        parado.enviar(posicao(100, 100, 0, false));
+        ativo.proxima();
+        relogio.avancar(Duration.ofMillis(1));
+        ativo.enviar(posicao(100, 100, 0, false)); // exatamente três segundos antes
+        parado.proxima();
+        relogio.avancar(Duration.ofMillis(3100));
+        parado.enviar(posicao(100, 100, 0, false)); // antes do ciclo, mas depois do início
+        ativo.proxima();
+        agendador.verificar();
+        assertThat(JsonPath.<String>read(parado.proxima(), "$.tipo")).isEqualTo("evento-inicio");
+        assertThat(JsonPath.<String>read(ativo.proxima(), "$.tipo")).isEqualTo("evento-inicio");
+
+        relogio.avancar(Duration.ofSeconds(20));
+        String resultado = "{\"tipo\":\"evento-resultado\",\"evento\":\"" + id + "\",\"sobreviveu\":true}";
+        parado.enviar(resultado);
+        parado.enviar(posicao(100, 100, 0, false));
+        ativo.proxima();
+        ativo.enviar(resultado);
+        ativo.enviar(posicao(100, 100, 0, false));
+        parado.proxima();
+        assertThat(jdbc.queryForList("""
+                select j.nome, p.pontos from pontos_de_evento p join jogadores j on j.id = p.jogador_id
+                where p.evento = ?
+                """, id)).containsExactly(Map.of("nome", nomeAtivo, "pontos", 3));
+    }
+
+    @Test
+    void vipSoPodeSerPegoTresSegundosDepoisDoInicio() throws Exception {
+        relogio.agora = Instant.parse("2026-11-24T19:00:00Z");
+        Cliente piloto = conectar(token(nomeUnico("Vip")));
+        Cliente testemunha = conectar(token(nomeUnico("Testemunha")));
+        esperarConectados(2);
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        agendador.verificar();
+        String id = JsonPath.read(piloto.proxima(), "$.evento");
+        testemunha.proxima();
+        relogio.avancar(Duration.ofSeconds(15));
+        agendador.verificar();
+        piloto.proxima();
+        testemunha.proxima();
+        String pedido = "{\"tipo\":\"vip\",\"evento\":\"" + id + "\"}";
+        relogio.avancar(Duration.ofMillis(2999));
+        piloto.enviar(pedido);
+        piloto.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, id))
+                .isEmpty();
+        relogio.avancar(Duration.ofMillis(1));
+        piloto.enviar(pedido);
+        assertThat(JsonPath.<String>read(piloto.proxima(), "$.tipo")).isEqualTo("vip-pego");
+        assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, id))
+                .containsExactly(5);
+    }
+
+    @Test
+    void vipsComAMesmaSementePublicaUsamPontosDasRespectivasSementesPrivadas() throws Exception {
+        relogio.agora = Instant.parse("2026-11-25T17:00:00Z");
+        Cliente piloto = conectar(token(nomeUnico("VipPrivado")));
+        esperarConectados(1);
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        var ids = eventos.ativos(relogio.instant()).stream().map(e -> e.id()).toList();
+        jdbc.update("update eventos_ao_vivo set semente = 73, semente_vip = ? where evento = ?",
+                "01".repeat(32), ids.get(0));
+        jdbc.update("update eventos_ao_vivo set semente = 73, semente_vip = ? where evento = ?",
+                "02".repeat(32), ids.get(1));
+        agendador.verificar();
+        piloto.proxima();
+        piloto.proxima();
+
+        relogio.avancar(Duration.ofSeconds(15));
+        agendador.verificar();
+        String primeiro = piloto.proxima();
+        String segundo = piloto.proxima();
+        assertThat(JsonPath.<Number>read(primeiro, "$.semente").longValue()).isEqualTo(73);
+        assertThat(JsonPath.<Number>read(segundo, "$.semente").longValue()).isEqualTo(73);
+        assertThat(JsonPath.<Number>read(primeiro, "$.vip.x").doubleValue()).isEqualTo(2790.0);
+        assertThat(JsonPath.<Number>read(segundo, "$.vip.x").doubleValue()).isEqualTo(3050.0);
+    }
+
+    @Test
+    void limitePorPilotoTambemValeQuandoOsPedidosSaoDeEventosDiferentes() throws Exception {
+        relogio.agora = Instant.parse("2026-11-25T15:00:00Z");
+        Cliente piloto = conectar(token(nomeUnico("Piloto")));
+        Cliente testemunha = conectar(token(nomeUnico("Testemunha")));
+        esperarConectados(2);
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        eventos.solicitar(TipoDeEvento.PASSAGEIRO_VIP, relogio.instant());
+        agendador.verificar();
+        String primeiro = JsonPath.read(piloto.proxima(), "$.evento");
+        String segundo = JsonPath.read(piloto.proxima(), "$.evento");
+        testemunha.proxima();
+        testemunha.proxima();
+
+        relogio.avancar(Duration.ofSeconds(15));
+        agendador.verificar();
+        piloto.proxima();
+        piloto.proxima();
+        testemunha.proxima();
+        testemunha.proxima();
+        relogio.avancar(Duration.ofSeconds(3));
+        piloto.enviar("{\"tipo\":\"vip\",\"evento\":\"" + primeiro + "\"}");
+        String outroPedido = "{\"tipo\":\"vip\",\"evento\":\"" + segundo + "\"}";
+        piloto.enviar(outroPedido);
+        piloto.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.evento")).isEqualTo(primeiro);
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(jdbc.queryForList("select evento from pontos_de_evento", String.class))
+                .contains(primeiro).doesNotContain(segundo);
+
+        relogio.avancar(Duration.ofSeconds(1));
+        piloto.enviar(outroPedido);
+        assertThat(JsonPath.<String>read(testemunha.proxima(), "$.evento")).isEqualTo(segundo);
+    }
+
+    @Test
+    void agendaAutomaticaSoPublicaQuandoHaPilotosNoAviso() throws Exception {
+        relogio.agora = Instant.parse("2026-11-23T15:00:00Z");
+        Horda horda = hordas.atual(relogio.instant());
+        var agenda = AgendaDeEventos.daHorda(horda);
+        var primeiro = agenda.get(0);
+        var segundo = agenda.get(1);
+        relogio.agora = primeiro.aviso();
+        agendador.verificar();
+        relogio.agora = primeiro.inicio();
+        agendador.verificar();
+        assertThat(jdbc.queryForObject("select count(*) from eventos_ao_vivo where evento = ?",
+                Integer.class, primeiro.id())).isZero();
+
+        Cliente piloto = conectar(token(nomeUnico("Agenda")));
+        esperarConectados(1);
+        relogio.agora = segundo.aviso().plusSeconds(2); // o agendador pode acordar atrasado
+        agendador.verificar();
+        agendador.verificar();
+        var aviso = JsonPath.<Map<String, Object>>read(piloto.proxima(), "$");
+        assertThat(aviso).containsEntry("evento", segundo.id()).containsEntry("em", 13);
+        assertThat(jdbc.queryForObject("select count(*) from eventos_ao_vivo where evento = ?",
+                Integer.class, segundo.id())).isEqualTo(1);
+        relogio.agora = segundo.inicio();
+        agendador.verificar();
+        var inicio = JsonPath.<Map<String, Object>>read(piloto.proxima(), "$");
+        assertThat(inicio).containsEntry("tipo", "evento-inicio").containsEntry("nome", segundo.tipo().name());
+        assertThat(((Number) inicio.get("semente")).longValue()).isEqualTo(segundo.semente());
+        piloto.nadaChegou();
+    }
+
+    private static void recusa(Cliente cliente) throws Exception {
+        assertThat(cliente.fechou.await(ESPERA_MS, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(cliente.statusDoFechamento.getCode()).isEqualTo(CloseStatus.POLICY_VIOLATION.getCode());
+    }
+
+    private Horda publicarPocoPolar() {
+        var c = catalogo.porId("poco-polar").orElseThrow();
+        var liberada = new DescricaoDeCaverna(c.id(), c.nome(), c.largura(), c.altura(), c.rochas(), c.base(),
+                c.pontosDePouso(), c.asteroides(), true);
+        doReturn(List.of(liberada)).when(catalogo).liberadas();
+        return hordas.atual(relogio.instant());
+    }
+
+    private ResultActions disparar(String token, String tipo) throws Exception {
+        var pedido = post("/api/admin/eventos").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"tipo\":\"" + tipo + "\"}");
+        if (token != null) {
+            pedido.header("Authorization", "Bearer " + token);
+        }
+        return mvc.perform(pedido);
+    }
+
+    private static void conferirInicioVip(String mensagem, String evento, DescricaoDeCaverna caverna) {
+        Map<String, Object> inicio = JsonPath.read(mensagem, "$");
+        assertThat(inicio).containsEntry("tipo", "evento-inicio").containsEntry("evento", evento)
+                .containsEntry("nome", "PASSAGEIRO_VIP").containsEntry("duracao", 45);
+        assertThat(inicio.get("semente")).isInstanceOf(Number.class);
+        Number x = JsonPath.read(mensagem, "$.vip.x");
+        Number y = JsonPath.read(mensagem, "$.vip.superficie");
+        assertThat(caverna.pontosDePouso()).contains(new PontoDePouso(x.doubleValue(), y.doubleValue()));
     }
 }
