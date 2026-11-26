@@ -145,5 +145,36 @@
     "tipo" : "PANE_DE_GRAVIDADE",
     "instante" : 45.77818079404612,
     "semente" : -5032694206115545595
-  } ]
+  } ],
+  "ajustes" : {
+    "facil" : {
+      "tanque" : 130.0,
+      "quedaMaxima" : 90.0,
+      "deslizeMaximo" : 60.0,
+      "inclinacaoMaxima" : 25.0,
+      "velocidadeDosAsteroides" : 0.75
+    },
+    "medio" : {
+      "tanque" : 100.0,
+      "quedaMaxima" : 75.0,
+      "deslizeMaximo" : 50.0,
+      "inclinacaoMaxima" : 20.0,
+      "velocidadeDosAsteroides" : 1.0
+    },
+    "dificil" : {
+      "tanque" : 100.0,
+      "quedaMaxima" : 65.0,
+      "deslizeMaximo" : 40.0,
+      "inclinacaoMaxima" : 15.0,
+      "velocidadeDosAsteroides" : 1.3
+    },
+    "eventos" : {
+      "velocidadeMinimaDosMeteoros" : 150.0,
+      "velocidadeMaximaDosMeteoros" : 250.0,
+      "duracaoDaChuva" : 20.0,
+      "duracaoDaTempestade" : 25.0,
+      "duracaoDaPane" : 20.0,
+      "duracaoDoVip" : 45.0
+    }
+  }
 }

@@ -55,7 +55,9 @@ public class ServicoDeEventos {
         }
     }
 
+    /** O evento do painel dura o que os ajustes gravados na horda atual dizem (DA-48), como os automáticos. */
     public void solicitar(TipoDeEvento tipo, Instant agora) {
+        long duracao = (long) hordas.atual(agora).descricao().ajustes().eventos().duracao(tipo);
         long indice = jdbc.queryForObject("select nextval('seq_evento_manual')", Long.class);
         Instant inicio = agora.truncatedTo(ChronoUnit.MICROS).plusSeconds(AVISO_SEGUNDOS);
         String vip = null;
@@ -64,7 +66,8 @@ public class ServicoDeEventos {
             sorteioManual.nextBytes(chave);
             vip = Sementes.emHex(chave);
         }
-        gravar(EventoAoVivo.novo(ServicoDeHordas.numeroEm(agora), indice, tipo, sorteioManual.nextLong(), inicio, vip));
+        gravar(EventoAoVivo.novo(ServicoDeHordas.numeroEm(agora), indice, tipo, sorteioManual.nextLong(), inicio, vip,
+                duracao));
     }
 
     private void gravar(EventoAoVivo evento) {
