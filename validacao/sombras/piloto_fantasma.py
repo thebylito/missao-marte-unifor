@@ -22,6 +22,7 @@ import base64
 import json
 import math
 import os
+import re
 import socket
 import ssl
 import struct
@@ -72,7 +73,8 @@ class WebSocket:
         self.sock = ssl.create_default_context().wrap_socket(bruto, server_hostname=u.hostname) \
             if u.scheme == 'wss' else bruto
         chave = base64.b64encode(os.urandom(16)).decode()
-        self.sock.sendall((f'GET {u.path} HTTP/1.1\r\nHost: {u.hostname}:{porta}\r\nUpgrade: websocket\r\n'
+        destino = u.path + ('?' + u.query if u.query else '')
+        self.sock.sendall((f'GET {destino} HTTP/1.1\r\nHost: {u.hostname}:{porta}\r\nUpgrade: websocket\r\n'
                            f'Connection: Upgrade\r\nSec-WebSocket-Key: {chave}\r\nSec-WebSocket-Version: 13\r\n'
                            f'Authorization: Bearer {token}\r\n\r\n').encode())
         resposta = b''
@@ -137,6 +139,12 @@ class WebSocket:
                 return None
 
 
+def sala_valida(valor):
+    if valor not in ('atual', 'livre') and not re.fullmatch(r'horda-[0-9]+', valor):
+        raise argparse.ArgumentTypeError('use livre, horda-N ou atual')
+    return valor
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--servidor', default='http://localhost:8080')
@@ -144,11 +152,26 @@ def main():
     p.add_argument('--segundos', type=float, default=60)
     p.add_argument('--explodir-a-cada', type=float, default=0, metavar='S',
                    help='explode a cada S segundos e fica 2 s sem mandar posição, como a nave destruída do jogo')
+    p.add_argument('--sala', type=sala_valida, help='livre, horda-N ou atual')
+    p.add_argument('--sobreviver', action='store_true', help='declara sobrevivência no fim dos perigos')
+    p.add_argument('--pegar-vip', action='store_true', help='disputa o VIP no início do evento')
+    p.add_argument('--skin', metavar='ID', help='anota a skin esperada; a equipada vem do perfil')
     a = p.parse_args()
     servidor = a.servidor.rstrip('/')
     senha = os.environ.get('MISSAOMARTE_SENHA_FANTASMA', 'fantasma-so-de-teste')
     token = entrar(servidor, a.nome, senha)
     ws_url = ('wss://' + servidor[8:] if servidor.startswith('https://') else 'ws://' + servidor[7:]) + '/ws/sombras'
+    sala = a.sala
+    if sala == 'atual':
+        with urllib.request.urlopen(servidor + '/api/hordas/atual', timeout=5) as resposta:
+            numero = json.load(resposta)['numero']
+        if type(numero) is not int or numero < 0:
+            sys.exit('número de horda inválido')
+        sala = f'horda-{numero}'
+    if sala:
+        ws_url += '?' + urllib.parse.urlencode({'sala': sala})
+    if a.skin:
+        print(f'Skin esperada: {a.skin} (equipada pelo perfil)', flush=True)
     ws = WebSocket(ws_url, token)
     del token
     print(f'{a.nome}: conectado a {ws_url}; voando por {a.segundos:.0f} s', flush=True)
@@ -157,6 +180,16 @@ def main():
     ultima = {}
     sairam = []
     explosoes = []
+
+    temporizadores = {}
+    fim = threading.Event()
+    trava_eventos = threading.Lock()
+
+    def resultado(evento):
+        with trava_eventos:
+            temporizadores.pop(evento, None)
+            if not fim.is_set():
+                ws.enviar(json.dumps({'tipo': 'evento-resultado', 'evento': evento, 'sobreviveu': True}))
 
     def ouvir():
         while True:
@@ -168,11 +201,26 @@ def main():
                 return
             m = json.loads(texto)
             if m.get('tipo') == 'sombra':
-                if m['nome'] not in vistos:
-                    print(f'  vê a sombra de {m["nome"]} (piloto {m["piloto"]}) em x={m["x"]:.0f} y={m["y"]:.0f}',
+                if m['nome'] not in vistos or m.get('skin') != ultima[m['nome']].get('skin'):
+                    print(f'  vê a sombra de {m["nome"]} (piloto {m["piloto"]}) em x={m["x"]:.0f} y={m["y"]:.0f} '
+                          f'(skin: {m.get("skin", "não informada")})',
                           flush=True)
                 vistos[m['nome']] += 1
                 ultima[m['nome']] = m
+            elif m.get('tipo') in ('evento-aviso', 'evento-inicio', 'vip-pego'):
+                print(time.strftime('%H:%M:%S'), texto, flush=True)
+                if m['tipo'] == 'evento-inicio':
+                    evento = m['evento']
+                    with trava_eventos:
+                        if fim.is_set():
+                            return
+                        if m['nome'] == 'PASSAGEIRO_VIP':
+                            if a.pegar_vip:
+                                ws.enviar(json.dumps({'tipo': 'vip', 'evento': evento}))
+                        elif a.sobreviver and evento not in temporizadores:
+                            timer = threading.Timer(m['duracao'], resultado, args=(evento,))
+                            temporizadores[evento] = timer
+                            timer.start()
             elif m.get('tipo') == 'saiu':
                 sairam.append(m['piloto'])
                 print(f'  piloto {m["piloto"]} saiu', flush=True)
@@ -203,6 +251,10 @@ def main():
                               'motor': math.sin(fase * 2) > 0}))
         enviadas += 1
         time.sleep(0.1)
+    with trava_eventos:
+        fim.set()
+        for timer in temporizadores.values():
+            timer.cancel()
     ws.fechar()
     time.sleep(0.3)
     print(f'{a.nome}: {enviadas} posições enviadas; recebidas: '

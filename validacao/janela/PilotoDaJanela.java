@@ -27,6 +27,13 @@ import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Random;
+import java.util.function.BooleanSupplier;
+import br.edu.unifor.missaomarte.grafico.telas.TelaMenu;
+import br.edu.unifor.missaomarte.grafico.telas.TelaHangar;
+import br.edu.unifor.missaomarte.grafico.telas.TelaFimDePartida;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoMenu;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoHangar;
+import br.edu.unifor.missaomarte.grafico.apresentacao.EnvioDoResultado;
 import java.util.zip.Deflater;
 
 /**
@@ -62,6 +69,10 @@ import java.util.zip.Deflater;
  *              python3 validacao/sombras/piloto_fantasma.py --servidor <o mesmo> --segundos 40 --explodir-a-cada 4.
  *              Cria uma conta, fica na base e tira prints da sombra e das explosões dela; no fim bate no teto, e o
  *              fantasma registra a explosão desta nave.
+ *   horda-faixa - fotografa o menu de convidado quando a Horda estiver disponível.
+ *   hangar - entra com MISSAOMARTE_PILOTO e MISSAOMARTE_SENHA_PILOTO, abre por 7 e navega em paisagem.
+ *   horda - mesma conta, H solicita o bilhete. Fotografa o voo e o resultado. Por padrão espera na base
+ *           e mantém o motor ligado até a derrota. Para pilotar até a vitória, use -Dmissaomarte.vooManual=true.
  */
 public class PilotoDaJanela extends MissaoMarteGame {
 
@@ -101,9 +112,91 @@ public class PilotoDaJanela extends MissaoMarteGame {
             montarRoteiroDePilotagem();
         } else if (roteiro.equals("sombras")) {
             montarRoteiroDeSombras();
+        } else if (roteiro.equals("hangar") || roteiro.equals("horda-faixa") || roteiro.equals("horda")) {
+            montarFaseOito(roteiro);
         } else {
             montarRoteiro();
         }
+    }
+
+    /** Espera sem bloquear a renderização e os callbacks HTTP da libGDX. */
+    private void esperar(String etapa, int segundos, BooleanSupplier pronto) {
+        roteiro.add(new Passo() {
+            private long inicio;
+
+            public void executar() {
+                if (pronto.getAsBoolean()) return;
+                long agora = System.nanoTime();
+                if (inicio == 0) inicio = agora;
+                if (agora - inicio > segundos * 1_000_000_000L) {
+                    throw new IllegalStateException("Tempo esgotado esperando " + etapa);
+                }
+                roteiro.addFirst(this);
+            }
+        });
+    }
+
+    private <T> T campoDaTela(String nome, Class<T> tipo) {
+        try {
+            var campo = getScreen().getClass().getDeclaredField(nome);
+            campo.setAccessible(true);
+            return tipo.cast(campo.get(getScreen()));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void digitarCampo(String variavel) {
+        String valor = System.getenv(variavel);
+        if (valor == null || valor.isEmpty()) throw new IllegalArgumentException("Defina " + variavel);
+        roteiro.add(() -> valor.chars().forEach(c -> Gdx.input.getInputProcessor().keyTyped((char) c)));
+    }
+
+    private void montarFaseOito(String nome) {
+        if (nome.equals("horda-faixa")) {
+            tecla(Keys.NUM_3, '3');
+        } else {
+            tecla(Keys.NUM_1, '1');
+            digitarCampo("MISSAOMARTE_PILOTO");
+            tecla(Keys.ENTER, '\r');
+            digitarCampo("MISSAOMARTE_SENHA_PILOTO");
+            tecla(Keys.ENTER, '\r');
+        }
+        esperar("menu", 20, () -> getScreen() instanceof TelaMenu);
+        if (nome.equals("hangar")) {
+            tecla(Keys.NUM_7, '7');
+            esperar("perfil e catálogo no Hangar", 20, () -> {
+                if (!(getScreen() instanceof TelaHangar)) return false;
+                var controle = campoDaTela("controlador", ControladorDoHangar.class);
+                return !controle.ocupado() && controle.hangar() != null && !controle.itens().isEmpty();
+            });
+            print("hangar");
+            tecla(Keys.DOWN, (char) 0);
+            print("hangar-proxima-skin");
+        } else {
+            esperar("faixa da Horda", 20, () ->
+                    campoDaTela("controlador", ControladorDoMenu.class).faixaDaHorda().size() == 3);
+            print("horda-faixa");
+            if (nome.equals("horda")) montarVooDaHorda();
+        }
+        roteiro.add(() -> Gdx.app.exit());
+    }
+
+    private void montarVooDaHorda() {
+        tecla(Keys.H, 'h');
+        esperar("bilhete e voo da Horda", 20, () -> getScreen() instanceof TelaPilotagem tela
+                && tela.getControlador().sala().startsWith("horda-"));
+        if (!Boolean.getBoolean("missaomarte.vooManual")) {
+            aguardar(46f);  // janela para o evento e o tempo mínimo do bilhete
+            roteiro.add(() -> Gdx.input.getInputProcessor().keyDown(Keys.UP));
+        }
+        esperar("decolagem", 120, () -> getScreen() instanceof TelaPilotagem tela
+                && tela.getControlador().getPartida().getNave().getEstado() == NaveEmVoo.Estado.VOANDO);
+        print("horda-voo");
+        esperar("fim da Horda", 1800, () -> getScreen() instanceof TelaFimDePartida);
+        esperar("resposta do registro", 20, () ->
+                campoDaTela("envio", EnvioDoResultado.class).getEstado() != EnvioDoResultado.Estado.ENVIANDO);
+        print("horda-fim");
     }
 
     /** Começo comum: entra como convidado, menu, ranking vazio, apagar cancelado e a nova partida (Ana, Fácil, mapa 3). */
