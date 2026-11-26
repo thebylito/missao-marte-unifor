@@ -26,6 +26,7 @@ public class TelaMenu extends TelaBase {
     private static final float Y_DAS_OPCOES = 385;
     private static final float PASSO = 36;
     private static final Retangulo FAIXA_HORDA = new Retangulo(40, 8, 720, 100);
+    private static final Color FUNDO_HORDA = new Color(0.36f, 0.19f, 0.10f, 0.96f);
     private static final Retangulo BOTAO_SIM = new Retangulo(250, 70, 140, 60);
     private static final Retangulo BOTAO_NAO = new Retangulo(410, 70, 140, 60);
 
@@ -34,7 +35,7 @@ public class TelaMenu extends TelaBase {
 
     public TelaMenu(MissaoMarteGame jogo) {
         super(jogo);
-        this.controlador = new ControladorDoMenu(jogo.getServicos().ranking(), jogo.getServicos().servidor(),
+        this.controlador = new ControladorDoMenu(jogo.getServicos().ranking(), jogo.getFaixaDaHorda(),
                 () -> jogo.getSessao().isPresent());
     }
 
@@ -104,10 +105,14 @@ public class TelaMenu extends TelaBase {
         escreverComQuebra(controlador.getMensagem(), 42, 145, 716, corDaMensagem, 1f);
         lote().end();
         if (!controlador.isConfirmandoApagar()) {
-            desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1);
+            boolean conectado = jogo.getSessao().isPresent();
+            if (conectado) desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1, FUNDO_HORDA);
+            else desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1);
             lote().begin();
-            escreverTitulo(toque() ? "Jogar a Horda" : "[H] Jogar a Horda", 100, Color.ORANGE, 1.2f);
-            float yDaFaixa = 76;
+            escreverTitulo(conectado ? "▶ Jogar a Horda" : ControladorDoMenu.CONVITE_PARA_ENTRAR,
+                    104, conectado ? Color.GOLD : Color.ORANGE, conectado ? 1.6f : 1.25f);
+            if (conectado && !toque()) escrever("[H]", 706, 98, Color.GOLD, 1.1f);
+            float yDaFaixa = 75;
             for (String linha : controlador.faixaDaHorda()) {
                 escreverCentralizado(linha, yDaFaixa, Color.WHITE, 1f);
                 yDaFaixa -= 21;

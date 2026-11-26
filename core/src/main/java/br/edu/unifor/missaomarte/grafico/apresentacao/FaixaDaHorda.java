@@ -10,7 +10,7 @@ import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 
 /** A duração vem do servidor e passa a contar na chegada da resposta, inclusive se o aplicativo for suspenso. */
-final class FaixaDaHorda {
+public final class FaixaDaHorda {
     private static final long INTERVALO_MS = 60_000;
 
     private final ServidorDoJogo servidor;
@@ -22,13 +22,17 @@ final class FaixaDaHorda {
     private long segundoExibido = -1;
     private List<String> linhas = List.of("Consultando a horda...");
 
+    public FaixaDaHorda(ServidorDoJogo servidor) {
+        this(servidor, () -> System.nanoTime() / 1_000_000);
+    }
+
     FaixaDaHorda(ServidorDoJogo servidor, LongSupplier milissegundos) {
         this.servidor = servidor;
         this.milissegundos = milissegundos;
         consultar();
     }
 
-    void atualizar() {
+    public void atualizar() {
         if (!consultando && milissegundos.getAsLong() >= consultarEm) consultar();
     }
 
@@ -53,11 +57,11 @@ final class FaixaDaHorda {
         return Math.max(0, atual.segundosParaAcabar() - (milissegundos.getAsLong() - recebidaEm) / 1000);
     }
 
-    HordaAtual disponivel() {
+    public HordaAtual disponivel() {
         return atual != null && restante() > 0 ? atual : null;
     }
 
-    List<String> linhas() {
+    public List<String> linhas() {
         if (atual == null) return linhas;
         long segundos = restante();
         if (segundos == segundoExibido) return linhas;

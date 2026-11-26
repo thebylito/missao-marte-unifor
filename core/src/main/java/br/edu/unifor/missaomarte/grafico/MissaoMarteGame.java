@@ -7,7 +7,9 @@ import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDaPilotagem;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoHangar;
 import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoRanking;
+import br.edu.unifor.missaomarte.grafico.apresentacao.ControladorDoMenu;
 import br.edu.unifor.missaomarte.grafico.apresentacao.EnvioDoResultado;
+import br.edu.unifor.missaomarte.grafico.apresentacao.FaixaDaHorda;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.FormularioNovaPartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.InicioDaPartida;
@@ -16,6 +18,7 @@ import br.edu.unifor.missaomarte.grafico.audio.Sons;
 import br.edu.unifor.missaomarte.grafico.audio.SonsLibgdx;
 import br.edu.unifor.missaomarte.grafico.online.Falha;
 import br.edu.unifor.missaomarte.grafico.online.Hangar;
+import br.edu.unifor.missaomarte.grafico.online.HordaAtual;
 import br.edu.unifor.missaomarte.grafico.online.Resposta;
 import br.edu.unifor.missaomarte.grafico.online.Sessao;
 import br.edu.unifor.missaomarte.grafico.recursos.Recursos;
@@ -40,7 +43,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.Optional;
 import java.util.function.Consumer;
-import br.edu.unifor.missaomarte.grafico.online.HordaAtual;
 
 /**
  * Classe principal do cliente libGDX. A libGDX chama os métodos do ciclo de vida
@@ -76,6 +78,7 @@ public class MissaoMarteGame extends Game {
     private long geracaoDaSessao;
     private long versaoDoPerfil;
     private InicioDaPartida inicioDaPartida;
+    private FaixaDaHorda faixaDaHorda;
 
     public MissaoMarteGame(ServicosDoJogo servicos) {
         this(servicos, Plataforma.padrao());
@@ -281,9 +284,13 @@ public class MissaoMarteGame extends Game {
     }
 
     public void iniciarPartida(FormularioNovaPartida formulario) {
-        inicioDaPartida = InicioDaPartida.pedir(getSessao(), servicos.servidor(), formulario.getModo(),
-                formulario.getDificuldade());
-        if (formulario.getModo() == Modo.PILOTAGEM) {   // Fase 7
+        Modo modo = switch (formulario.getModo()) {
+            case CLASSICO -> Modo.CLASSICO;
+            case PILOTAGEM -> Modo.PILOTAGEM;
+            case HORDA -> throw new IllegalArgumentException("A Horda exige um desafio publicado e um bilhete.");
+        };
+        inicioDaPartida = InicioDaPartida.pedir(getSessao(), servicos.servidor(), modo, formulario.getDificuldade());
+        if (modo == Modo.PILOTAGEM) {
             Diario.registrar("pilotagem: " + formulario.getDificuldade());
             PartidaDePilotagem voo = PartidaDePilotagem.nova(formulario.getPiloto(), formulario.getDificuldade());
             abrirPilotagem(new ControladorDaPilotagem(voo, servicos.rankingDaPilotagem()));
@@ -302,7 +309,7 @@ public class MissaoMarteGame extends Game {
 
     public void iniciarHorda(HordaAtual atual, Consumer<String> aoFalhar) {
         if (sessao == null) {
-            aoFalhar.accept("Entre com uma conta para jogar a Horda");
+            aoFalhar.accept(ControladorDoMenu.CONVITE_PARA_ENTRAR);
             return;
         }
         Screen origem = getScreen();
@@ -347,6 +354,12 @@ public class MissaoMarteGame extends Game {
     // ---- recursos compartilhados (válidos entre create e dispose) ----
 
     public ServicosDoJogo getServicos() { return servicos; }
+    public FaixaDaHorda getFaixaDaHorda() {
+        if (faixaDaHorda == null) {
+            faixaDaHorda = new FaixaDaHorda(servicos.servidor());
+        }
+        return faixaDaHorda;
+    }
     public Plataforma getPlataforma() { return plataforma; }
     public ShapeRenderer getFormas() { return formas; }
     public SpriteBatch getLote() { return lote; }

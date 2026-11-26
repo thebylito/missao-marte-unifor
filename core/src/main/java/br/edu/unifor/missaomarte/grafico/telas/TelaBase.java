@@ -282,10 +282,14 @@ public abstract class TelaBase implements Screen {
 
     /** Desenha botões (retângulo + rótulo) fora de begin/end. Usado só no modo toque. */
     protected void desenharBotoes(List<Retangulo> areas, List<String> rotulos, float escalaDoTexto) {
+        desenharBotoes(areas, rotulos, escalaDoTexto, COR_DO_BOTAO);
+    }
+
+    protected void desenharBotoes(List<Retangulo> areas, List<String> rotulos, float escalaDoTexto, Color fundo) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         formas().begin(ShapeType.Filled);
-        formas().setColor(COR_DO_BOTAO);
+        formas().setColor(fundo);
         for (Retangulo r : areas) {
             formas().rect(r.x(), r.y(), r.largura(), r.altura());
         }

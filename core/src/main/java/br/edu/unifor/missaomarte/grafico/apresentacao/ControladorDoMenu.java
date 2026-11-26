@@ -17,6 +17,7 @@ public final class ControladorDoMenu {
     public enum Acao { NENHUMA, NOVA_PARTIDA, RANKING, SAIR, HISTORICO, TROCAR_PILOTO, HANGAR, HORDA }
 
     public static final String PERGUNTA_APAGAR = "Você realmente deseja limpar o histórico de ranking? (S/N)";
+    public static final String CONVITE_PARA_ENTRAR = "Entre com uma conta para jogar a Horda";
 
     private final ServicoRanking servicoRanking;
     private final FaixaDaHorda faixa;
@@ -35,9 +36,13 @@ public final class ControladorDoMenu {
 
     ControladorDoMenu(ServicoRanking servicoRanking, ServidorDoJogo servidor, BooleanSupplier conectado,
                       LongSupplier relogio) {
+        this(servicoRanking, new FaixaDaHorda(servidor, relogio), conectado);
+    }
+
+    public ControladorDoMenu(ServicoRanking servicoRanking, FaixaDaHorda faixa, BooleanSupplier conectado) {
         this.servicoRanking = servicoRanking;
         this.conectado = conectado;
-        faixa = new FaixaDaHorda(servidor, relogio);
+        this.faixa = faixa;
     }
 
     public void atualizarHorda() { faixa.atualizar(); }
@@ -59,7 +64,7 @@ public final class ControladorDoMenu {
             case Keys.H:
                 HordaAtual disponivel = faixa.disponivel();
                 if (!conectado.getAsBoolean()) {
-                    mensagem = "Entre com uma conta para jogar a horda.";
+                    mensagem = CONVITE_PARA_ENTRAR;
                 } else if (disponivel == null) {
                     mensagem = "A horda está indisponível no momento.";
                 } else if (aguardandoBilhete == null) {
