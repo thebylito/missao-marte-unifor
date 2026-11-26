@@ -42,18 +42,4 @@ public record AjustesDeVoo(AjustesDaDificuldade facil, AjustesDaDificuldade medi
                 return medio;
         }
     }
-
-    /** Recusa um valor fora da faixa (inclusive) ou que não é um número. */
-    static void exigir(String campo, double valor, double minimo, double maximo) {
-        if (!(valor >= minimo && valor <= maximo)) {
-            throw new IllegalArgumentException(campo + " precisa estar entre " + numero(minimo) + " e "
-                    + numero(maximo) + " (veio " + numero(valor) + ")");
-        }
-    }
-
-    /** 20 em vez de 20.0, para a mensagem ficar igual ao que se escreve na variável. */
-    static String numero(double valor) {
-        return valor == Math.rint(valor) && Math.abs(valor) < 1e15 ? Long.toString((long) valor)
-                : Double.toString(valor);
-    }
 }

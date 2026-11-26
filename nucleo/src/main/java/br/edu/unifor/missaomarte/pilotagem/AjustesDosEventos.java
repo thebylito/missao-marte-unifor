@@ -1,7 +1,7 @@
 package br.edu.unifor.missaomarte.pilotagem;
 
-import static br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo.exigir;
-import static br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo.numero;
+import static br.edu.unifor.missaomarte.pilotagem.FaixaDosAjustes.exigir;
+import static br.edu.unifor.missaomarte.pilotagem.FaixaDosAjustes.numero;
 
 import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
 

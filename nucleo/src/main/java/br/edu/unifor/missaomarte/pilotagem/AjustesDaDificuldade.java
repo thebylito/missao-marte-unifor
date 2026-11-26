@@ -1,6 +1,6 @@
 package br.edu.unifor.missaomarte.pilotagem;
 
-import static br.edu.unifor.missaomarte.pilotagem.AjustesDeVoo.exigir;
+import static br.edu.unifor.missaomarte.pilotagem.FaixaDosAjustes.exigir;
 
 /**
  * Fase 8 (DA-48): os números de uma dificuldade que o servidor pode ajustar. Os outros números da
