@@ -170,7 +170,7 @@ public final class TelaHangar extends TelaBase {
         SkinDaLoja skin = linha.skin();
         lote().draw(jogo.getNaves().previa(skin.id()), area.x() + 8, area.y() + 4, 64, 64);
         escreverTitulo(skin.nome(), area.x() + 84, area.topo() - 11, Color.WHITE, 1.2f);
-        escrever(skin.linha() + "  |  Nível " + skin.nivel(), area.x() + 84, area.y() + 27, Color.LIGHT_GRAY, 1f);
+        escrever(controlador.rotuloDaLinha(skin), area.x() + 84, area.y() + 27, Color.LIGHT_GRAY, 1f);
         escrever(skin.preco() + " moedas", area.direita() - 154, area.topo() - 13, Color.ORANGE, 1.1f);
         escrever(rotulo(skin), area.direita() - 154, area.y() + 27, Color.SKY, 1f);
     }
