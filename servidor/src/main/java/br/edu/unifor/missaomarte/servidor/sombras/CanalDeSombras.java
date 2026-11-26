@@ -87,7 +87,7 @@ public class CanalDeSombras extends TextWebSocketHandler {
 
     record Sala(String nome, double largura, double altura, List<PontoDePouso> pontosVip, Instant fechaEm) {
         boolean fechadaEm(Instant agora) {
-            return fechaEm != null && !agora.isBefore(fechaEm);
+            return fechaEm != null && agora.isAfter(fechaEm);
         }
     }
 
@@ -108,9 +108,10 @@ public class CanalDeSombras extends TextWebSocketHandler {
         this.eventos = eventos;
         var ocupados = MARCIANA.getPlataformas().stream()
                 .map(p -> new PontoDePouso(p.getX(), p.getSuperficie())).collect(Collectors.toSet());
-        var pontosLivres = catalogo.porId("marciana").orElseThrow().pontosDePouso().stream()
-                .filter(p -> !ocupados.contains(p)).toList();
-        livre = new Sala("livre", LARGURA_DA_CAVERNA, ALTURA_DA_CAVERNA, pontosLivres, null);
+        var pontos = catalogo.porId("marciana").orElseThrow().pontosDePouso();
+        var pontosLivres = pontos.stream().filter(p -> !ocupados.contains(p)).toList();
+        livre = new Sala("livre", LARGURA_DA_CAVERNA, ALTURA_DA_CAVERNA,
+                pontosLivres.isEmpty() ? pontos : pontosLivres, null);
     }
 
     @Override
@@ -176,6 +177,9 @@ public class CanalDeSombras extends TextWebSocketHandler {
         }
         long agora = instante.toEpochMilli();
         String tipo = repasse.get("tipo").asString();
+        if (tipo.equals("explosao")) {
+            eventos.registrarExplosao(piloto, instante);
+        }
         long intervalo = tipo.equals("explosao") ? INTERVALO_MINIMO_ENTRE_EXPLOSOES_MS : INTERVALO_MINIMO_MS;
         synchronized (piloto) {
             Long ultimo = piloto.ultimoRepasseMs().get(tipo);
@@ -233,7 +237,7 @@ public class CanalDeSombras extends TextWebSocketHandler {
     }
 
     public void verificarEventos(Instant agora) {
-        var ativos = pilotos.values().stream().filter(p -> !p.sala().fechadaEm(agora)).toList();
+        var ativos = pilotos.values().stream().filter(p -> p.sessao().isOpen() && !p.sala().fechadaEm(agora)).toList();
         eventos.verificar(agora, ativos);
     }
 

@@ -33,8 +33,8 @@ public class DocumentacaoDaApi {
                 .info(new Info()
                         .title("Missão Marte — servidor de ranking")
                         .version("5.0.0")
-                        .description("Cadastro e login de jogadores (token JWT), histórico de partidas e ranking "
-                                + "global Top 10. O servidor guarda pontuações; não executa o jogo."))
+                        .description("Cadastro e login, histórico, moedas e skins, Horda, placares e painel de eventos. "
+                                + "O canal WebSocket /ws/sombras está documentado em docs/api/contrato-horda.md."))
                 .servers(List.of(new Server().url(endereco).description(descricao)))
                 .components(new Components().addSecuritySchemes("token", new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")

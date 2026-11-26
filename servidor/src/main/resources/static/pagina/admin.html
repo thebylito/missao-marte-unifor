@@ -14,14 +14,14 @@
       <a href="/">Voltar ao Missão Marte</a>
       <h1 id="titulo">Eventos ao vivo</h1>
       <div class="cartao">
-        <form id="login">
+        <form id="login" method="post">
           <label for="nome">Nome do jogador</label>
           <input id="nome" name="nome" autocomplete="username" required>
           <label for="senha">Senha</label>
           <input id="senha" name="senha" type="password" autocomplete="current-password" required>
           <button class="botao principal" type="submit">Entrar</button>
         </form>
-        <form id="evento" hidden>
+        <form id="evento" method="post" hidden>
           <label for="tipo">Evento</label>
           <select id="tipo" name="tipo" required>
             <option value="CHUVA_DE_METEOROS">Chuva de meteoros</option>

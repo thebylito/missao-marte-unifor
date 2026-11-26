@@ -1,5 +1,6 @@
 package br.edu.unifor.missaomarte.servidor.partida;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
 /**
@@ -8,7 +9,9 @@ import java.time.Instant;
  */
 public record PartidaRegistrada(Long id, Resultado resultado, Dificuldade dificuldade, int pontos, int passageiros,
                                 int movimentos, long tempoSegundos, Instant registradaEm, Modo modo,
-                                int moedasGanhas, int saldo, Integer colocacao) {
+                                int moedasGanhas, int saldo,
+                                @Schema(description = "Posição do jogador no Top 10 da horda, ou null.",
+                                        types = {"integer", "null"}, format = "int32") Integer colocacao) {
 
     public static PartidaRegistrada de(Partida p, int moedasGanhas, int saldo, Integer colocacao) {
         return new PartidaRegistrada(p.getId(), p.getResultado(), p.getDificuldade(), p.getPontos(),

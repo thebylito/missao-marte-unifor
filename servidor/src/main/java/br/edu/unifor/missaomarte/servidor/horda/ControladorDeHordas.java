@@ -5,6 +5,7 @@ import static br.edu.unifor.missaomarte.servidor.moedas.ServicoDeMoedas.FORTALEZ
 import br.edu.unifor.missaomarte.servidor.partida.Dificuldade;
 import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDaHorda;
 import br.edu.unifor.missaomarte.pilotagem.horda.Modificador;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@SecurityRequirements
 public class ControladorDeHordas {
 
     private static final DateTimeFormatter HORA_LOCAL = DateTimeFormatter.ofPattern("HH:mm").withZone(FORTALEZA);

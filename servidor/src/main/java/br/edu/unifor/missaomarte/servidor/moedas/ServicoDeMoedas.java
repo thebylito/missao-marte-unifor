@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   vitória no Fácil leva de 8 a 10 s);</li>
  *   <li>Pilotagem Livre: {@value #VITORIA_NO_LIVRE}, mais {@value #BONUS_DO_DIFICIL_NO_LIVRE} no Difícil.</li>
  * </ul>
- * Derrota e abortada não dão nada. A Horda e os fechamentos entram nas etapas 4 e 6.
+ * Derrota e abortada não dão nada. O prêmio por vitória na Horda é de 5 moedas.
  */
 @Service
 public class ServicoDeMoedas {

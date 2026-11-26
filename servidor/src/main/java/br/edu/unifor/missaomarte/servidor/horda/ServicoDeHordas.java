@@ -72,7 +72,7 @@ public class ServicoDeHordas {
         if (cavernaDeEnsaio != null) {
             return sortearEnsaio(numero);
         }
-        return gravada(numero, false).orElseGet(() -> gerar(numero));
+        return gravada(numero).orElseGet(() -> gerar(numero));
     }
 
     /** Salas só são abertas para hordas publicadas, dentro da janela das partidas. */
@@ -80,30 +80,38 @@ public class ServicoDeHordas {
         if (!naJanela(numero, agora)) {
             return Optional.empty();
         }
-        return cavernaDeEnsaio == null ? gravada(numero, false) : Optional.of(sortearEnsaio(numero));
+        return cavernaDeEnsaio == null ? gravada(numero) : Optional.of(sortearEnsaio(numero));
     }
 
     /** Chamado na transação da partida, com a mesma trava que protege seu fechamento. */
     @Transactional
-    public void conferirPartida(Long numero, Dificuldade dificuldade) {
+    public Instant conferirPartida(Long numero, Dificuldade dificuldade) {
         if (numero == null) {
             throw pedidoInvalido("informe o número da horda");
         }
         Instant agora = relogio.instant();
         conferirJanela(numero, agora);
-        Horda horda;
+        Dificuldade sorteada;
         if (cavernaDeEnsaio != null) {
-            horda = sortearEnsaio(numero);
+            sorteada = Dificuldade.valueOf(sortearEnsaio(numero).descricao().dificuldade().name());
         } else {
-            if (numero == numeroEm(agora)) {
+            var estado = travar(numero);
+            if (estado.isEmpty() && numero == numeroEm(agora)) {
                 atual(agora);
+                estado = travar(numero);
             }
-            horda = gravada(numero, true).orElseThrow(() -> pedidoInvalido("horda desconhecida"));
-            conferirJanela(numero, relogio.instant());
+            EstadoDaHorda horda = estado.orElseThrow(() -> pedidoInvalido("horda desconhecida"));
+            agora = relogio.instant();
+            conferirJanela(numero, agora);
+            if (horda.fechada()) {
+                throw encerrada();
+            }
+            sorteada = horda.dificuldade();
         }
-        if (!horda.descricao().dificuldade().name().equals(dificuldade.name())) {
+        if (dificuldade != sorteada) {
             throw pedidoInvalido("a dificuldade não corresponde à da horda");
         }
+        return agora;
     }
 
     private static void conferirJanela(long numero, Instant agora) {
@@ -111,21 +119,31 @@ public class ServicoDeHordas {
             throw pedidoInvalido("a horda ainda não começou");
         }
         if (!naJanela(numero, agora)) {
-            var erro = new ResponseStatusException(HttpStatus.CONFLICT, "a horda está encerrada");
-            erro.getBody().setProperty("motivo", "HORDA_ENCERRADA");
-            throw erro;
+            throw encerrada();
         }
+    }
+
+    private static ResponseStatusException encerrada() {
+        var erro = new ResponseStatusException(HttpStatus.CONFLICT, "a horda está encerrada");
+        erro.getBody().setProperty("motivo", "HORDA_ENCERRADA");
+        return erro;
     }
 
     private static boolean naJanela(long numero, Instant agora) {
         long atual = numeroEm(agora);
-        return numero == atual || numero == atual - 1
-                && agora.isBefore(inicioDe(atual).plus(TOLERANCIA));
+        return numero == atual || numero == atual - 1 && !agora.isAfter(inicioDe(atual).plus(TOLERANCIA));
     }
 
-    private Optional<Horda> gravada(long numero, boolean travar) {
-        return jdbc.query("select numero, inicio, fim, semente, descricao from hordas where numero = ?"
-                        + (travar ? " for update" : ""),
+    private Optional<EstadoDaHorda> travar(long numero) {
+        return jdbc.query("select dificuldade, fechada_em from hordas where numero = ? for update",
+                (r, i) -> new EstadoDaHorda(Dificuldade.valueOf(r.getString("dificuldade")),
+                        r.getObject("fechada_em") != null), numero).stream().findFirst();
+    }
+
+    private record EstadoDaHorda(Dificuldade dificuldade, boolean fechada) {}
+
+    private Optional<Horda> gravada(long numero) {
+        return jdbc.query("select numero, inicio, fim, semente, descricao from hordas where numero = ?",
                 (r, i) -> new Horda(r.getLong("numero"), r.getObject("inicio", OffsetDateTime.class).toInstant(),
                         r.getObject("fim", OffsetDateTime.class).toInstant(), r.getLong("semente"),
                         json.readValue(r.getString("descricao"), DescricaoDaHorda.class)), numero).stream().findFirst();
@@ -141,7 +159,7 @@ public class ServicoDeHordas {
                 values (?, ?, ?, ?, ?, ?, ?) on conflict do nothing
                 """, numero, utc(horda.inicio()), utc(horda.fim()), semente, horda.descricao().caverna().id(),
                 horda.descricao().dificuldade().name(), json.writeValueAsString(horda.descricao()));
-        return gravada(numero, false).orElseThrow();
+        return gravada(numero).orElseThrow();
     }
 
     private Horda sortearEnsaio(long numero) {

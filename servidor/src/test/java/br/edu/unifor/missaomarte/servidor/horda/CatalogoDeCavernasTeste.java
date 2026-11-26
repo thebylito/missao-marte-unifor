@@ -25,7 +25,7 @@ class CatalogoDeCavernasTeste {
     void springCarregaAsTresCavernasESoLiberaAMarciana() {
         try (var contexto = new AnnotationConfigApplicationContext()) {
             contexto.registerBean(JsonMapper.class, () -> json);
-            contexto.scan(CatalogoDeCavernas.class.getPackageName());
+            contexto.register(CatalogoDeCavernas.class);
             contexto.refresh();
             var catalogo = contexto.getBean(CatalogoDeCavernas.class);
             assertThat(catalogo.todas()).extracting(DescricaoDeCaverna::id)

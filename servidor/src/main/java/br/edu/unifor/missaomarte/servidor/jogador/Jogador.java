@@ -33,7 +33,7 @@ public class Jogador {
 
     /**
      * Fase 8: o id da skin equipada (catálogo da loja). O valor padrão no banco faz os jogadores que já existiam
-     * ficarem com a nave de sempre quando a coluna é criada ({@code ddl-auto=update} num banco com dados).
+     * ficarem com a nave de sempre ao aplicar a migração V2.
      */
     @ColumnDefault("'padrao'")
     @Column(nullable = false, length = 32)

@@ -3,9 +3,6 @@ package br.edu.unifor.missaomarte.servidor.moedas;
 /**
  * De onde veio (ou para onde foi) um movimento de moedas (Fase 8). Com a referência, identifica o crédito: o mesmo
  * par nunca entra duas vezes no extrato do jogador.
- *
- * <p>Nesta etapa só há caminho para {@link #VITORIA_CLASSICO}, {@link #VITORIA_LIVRE} e {@link #COMPRA}. A Horda,
- * o fechamento da horda e o da semana já estão previstos, mas só serão creditados nas etapas 4 e 6.
  */
 public enum Origem {
     /** Vitória no Clássico: 1 moeda, até 20 por dia de Fortaleza. Referência {@code partida:<id>}. */

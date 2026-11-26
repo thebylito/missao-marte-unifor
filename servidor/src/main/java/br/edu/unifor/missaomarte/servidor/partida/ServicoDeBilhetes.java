@@ -23,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
  *   <li>a vitória só rende moedas se o bilhete é do mesmo jogador, está ativo e dentro da validade, tem o mesmo modo
  *   e a mesma dificuldade da partida, e se passou tempo real suficiente desde que ele foi emitido: pelo menos o
  *   tempo da partida menos {@link #FOLGA}, e nunca menos que o mínimo do modo (5 s no Clássico, 45 s na
- *   Pilotagem).</li>
+ *   Pilotagem e na Horda).</li>
  * </ul>
  * Um bilhete de outro jogador é ignorado e não é gasto: ninguém queima o bilhete de outro piloto.
  */
@@ -58,14 +58,13 @@ public class ServicoDeBilhetes {
     /** Emite um bilhete novo e anula o que estiver ativo. O jogador fica travado para não sobrarem dois ativos. */
     @Transactional
     public BilheteResposta emitir(long jogadorId, InicioDePartida pedido) {
-        if (pedido.modo() == Modo.HORDA) {
-            hordas.conferirPartida(pedido.horda(), pedido.dificuldade());
-        }
+        boolean horda = pedido.modo() == Modo.HORDA;
+        Instant admitidaEm = horda ? hordas.conferirPartida(pedido.horda(), pedido.dificuldade()) : null;
         Jogador jogador = jogadores.travar(jogadorId).orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
-        Instant agora = relogio.instant();
+        Instant agora = horda ? admitidaEm : relogio.instant();
         bilhetes.findByJogadorIdAndEstado(jogadorId, EstadoDoBilhete.ATIVO).forEach(b -> b.anular(agora));
         BilheteDePartida novo = bilhetes.save(new BilheteDePartida(UUID.randomUUID(), jogador, pedido.modo(),
-                pedido.dificuldade(), agora, agora.plus(VALIDADE), pedido.modo() == Modo.HORDA ? pedido.horda() : null));
+                pedido.dificuldade(), agora, agora.plus(VALIDADE), horda ? pedido.horda() : null));
         return new BilheteResposta(novo.getCodigo(), novo.getValidoAte());
     }
 

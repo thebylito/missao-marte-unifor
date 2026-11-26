@@ -479,26 +479,36 @@ class CanalDeSombrasTeste {
     }
 
     @Test
-    void perigoPontuaUmaVezSoParaQuemEstavaConectadoNoInicio() throws Exception {
+    void perigoPontuaUmaVezSoParaQuemEstavaConectadoESobreviveu() throws Exception {
         relogio.agora = Instant.parse("2026-11-22T15:10:00Z");
         String admin = token("Admin-Perigo");
         String sobrevivente = nomeUnico("Sobreviveu");
         Cliente a = conectar(token(sobrevivente));
-        esperarConectados(1);
+        Cliente explodiu = conectar(token(nomeUnico("Explodiu")));
+        esperarConectados(2);
         disparar(admin, "CHUVA_DE_METEOROS").andExpect(status().isAccepted());
         agendador.verificar();
         String evento = JsonPath.read(a.proxima(), "$.evento");
+        assertThat(JsonPath.<String>read(explodiu.proxima(), "$.evento")).isEqualTo(evento);
         relogio.avancar(Duration.ofSeconds(15));
         agendador.verificar();
         Map<String, Object> inicio = JsonPath.read(a.proxima(), "$");
         assertThat(inicio).containsEntry("tipo", "evento-inicio").containsEntry("evento", evento)
                 .containsEntry("nome", "CHUVA_DE_METEOROS").containsEntry("duracao", 20).doesNotContainKey("vip");
         assertThat(inicio.get("semente")).isInstanceOf(Number.class);
+        assertThat(JsonPath.<String>read(explodiu.proxima(), "$.tipo")).isEqualTo("evento-inicio");
         Cliente atrasado = conectar(token(nomeUnico("Atrasado")));
-        esperarConectados(2);
+        esperarConectados(3);
+        explodiu.enviar(explodiu(200, 150));
+        assertThat(JsonPath.<String>read(a.proxima(), "$.tipo")).isEqualTo("explosao");
+        assertThat(JsonPath.<String>read(atrasado.proxima(), "$.tipo")).isEqualTo("explosao");
         String resultado = "{\"tipo\":\"evento-resultado\",\"evento\":\"" + evento + "\",\"sobreviveu\":true}";
         relogio.avancar(Duration.ofSeconds(20));
 
+        explodiu.enviar(resultado);
+        explodiu.enviar(posicao(100, 100, 0, false));
+        assertThat(JsonPath.<String>read(a.proxima(), "$.tipo")).isEqualTo("sombra");
+        assertThat(JsonPath.<String>read(atrasado.proxima(), "$.tipo")).isEqualTo("sombra");
         a.enviar(resultado);
         a.enviar(resultado);
         a.enviar(posicao(100, 100, 0, false));
@@ -529,10 +539,11 @@ class CanalDeSombrasTeste {
 
         Cliente piloto = conectar(token(nomeUnico("Agenda")));
         esperarConectados(1);
-        relogio.agora = segundo.aviso();
+        relogio.agora = segundo.aviso().plusSeconds(2); // o agendador pode acordar atrasado
         agendador.verificar();
         agendador.verificar();
-        assertThat(JsonPath.<String>read(piloto.proxima(), "$.evento")).isEqualTo(segundo.id());
+        var aviso = JsonPath.<Map<String, Object>>read(piloto.proxima(), "$");
+        assertThat(aviso).containsEntry("evento", segundo.id()).containsEntry("em", 13);
         assertThat(jdbc.queryForObject("select count(*) from eventos_ao_vivo where evento = ?",
                 Integer.class, segundo.id())).isEqualTo(1);
         relogio.agora = segundo.inicio();

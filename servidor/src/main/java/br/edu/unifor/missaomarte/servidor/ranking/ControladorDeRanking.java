@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.servidor.ranking;
 
 import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
 import br.edu.unifor.missaomarte.servidor.partida.Modo;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** Ranking global, público: {@code GET /api/ranking}, ou {@code GET /api/ranking?modo=PILOTAGEM} (Fase 7). */
 @RestController
+@SecurityRequirements
 @RequestMapping("/api/ranking")
 public class ControladorDeRanking {
 

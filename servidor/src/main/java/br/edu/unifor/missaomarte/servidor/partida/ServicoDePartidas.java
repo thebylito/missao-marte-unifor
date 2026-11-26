@@ -7,6 +7,7 @@ import br.edu.unifor.missaomarte.servidor.jogador.RepositorioDeJogadores;
 import br.edu.unifor.missaomarte.servidor.moedas.ServicoDeMoedas;
 import br.edu.unifor.missaomarte.servidor.ranking.ServicoDeRanking;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
@@ -53,18 +54,10 @@ public class ServicoDePartidas {
     public PartidaRegistrada registrar(long jogadorId, RegistroDePartida dados) {
         boolean horda = dados.modo() == Modo.HORDA;
         boolean citaBilhete = dados.bilhete() != null;
-        if (horda) {
-            if (!citaBilhete) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda exige um bilhete válido");
-            }
-            if (dados.pontos() > 75) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda vale no máximo 75 pontos");
-            }
-            hordas.conferirPartida(dados.horda(), dados.dificuldade());
-        }
+        Instant admitidaEm = horda ? admitirNaHorda(dados) : null;
         Optional<Jogador> encontrado = citaBilhete ? jogadores.travar(jogadorId) : jogadores.findById(jogadorId);
         Jogador jogador = encontrado.orElseThrow(() -> new NaoEncontrado("jogador não encontrado"));
-        Partida partida = new Partida(jogador, dados, relogio.instant());
+        Partida partida = new Partida(jogador, dados, horda ? admitidaEm : relogio.instant());
         BilheteDePartida bilheteDaHorda = horda ? bilhetes.conferirParaHorda(jogadorId, dados.bilhete(), partida) : null;
         partida = partidas.save(partida);
         boolean valeMoedas;
@@ -79,6 +72,16 @@ public class ServicoDePartidas {
                 .filter(v -> v.partida().getJogador().getId() == jogadorId)
                 .map(ServicoDeRanking.VitoriaNoRanking::posicao).findFirst().orElse(null) : null;
         return PartidaRegistrada.de(partida, ganhas, moedas.saldo(jogadorId), colocacao);
+    }
+
+    private Instant admitirNaHorda(RegistroDePartida dados) {
+        if (dados.bilhete() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda exige um bilhete válido");
+        }
+        if (dados.pontos() > 75) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "a horda vale no máximo 75 pontos");
+        }
+        return hordas.conferirPartida(dados.horda(), dados.dificuldade());
     }
 
     @Transactional(readOnly = true)

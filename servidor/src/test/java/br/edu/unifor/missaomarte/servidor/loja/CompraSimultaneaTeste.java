@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.servidor.loja;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.edu.unifor.missaomarte.servidor.ApiTeste;
 import br.edu.unifor.missaomarte.servidor.moedas.Origem;
 import br.edu.unifor.missaomarte.servidor.moedas.ServicoDeMoedas;
 import com.jayway.jsonpath.JsonPath;
@@ -31,8 +32,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
  * outra vê o saldo já descontado (409): o saldo nunca fica negativo.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-        "spring.datasource.url=jdbc:h2:mem:missaomarte-compras;DB_CLOSE_DELAY=-1",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.datasource.url=jdbc:h2:mem:missaomarte-compras;DB_CLOSE_DELAY=-1" + ApiTeste.MODO_POSTGRESQL,
         "missaomarte.jwt.segredo=segredo-so-para-os-testes-com-32-bytes-ou-mais"})
 class CompraSimultaneaTeste {
 

@@ -19,11 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@TestPropertySource(properties = "missaomarte.hordas.segredo=horas-pares-segredo-de-teste")
 class ApiDaHordaTeste extends ApiTeste {
 
     @Autowired JdbcTemplate jdbc;
@@ -45,6 +47,8 @@ class ApiDaHordaTeste extends ApiTeste {
                 .andExpect(jsonPath("$.descricao.passageiros.length()").value(3))
                 .andExpect(jsonPath("$.descricao.fasesDosAsteroides").isArray())
                 .andReturn().getResponse().getContentAsString();
+        assertThat(jdbc.queryForObject("select semente from hordas where numero = ?", Long.class, numero(antes)))
+                .isEqualTo(1698919437302238174L);
         relogio.avancar(Duration.ofSeconds(1));
         String depois = atual();
         assertThat(numero(depois)).isEqualTo(numero(antes) + 1);
@@ -57,7 +61,8 @@ class ApiDaHordaTeste extends ApiTeste {
         String primeira = atual();
         doReturn(List.of()).when(catalogo).liberadas();
 
-        assertThat((Object) JsonPath.read(atual(), "$.descricao")).isEqualTo(JsonPath.read(primeira, "$.descricao"));
+        Object descricaoOriginal = JsonPath.read(primeira, "$.descricao");
+        assertThat(JsonPath.<Object>read(atual(), "$.descricao")).isEqualTo(descricaoOriginal);
         assertThat(jdbc.queryForObject("select count(*) from hordas where numero = ?", Integer.class, numero(primeira)))
                 .isEqualTo(1);
     }
@@ -113,6 +118,9 @@ class ApiDaHordaTeste extends ApiTeste {
         String bia = novoJogador("Bia");
         String bilhete = bilhete(ana, dificuldade, numero);
         relogio.agora = Instant.parse("2026-11-26T23:27:00Z");
+        String nova = atual();
+        registrar(ana, partidaHorda(JsonPath.read(nova, "$.dificuldade"), 70, numero(nova), bilhete))
+                .andExpect(status().isBadRequest());
         registrar(ana, partidaHorda(dificuldade, 70, numero, bilhete)).andExpect(status().isCreated());
         String segundo = bilhete(bia, dificuldade, numero);
         relogio.avancar(Duration.ofSeconds(45));
@@ -128,6 +136,22 @@ class ApiDaHordaTeste extends ApiTeste {
         relogio.agora = Instant.parse("2026-11-26T23:30:01Z");
         registrar(ana, partidaHorda(dificuldade, 75, numero, terceiro)).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.motivo").value("HORDA_ENCERRADA"));
+    }
+
+    @Test
+    void registraNoLimiteDaJanelaEDevolveColocacaoNulaSemVitoria() throws Exception {
+        relogio.agora = Instant.parse("2026-11-26T22:59:00Z");
+        String atual = atual();
+        long numero = numero(atual);
+        String dificuldade = JsonPath.read(atual, "$.dificuldade");
+        String ana = novoJogador("Ana");
+        String bilhete = bilhete(ana, dificuldade, numero);
+        relogio.agora = Instant.parse("2026-11-26T23:30:00Z");
+
+        String corpo = registrar(ana, partidaHorda(dificuldade, 0, numero, bilhete).replace("VITORIA", "DERROTA"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.moedasGanhas").value(0))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(JsonPath.<java.util.Map<String, Object>>read(corpo, "$")).containsEntry("colocacao", null);
     }
 
     private String atual() throws Exception {

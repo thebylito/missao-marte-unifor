@@ -9,8 +9,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.TreeSet;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -46,19 +46,23 @@ public class ServicoDeFechamentos {
             transacao.executeWithoutResult(status -> fecharHorda(numero, agora));
         }
 
-        var semanas = new TreeSet<>(jdbc.queryForList("""
+        LocalDate ultimaVencida = PlacarSemanal.semanaDe(agora).minusWeeks(1);
+        if (agora.isBefore(PlacarSemanal.inicioDe(ultimaVencida.plusWeeks(1)).plus(TOLERANCIA))) {
+            ultimaVencida = ultimaVencida.minusWeeks(1);
+        }
+        List<LocalDate> semanas = jdbc.queryForList("""
                 select atividade.semana from (
-                    select semana from hordas where semana is not null
+                    select semana from hordas where semana <= ?
                     union
-                    select semana from pontos_de_evento
+                    select semana from pontos_de_evento where semana <= ?
+                    union
+                    select cast(? as date)
                 ) atividade
                 where not exists (select 1 from semanas_fechadas f where f.semana = atividade.semana)
-                """, LocalDate.class));
-        semanas.add(PlacarSemanal.semanaDe(agora).minusWeeks(1));
+                order by atividade.semana
+                """, LocalDate.class, ultimaVencida, ultimaVencida, ultimaVencida);
         for (LocalDate semana : semanas) {
-            if (!agora.isBefore(PlacarSemanal.inicioDe(semana.plusWeeks(1)).plus(TOLERANCIA))) {
-                transacao.executeWithoutResult(status -> fecharSemana(semana, agora));
-            }
+            transacao.executeWithoutResult(status -> fecharSemana(semana, agora));
         }
     }
 
@@ -99,6 +103,6 @@ public class ServicoDeFechamentos {
     }
 
     private static OffsetDateTime utc(Instant instante) {
-        return instante.atOffset(ZoneOffset.UTC);
+        return instante.truncatedTo(ChronoUnit.MICROS).atOffset(ZoneOffset.UTC);
     }
 }

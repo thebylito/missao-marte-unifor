@@ -4,6 +4,7 @@ import br.edu.unifor.missaomarte.servidor.evento.EventoAoVivo;
 import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
 import br.edu.unifor.missaomarte.servidor.sombras.CanalDeSombras.Piloto;
 import br.edu.unifor.missaomarte.servidor.sombras.CanalDeSombras.Sala;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,8 +52,10 @@ class EventosNoCanal {
             if (agora.isBefore(evento.inicio())) {
                 if (!transmissoes.containsKey(evento.id())) {
                     transmissoes.put(evento.id(), new Transmissao(evento));
+                    Duration falta = Duration.between(agora, evento.inicio());
+                    long segundos = falta.toSeconds() + (falta.getNano() == 0 ? 0 : 1);
                     enviarATodos(pilotos, Map.of("tipo", "evento-aviso", "evento", evento.id(),
-                            "nome", evento.tipo().name(), "em", EventoAoVivo.AVISO_SEGUNDOS));
+                            "nome", evento.tipo().name(), "em", segundos));
                 }
             } else {
                 Transmissao transmissao = transmissoes.computeIfAbsent(evento.id(), id -> new Transmissao(evento));
@@ -109,6 +112,15 @@ class EventosNoCanal {
                     .ifPresent(nome -> anunciarVip(transmissao, nome, pilotos));
         } else if (mensagem.path("sobreviveu").isBoolean() && mensagem.path("sobreviveu").asBoolean()) {
             eventos.sobreviver(transmissao.evento, piloto.jogadorId(), agora);
+        }
+    }
+
+    void registrarExplosao(Piloto piloto, Instant agora) {
+        for (Transmissao transmissao : transmissoes.values()) {
+            EventoAoVivo evento = transmissao.evento;
+            if (evento.tipo().perigo() && !agora.isBefore(evento.inicio()) && agora.isBefore(evento.fim())) {
+                transmissao.participantes.remove(piloto.numero());
+            }
         }
     }
 

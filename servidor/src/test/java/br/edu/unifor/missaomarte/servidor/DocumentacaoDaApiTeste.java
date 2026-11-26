@@ -35,6 +35,18 @@ class DocumentacaoDaApiTeste {
     }
 
     @Test
+    void publicaAsRotasDaHordaESeuErroDeJanelaNoOpenApi() throws Exception {
+        mvc.perform(get("/v3/api-docs")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/hordas/atual'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/ranking/semanal'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/admin/eventos'].post.responses['202']").exists())
+                .andExpect(jsonPath("$.paths['/api/partidas'].post.responses['409']"
+                        + ".content['application/problem+json'].example.motivo").value("HORDA_ENCERRADA"))
+                .andExpect(jsonPath("$.paths['/api/partidas/inicio'].post.responses['409']"
+                        + ".content['application/problem+json'].example.motivo").value("HORDA_ENCERRADA"));
+    }
+
+    @Test
     void semEnderecoPublicoFicaODeDesenvolvimento() {
         OpenAPI doc = new DocumentacaoDaApi().documentacao("  ");
         assertEquals("http://localhost:8080", doc.getServers().get(0).getUrl());

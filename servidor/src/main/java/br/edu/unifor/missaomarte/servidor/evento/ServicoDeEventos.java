@@ -45,7 +45,7 @@ public class ServicoDeEventos {
             publicados.clear();
         }
         for (EventoAoVivo evento : agenda) {
-            if (!agora.isBefore(evento.aviso()) && agora.isBefore(evento.aviso().plusSeconds(1))
+            if (!agora.isBefore(evento.aviso()) && agora.isBefore(evento.inicio())
                     && !publicados.contains(evento.id())) {
                 gravar(evento);
                 publicados.add(evento.id());

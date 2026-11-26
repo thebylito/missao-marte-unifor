@@ -1,24 +1,42 @@
 package br.edu.unifor.missaomarte.servidor.banco;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
+import br.edu.unifor.missaomarte.servidor.Agendador;
 import br.edu.unifor.missaomarte.servidor.ApiTeste;
+import br.edu.unifor.missaomarte.servidor.evento.EventoAoVivo;
+import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
+import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
+import com.jayway.jsonpath.JsonPath;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Fase 8 (DA-41): o servidor inteiro sobre um PostgreSQL de verdade (o mesmo 18 da publicação), num contêiner. A
- * migração V1 roda, o Hibernate confere o esquema ({@code ddl-auto=validate}) e a API funciona. Sem Docker, os
+ * sequência do Flyway roda, o Hibernate confere o esquema ({@code ddl-auto=validate}) e a API funciona. Sem Docker, os
  * testes são pulados; os outros testes da API usam o H2 em modo PostgreSQL.
  */
 @Testcontainers(disabledWithoutDocker = true)
@@ -31,11 +49,21 @@ class EsquemaNoPostgresTeste extends ApiTeste {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private ServicoDeHordas hordas;
+
+    @Autowired
+    private Agendador agendador;
+
+    @Autowired
+    private ServicoDeEventos eventos;
+
     @Test
-    void oBancoEOPostgresComAMigracaoV1() {
+    void oBancoEOPostgresComAsMigracoesDoFlyway() {
         assertEquals("PostgreSQL", jdbc.queryForObject("select split_part(version(), ' ', 1)", String.class));
-        assertEquals(1, jdbc.queryForObject(
-                "select count(*) from flyway_schema_history where version = '1' and success", Integer.class));
+        assertEquals(List.of("1", "2", "3", "4"), jdbc.queryForList(
+                "select version from flyway_schema_history where version is not null and success order by installed_rank",
+                String.class));
     }
 
     @Test
@@ -95,5 +123,86 @@ class EsquemaNoPostgresTeste extends ApiTeste {
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].modo").value("PILOTAGEM"))
                 .andExpect(jsonPath("$[2].pontos").value(50));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void publicaRegistraEFechaNoPostgresComTransacoesConcorrentes() throws Exception {
+        relogio.agora = Instant.parse("2026-11-30T01:05:00Z");
+        var publicadas = emParalelo(() -> hordas.atual(relogio.instant()), () -> hordas.atual(relogio.instant()));
+        var horda = publicadas.get(0);
+        assertThat(publicadas.get(1)).isEqualTo(horda);
+        assertThat(jdbc.queryForObject("select count(*) from hordas where numero = ?", Integer.class, horda.numero()))
+                .isEqualTo(1);
+
+        String token = novoJogador("HordaNoPostgres");
+        String dificuldade = horda.descricao().dificuldade().name();
+        String emissao = mvc.perform(post("/api/partidas/inicio").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"modo":"HORDA","dificuldade":"%s","horda":%d}
+                                """.formatted(dificuldade, horda.numero())))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String bilhete = JsonPath.read(emissao, "$.bilhete");
+        relogio.avancar(Duration.ofSeconds(45));
+        registrar(token, """
+                {"modo":"HORDA","dificuldade":"%s","horda":%d,"bilhete":"%s","resultado":"VITORIA",
+                 "pontos":75,"passageiros":3,"movimentos":0,"tempoSegundos":45}
+                """.formatted(dificuldade, horda.numero(), bilhete)).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.moedasGanhas").value(5)).andExpect(jsonPath("$.colocacao").value(1));
+
+        relogio.agora = Instant.parse("2026-11-30T03:30:00Z");
+        Callable<Boolean> fechar = () -> {
+            agendador.verificar();
+            return true;
+        };
+        emParalelo(fechar, fechar);
+        assertThat(jdbc.queryForList("select posicao from top_da_horda where horda_numero = ?",
+                Integer.class, horda.numero())).containsExactly(1);
+        assertThat(jdbc.queryForList("select valor from moedas m join jogadores j on j.id = m.jogador_id "
+                + "where j.nome = 'HordaNoPostgres' order by m.valor", Integer.class)).containsExactly(5, 20, 50);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void arbitraUmVipComPedidosConcorrentesNoPostgres() throws Exception {
+        Instant inicio = Instant.parse("2026-11-18T17:00:00Z");
+        var evento = EventoAoVivo.novo(ServicoDeHordas.numeroEm(inicio), 99, TipoDeEvento.PASSAGEIRO_VIP, 0, inicio);
+        jdbc.update("""
+                insert into eventos_ao_vivo (evento, tipo, semente, inicio, fim)
+                values (?, ?, ?, ?, ?)
+                """, evento.id(), evento.tipo().name(), evento.semente(), inicio.atOffset(ZoneOffset.UTC),
+                evento.fim().atOffset(ZoneOffset.UTC));
+        long primeiro = jogadorSemSenha("PretendenteA");
+        long segundo = jogadorSemSenha("PretendenteB");
+        var resultados = emParalelo(() -> eventos.pegarVip(evento, primeiro, inicio),
+                () -> eventos.pegarVip(evento, segundo, inicio));
+
+        assertThat(resultados.stream().flatMap(java.util.Optional::stream).toList()).hasSize(1);
+        assertThat(jdbc.queryForList("select pontos from pontos_de_evento where evento = ?", Integer.class, evento.id()))
+                .containsExactly(5);
+    }
+
+    private long jogadorSemSenha(String nome) {
+        jdbc.update("insert into jogadores (criado_em, nome, senha_hash) values (now(), ?, 'x')", nome);
+        return jdbc.queryForObject("select id from jogadores where nome = ?", Long.class, nome);
+    }
+
+    private static <T> List<T> emParalelo(Callable<T> a, Callable<T> b) throws Exception {
+        var barreira = new CyclicBarrier(2);
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var primeira = executor.submit(() -> {
+                barreira.await(5, TimeUnit.SECONDS);
+                return a.call();
+            });
+            var segunda = executor.submit(() -> {
+                barreira.await(5, TimeUnit.SECONDS);
+                return b.call();
+            });
+            return List.of(primeira.get(15, TimeUnit.SECONDS), segunda.get(15, TimeUnit.SECONDS));
+        } finally {
+            executor.shutdownNow();
+        }
     }
 }
