@@ -25,15 +25,20 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Base dos testes da API: o servidor inteiro (controladores, segurança, JPA) com H2 em memória e um relógio
  * controlado. Cada teste roda numa transação desfeita no fim, então um não vê os dados do outro.
+ *
+ * <p>Fase 8 (DA-41): o H2 roda em modo PostgreSQL, e o esquema vem das migrações do Flyway, como em produção (o
+ * Hibernate só confere, com {@code ddl-auto=validate}). Os testes com o PostgreSQL de verdade usam Testcontainers.
  */
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:missaomarte-teste;DB_CLOSE_DELAY=-1",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.datasource.url=jdbc:h2:mem:missaomarte-teste;DB_CLOSE_DELAY=-1" + ApiTeste.MODO_POSTGRESQL,
         "missaomarte.jwt.segredo=segredo-so-para-os-testes-com-32-bytes-ou-mais"})
 @AutoConfigureMockMvc
 @Transactional
 @Import(ApiTeste.Configuracao.class)
 public abstract class ApiTeste {
+
+    /** As opções que fazem o H2 se comportar como o PostgreSQL (as mesmas do banco de desenvolvimento). */
+    public static final String MODO_POSTGRESQL = ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH";
 
     /** Relógio que só anda quando o teste manda. */
     public static final class RelogioDeTeste extends Clock {

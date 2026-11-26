@@ -132,7 +132,7 @@ joga sem eventos, como já joga sem sombras (DA-32).
 |---|---|---|
 | `nucleo` | pacote `pilotagem.horda`: `DescricaoDeCaverna`, `DescricaoDaHorda`, `SorteioDaHorda`, `MontadorDaHorda`, `ValidadorDeCaverna`; efeitos temporários (meteoros, tempestade, gravidade, VIP) | `PartidaDePilotagem` (efeitos, com o caminho sem efeitos intacto), `PlataformaDePouso.Tipo` (cápsula do VIP) |
 | `core` | tela da Horda, faixa da horda no menu, Hangar, leitura do JSON da horda, folhas das skins (fora do enum `Folha`) | `TelaMenu` e `ControladorDoMenu` (tecla `H` e `7`, saldo), `ControladorDoRanking` e `TelaRanking` (três modos, abas da Horda), `SombrasDaPilotagem` (sala, skin, eventos), `ServidorDoJogo` e `ServidorHttp` (horda, bilhete, loja, retorno do registro), `TelaPilotagem` (efeitos e skin), `FimDePartida` (moedas e colocação), `CatalogoDeAssets` |
-| `servidor` | build com o `:nucleo`; hordas, bilhetes, moedas, loja, placar da semana, agendador de eventos e de fechamentos, administração, migrador do esquema | `Modo` (+ `HORDA`), `Partida` (horda), `CanalDeSombras` (salas, skin, eventos), `ConfiguracaoDeSeguranca` (rotas públicas novas e administração), `ServicoDeRanking` (por horda), Dockerfile, compose e workflows (contexto na raiz) |
+| `servidor` | build com o `:nucleo`; hordas, bilhetes, moedas, loja, placar da semana, agendador de eventos e de fechamentos, administração, PostgreSQL com o esquema no Flyway e a importação do H2 (DA-41) | `Modo` (+ `HORDA`), `Partida` (horda), `CanalDeSombras` (salas, skin, eventos), `ConfiguracaoDeSeguranca` (rotas públicas novas e administração), `ServicoDeRanking` (por horda), Dockerfile, compose e workflows (contexto na raiz) |
 | `arte` e `assets` | `arte/blender/naves/`, `assets/sprites/naves/` (folhas, prévias, atlas das sombras e catálogo) | `render_all.py`, `specs.py`, `verify.py`, `assets/ORIGEM.md` |
 | página | horda atual, contagem até a próxima, Top 10 da horda, placar da semana, `admin.html` | `index.html`, `app.js` |
 
@@ -140,7 +140,8 @@ joga sem eventos, como já joga sem sombras (DA-32).
 
 | Risco | Tratamento |
 |---|---|
-| O Hibernate 7.4 cria as colunas de enum como `ENUM` nativo do H2 (`"MODO" ENUM('CLASSICO', 'PILOTAGEM')`, conferido em 2026-11-26 num banco gerado pela versão da 7.x), e o `ddl-auto=update` não muda o tipo de uma coluna: toda partida da Horda falharia em produção | as colunas de enum passam a texto (`@JdbcTypeCode(SqlTypes.VARCHAR)`); um script SQL idempotente, que roda antes do Hibernate, converte as colunas do banco que já existe; um teste sobe o servidor sobre um H2 com o esquema exato da 7.x |
+| O Hibernate 7.4 cria as colunas de enum como `ENUM` nativo do H2 (`"MODO" ENUM('CLASSICO', 'PILOTAGEM')`, conferido em 2026-11-26 num banco gerado pela versão da 7.x), e o `ddl-auto=update` não muda o tipo de uma coluna: toda partida da Horda falharia em produção | as colunas de enum passam a texto (`@JdbcTypeCode(SqlTypes.VARCHAR)`, DA-40). Na etapa 1b (DA-41), o esquema passa para as migrações do Flyway, com `ddl-auto=validate`, no PostgreSQL; o H2 de produção é importado na virada, e um teste sobe o servidor sobre um H2 com o esquema exato da 7.x |
+| O deploy stop-first (o H2 trava o arquivo) deixa o site uns 20 s fora do ar a cada versão, e as etapas seguintes criam várias tabelas pelo `ddl-auto=update` | PostgreSQL 18 na instância geral do Dokploy, com o esquema no Flyway (DA-41); depois da virada, o deploy volta a start-first |
 | O servidor passa a compilar o `nucleo`, que hoje herda o toolchain e o JUnit do `build.gradle` da raiz | `include 'nucleo'` no `servidor/settings.gradle`, com o toolchain 17, os repositórios e o UTF-8 configurados no build do servidor; saída em `servidor/build/nucleo`; `:nucleo:test` desligado ali, porque a raiz já roda esses testes |
 | O contexto do Docker é `servidor/` e não vê o `../nucleo` | o contexto passa para a raiz, com `-f servidor/Dockerfile` e um `servidor/Dockerfile.dockerignore` |
 | O repositório é público: com a semente igual ao número da horda, dava para calcular as próximas | semente = HMAC-SHA256 com um segredo do servidor (`MISSAOMARTE_HORDA_SEGREDO`) |
@@ -189,7 +190,7 @@ joga sem eventos, como já joga sem sombras (DA-32).
 | CT-07 | VIP: pousar na cápsula marca o VIP, não soma pontos nem pousos, e a cápsula não some com a nave pousada | CA-07 |
 | CT-08 | O passo da simulação em que cada evento ao vivo entrou fica registrado | CA-06 |
 
-**Integração, no `servidor` (MockMvc + H2):**
+**Integração, no `servidor` (MockMvc + H2 em modo PostgreSQL, com o Flyway; o que depende do PostgreSQL de verdade, com Testcontainers, DA-41):**
 
 | Id | Caso | Critério |
 |---|---|---|
@@ -237,6 +238,7 @@ execução real e evidência.
 | 0 | Esta análise | — |
 | C | Skins (trilha paralela, feita pelo Codex): primeiro o pipeline e 2 skins, depois as outras | — |
 | 1 | Servidor com o `nucleo`: build, Docker, CI, deploy e migrador do esquema. Nada do jogo muda | 0 e o merge da DA-38 |
+| 1b | PostgreSQL com o esquema no Flyway e a importação do H2 de produção (DA-41). Nada do jogo muda | 1 |
 | 2a | Moedas, bilhete, loja, Hangar e skin nas sombras, com a `padrao` + 2 skins | 1 e C (parte 1) |
 | 2b | Todas as skins | C (parte 2) |
 | 3 | Cavernas como dados: validador, `marciana.json` e 2 cavernas novas, liberadas depois do teste humano | 1 |
@@ -265,15 +267,18 @@ Cada decisão entra em `docs/decisoes-arquiteturais.md` junto com a etapa que a 
 - **DA-40 — Colunas de enum como texto** (etapa 1). O `ENUM` nativo do H2 não aceita valores novos, e o
   `ddl-auto=update` não muda o tipo. As colunas de enum passam a texto, e um script idempotente converte o banco
   que já existe antes do Hibernate subir.
-- **DA-41 — Moedas por extrato e bilhete de partida** (etapa 2a). O extrato tem crédito único por origem e
+- **DA-41 — PostgreSQL, com o esquema no Flyway** (etapa 1b, decisão do usuário em 2026-11-26). Substitui em parte a
+  DA-40. O esquema fica nas migrações `V<n>__*.sql`, com `ddl-auto=validate`; o H2 de produção é importado na virada,
+  e o deploy volta a start-first. As decisões planejadas abaixo andaram um número.
+- **DA-42 — Moedas por extrato e bilhete de partida** (etapa 2a). O extrato tem crédito único por origem e
   referência, a compra trava o jogador, e o bilhete é obrigatório na Horda.
-- **DA-42 — Skins só cosméticas** (etapa 2a). O catálogo e os preços ficam no servidor, e a arte fica no jogo. A
+- **DA-43 — Skins só cosméticas** (etapa 2a). O catálogo e os preços ficam no servidor, e a arte fica no jogo. A
   skin `padrao` é a nave de sempre. As folhas ficam fora do enum `Folha`, e as sombras usam um atlas pequeno.
-- **DA-43 — A horda é gerada no servidor e vai pronta como dados** (etapas 3 e 4). Semente HMAC com segredo, horda
+- **DA-44 — A horda é gerada no servidor e vai pronta como dados** (etapas 3 e 4). Semente HMAC com segredo, horda
   gravada na primeira geração, cavernas em JSON no servidor (uma caverna nova não exige nova versão do jogo) e
   segundos relativos na resposta.
-- **DA-44 — Canal das sombras com salas e eventos** (etapas 4 e 6). Revisa a DA-31. As salas são `livre` e
+- **DA-45 — Canal das sombras com salas e eventos** (etapas 4 e 6). Revisa a DA-31. As salas são `livre` e
   `horda-N`, e o cliente sem sala cai na `livre`. Os eventos vão a todas as salas. A sombra passa a levar a skin do
   perfil.
-- **DA-45 — Evento só atrapalha a partida** (etapa 6). O que ajuda vale no placar da semana, e o Top 10 da horda
+- **DA-46 — Evento só atrapalha a partida** (etapa 6). O que ajuda vale no placar da semana, e o Top 10 da horda
   guarda a melhor partida.

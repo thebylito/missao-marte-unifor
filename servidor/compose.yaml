@@ -1,10 +1,28 @@
-# Servidor de ranking em contêiner, para desenvolvimento.
+# Servidor de ranking em contêiner, para desenvolvimento, com o PostgreSQL ao lado (Fase 8, DA-41).
 #   docker compose up --build          sobe em http://localhost:8080 (Swagger em /swagger-ui.html)
 #   docker compose up --build --watch  idem, e reconstrói sozinho quando src/, o build.gradle ou o nucleo mudam
-#   docker compose down                para (os dados ficam no volume "dados")
+#   docker compose down                para (os dados ficam no volume "banco")
 #   docker compose down -v             para e apaga os dados
-# O segredo do token vem do arquivo .env desta pasta (copie .env.exemplo para .env); o .env não vai para o Git.
+#   docker compose exec postgres psql -U missaomarte   abre o banco (a porta 5432 não é publicada no computador)
+# O segredo do token e a senha do banco vêm do arquivo .env desta pasta (copie .env.exemplo para .env); o .env não vai
+# para o Git. Sem .env, a senha do banco é a de desenvolvimento abaixo: este PostgreSQL só existe na rede do compose.
 services:
+  postgres:
+    # Na imagem 18, os dados ficam em /var/lib/postgresql/18/docker, e o volume é o /var/lib/postgresql
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: missaomarte
+      POSTGRES_USER: missaomarte
+      POSTGRES_PASSWORD: ${MISSAOMARTE_DB_SENHA:-missaomarte-dev}
+    volumes:
+      - banco:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U missaomarte -d missaomarte"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
   servidor:
     # Fase 8 (DA-39): o contexto é a raiz do repositório, porque o servidor compila o nucleo do jogo
     build:
@@ -15,10 +33,18 @@ services:
       - "${PORTA:-8080}:8080"
     environment:
       MISSAOMARTE_JWT_SEGREDO: ${MISSAOMARTE_JWT_SEGREDO:-}
-      MISSAOMARTE_DADOS: /dados/missaomarte
       MISSAOMARTE_URL_PUBLICA: ${MISSAOMARTE_URL_PUBLICA:-}
+      MISSAOMARTE_DB_URL: jdbc:postgresql://postgres:5432/missaomarte
+      MISSAOMARTE_DB_USUARIO: missaomarte
+      MISSAOMARTE_DB_SENHA: ${MISSAOMARTE_DB_SENHA:-missaomarte-dev}
+      # Ensaio da virada: com /dados/missaomarte, o banco H2 do volume "dados" (o do compose das fases anteriores)
+      # é copiado para o PostgreSQL na subida, se este estiver vazio. Vazio, não importa nada.
+      MISSAOMARTE_IMPORTAR_H2: ${MISSAOMARTE_IMPORTAR_H2:-}
     volumes:
       - dados:/dados
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     develop:
       watch:
@@ -30,4 +56,7 @@ services:
           path: ../nucleo/src/main
 
 volumes:
+  # o PostgreSQL
+  banco:
+  # o banco H2 das fases anteriores, lido só pela importação (MISSAOMARTE_IMPORTAR_H2)
   dados:

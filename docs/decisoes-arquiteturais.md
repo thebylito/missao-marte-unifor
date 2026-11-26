@@ -148,7 +148,8 @@ registrada: não usamos `Intersector`, porque não há colisão contínua para d
 
 ## DA-14 — Servidor como build Gradle independente, com Spring Boot 4.1.2 (Fase 5)
 
-> Substituída em parte pela DA-39 (2026-11-26): o servidor passa a incluir o `nucleo`, e só ele.
+> Substituída em parte pela DA-39 (2026-11-26): o servidor passa a incluir o `nucleo`, e só ele. E pela DA-41
+> (2026-11-26): o banco passa a ser o PostgreSQL, com o esquema no Flyway.
 
 **Contexto.** O enunciado pede um servidor independente, que não dependa do código do cliente. A issue #7 pede um
 "subprojeto independente que inicia conforme o README". O README do curso trata cliente e servidor como projetos
@@ -648,6 +649,10 @@ divergir. A DA-14 dizia que o servidor não inclui nenhum módulo do jogo, e a D
 
 ## DA-40 — Colunas de enum como texto (Fase 8, 2026-11-26)
 
+> Substituída em parte pela DA-41 (2026-11-26): o esquema vem das migrações do Flyway, e saíram o script
+> `migracoes/enums-para-texto.sql`, o dialeto `H2SemCheckDeEnum` e o `MigracaoDoEsquemaTeste`. Continua valendo a
+> regra: coluna de enum é `varchar(20)`, sem lista fechada de valores, e quem valida o valor é o enum do Java.
+
 **Contexto.**
 - O Hibernate 7.4 cria as colunas `@Enumerated(EnumType.STRING)` como `ENUM` nativo do H2. Num banco gerado pela
   versão da 7.x, isso dá `"MODO" ENUM('CLASSICO', 'PILOTAGEM')`.
@@ -678,4 +683,71 @@ divergir. A DA-14 dizia que o servidor não inclui nenhum módulo do jogo, e a D
 - O banco aceita qualquer texto nessas colunas, tanto o convertido quanto o criado do zero (o teste `EsquemaNovoTeste`
   confere que não há nenhum `CHECK` e que `HORDA` cabe). Quem valida o valor é o enum do Java, na entrada da API.
 - A primeira subida em produção converte as colunas. Por isso o backup do volume `/dados` vem antes do merge.
+
+## DA-41 — PostgreSQL, com o esquema no Flyway (Fase 8, 2026-11-26)
+
+**Contexto.**
+- O `ddl-auto=update` com H2 falhou duas vezes na etapa 1: as colunas `ENUM` nativas e a lista fechada
+  `check (... in ...)` nas tabelas novas (DA-40). Nas duas vezes, os testes passavam, porque recriavam o banco do zero
+  (`create-drop`).
+- O H2 em arquivo só abre em um processo. Por isso, o deploy no Dokploy precisa ser stop-first, com uns 20 s fora do
+  ar a cada versão.
+- As próximas etapas criam várias tabelas (moedas, bilhetes, hordas, eventos).
+- Decisão do usuário em 2026-11-26. O banco de produção é a instância geral de PostgreSQL 18 do Dokploy
+  (`postgres-br`, no projeto `databases`), que outros projetos também vão usar.
+
+**Decisão.**
+- **Conexão.** O servidor lê `MISSAOMARTE_DB_URL`, `MISSAOMARTE_DB_USUARIO` e `MISSAOMARTE_DB_SENHA`. Na
+  instância geral, o jogo tem banco e usuário próprios, os dois chamados `missaomarte`. O usuário é dono só desse
+  banco e nunca é o `admin`.
+- **Desenvolvimento só com o JDK.** Sem `MISSAOMARTE_DB_URL`, o servidor usa um H2 em arquivo em modo PostgreSQL
+  (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH`), também com o Flyway. O compose de
+  desenvolvimento sobe um PostgreSQL 18 ao lado.
+- **Esquema.** O esquema fica nas migrações do Flyway (`db/migration/V1__esquema_inicial.sql`: o esquema da 7.x, com
+  as colunas de enum em `varchar(20)` sem check), e o Hibernate só confere (`ddl-auto=validate`). O SQL roda igual no
+  PostgreSQL e no H2 em modo PostgreSQL. Saem o `spring.sql.init`, o script de conversão, o dialeto
+  `H2SemCheckDeEnum` e o `spring.jpa.database-platform`: o dialeto é detectado pela conexão.
+- **Virada.** O `ImportadorDoH2` é ligado por `MISSAOMARTE_IMPORTAR_H2` (`/dados/missaomarte` em produção).
+  - Só roda se o PostgreSQL estiver vazio. Copia jogadores e partidas com os mesmos ids. Sem a coluna `modo`, a
+    partida é clássica.
+  - Depois, reinicia as colunas de identidade no maior id + 1.
+  - Abre o H2 só para leitura (`ACCESS_MODE_DATA=r`), numa transação só. Se falha, a subida falha.
+  - Roda na estratégia de migração do Flyway (`ConfiguracaoDoBanco`), da qual o JPA depende. Por isso termina antes
+    de o Tomcat atender o primeiro pedido. Um `ApplicationRunner` rodaria depois.
+- **Testes.** Os testes da API continuam rápidos, em H2 em memória em modo PostgreSQL e com o Flyway. Os do
+  PostgreSQL de verdade usam Testcontainers (`postgres:18`, `@Testcontainers(disabledWithoutDocker = true)`).
+
+**Consequências.**
+- **Mudança de esquema é migração nova.** Toda tabela ou coluna nova é um arquivo `V<n>__descricao.sql` em
+  `servidor/src/main/resources/db/migration`, que roda nos dois bancos. Uma migração já aplicada nunca é editada: o
+  Flyway confere o checksum e recusa subir. Se a entidade não bate com as migrações, o `validate` derruba a subida,
+  também nos testes.
+- **O deploy volta a ser start-first** depois da virada: o PostgreSQL aceita as duas versões conectadas ao mesmo
+  tempo. Com `MISSAOMARTE_IMPORTAR_H2` ainda definida, a versão nova vê o banco com dados e nem abre o H2.
+- **O H2 antigo não abre no modo PostgreSQL.** Um banco antigo de desenvolvimento (`servidor/dados`) não abre mais
+  (`Schema "PUBLIC" not found`): é preciso apagá-lo ou importá-lo. Um deploy sem `MISSAOMARTE_DB_URL` falha do mesmo
+  jeito sobre o `/dados` da produção, sem perder dados (`BancoH2AntigoTeste`). Por isso as variáveis entram no
+  Dokploy antes do merge.
+- **Cópia de segurança com `pg_dump`.** A cópia do arquivo `.mv.db` com o servidor parado deixa de valer.
+- **Custos.** Um serviço a mais para operar, compartilhado com outros projetos. Os testes do PostgreSQL precisam de
+  Docker; sem ele, são pulados. O runner do GitHub Actions tem Docker.
+- **Avisos do Flyway 12.4.0** (o gerenciado pelo Spring Boot 4.1.2). Com o PostgreSQL 18.7, nenhum aviso de versão.
+  Com o H2 2.4.240, o aviso "Using H2 2.4.240 which is newer than the version Flyway has been verified with. The latest
+  verified version of H2 is 2.3.232", que não afeta nada.
+- **Validação.** Cinco classes de teste cobrem o esquema e a virada:
+  - `EsquemaNovoTeste` (H2) e `EsquemaNoPostgresTeste` conferem o esquema da V1;
+  - `ImportadorDoH2Teste` e `ImportacaoDoH2NoPostgresTeste` conferem a importação. O teste
+    `aImportacaoTerminaAntesDeOServidorAtender` falha se ela virar um `ApplicationRunner`;
+  - `BancoH2AntigoTeste` confere o banco antigo.
+  Houve também um ensaio com a imagem que está em produção (`docs/evidencias/fase-08/etapa-1b-postgres-flyway.txt`):
+  ranking, histórico e perfis iguais byte a byte depois da virada.
+- **Revisão antes da virada.** Uma configuração errada não sobe "com sucesso" no banco errado. Isso importa porque o
+  token só guarda o id do jogador: num banco vazio, o token antigo de alguém entraria na conta nova de outra pessoa.
+  Por isso o servidor não sobe em três casos:
+  - a URL do banco está vazia (`spring.datasource.embedded-database-connection=none`);
+  - na imagem, sem `MISSAOMARTE_DB_URL` (`MISSAOMARTE_PERMITIR_H2=false`, conferido no `main`, antes de qualquer
+    conexão);
+  - a importação aponta para um arquivo que não existe, com o banco novo vazio.
+- **Deploy start-first:** a versão antiga e a nova ficam no ar juntas por alguns segundos. Por isso toda migração
+  precisa ser compatível com a versão anterior (expandir antes, contrair depois).
 
