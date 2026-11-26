@@ -41,13 +41,25 @@ public record EventoAoVivo(String id, TipoDeEvento tipo, long semente, Instant i
      * (DA-48), vale já a partir da duração padrão: o jogo publicado antes dos ajustes encerra o perigo nela.
      */
     public boolean podeReceberResultado(Instant agora) {
-        return tipo.perigo() && !agora.isBefore(primeiroResultado())
-                && agora.isBefore(fim.plusSeconds(FOLGA_RESULTADO_SEGUNDOS));
+        return tipo.perigo() && !agora.isBefore(primeiroResultado()) && agora.isBefore(fimDosResultados());
     }
 
     private Instant primeiroResultado() {
-        Instant peloPadrao = inicio.plusSeconds((long) tipo.duracaoSegundos());
+        Instant peloPadrao = fimPeloPadrao();
         return peloPadrao.isBefore(fim) ? peloPadrao : fim;
+    }
+
+    /**
+     * Até quando o resultado vale: {@link #FOLGA_RESULTADO_SEGUNDOS} depois do fim, ou depois da duração padrão
+     * quando o evento foi encurtado (DA-48): o jogo publicado antes dos ajustes só encerra o perigo nela.
+     */
+    public Instant fimDosResultados() {
+        Instant peloPadrao = fimPeloPadrao();
+        return (peloPadrao.isAfter(fim) ? peloPadrao : fim).plusSeconds(FOLGA_RESULTADO_SEGUNDOS);
+    }
+
+    private Instant fimPeloPadrao() {
+        return inicio.plusSeconds((long) tipo.duracaoSegundos());
     }
 
     public long duracao() {

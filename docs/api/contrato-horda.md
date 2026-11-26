@@ -36,6 +36,9 @@ padrão.
 - Na Horda, o corpo é `{"modo":"HORDA","dificuldade":"DIFICIL","horda":123}`. Ele devolve 201
   `{"bilhete":"<uuid>","validoAte":"<instant>"}`, como nos outros modos.
 - Na Horda, o bilhete é **obrigatório**: sem ele, não há partida da Horda.
+- O jogo que aplica `descricao.ajustes` manda também `"comAjustes":true` (DA-48). Numa horda com ajustes diferentes
+  do padrão, o pedido sem esse campo recebe 409 com `"motivo":"JOGO_DESATUALIZADO"`, e o `detail` pede para
+  atualizar o jogo.
 
 ### `POST /api/partidas` (com token)
 - Na Horda, o corpo é `{"modo":"HORDA","horda":123,"bilhete":"<uuid>", ...os campos de sempre}`.
@@ -83,8 +86,9 @@ válido, responde 401. Se o jogador do token não estiver na lista de administra
 - Quem só está no menu não recebe eventos: o canal só fica aberto durante o voo.
 
 - `duracao` é a duração do evento em segundos inteiros, a dos ajustes gravados na horda em andamento (DA-48). O
-  jogo usa esse valor: o resultado vale do fim do evento até 15 s depois. Num evento mais longo que o padrão, o
-  servidor aceita o resultado já a partir da duração padrão, que é quando o jogo antigo encerra o perigo.
+  jogo usa esse valor: o resultado vale do fim do evento até 15 s depois. Para o jogo antigo, que usa a duração
+  padrão, o servidor aceita o resultado do fim da duração mais curta até 15 s depois da mais longa, entre a do
+  evento e a padrão. O VIP vale só até o fim do evento.
 - O campo `em` é a contagem de segundos até o início, arredondada para cima. Quem conecta durante os 15 segundos
   de aviso recebe o tempo restante.
 - Para pontuar ao sobreviver, o piloto precisa ter enviado uma posição válida nos três segundos anteriores ao início

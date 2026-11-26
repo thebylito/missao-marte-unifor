@@ -85,6 +85,18 @@ class AjustesDoAmbienteTeste {
                 .hasMessageContaining("PUBLICACAO.md");
     }
 
+    /** Revisão do PR #33: um erro no começo do nome também precisa impedir a subida, e não ser ignorado. */
+    @Test
+    void prefixoComErroDeDigitacaoTambemImpedeASubida() {
+        for (String nome : java.util.List.of("MISSAOMARTE_AJUSTES_MEDIO_TANQUE", "missaomarte_ajuste_medio_tanque",
+                "MISSAO_MARTE_AJUSTE_MEDIO_TANQUE")) {
+            assertThatThrownBy(() -> AjustesDoAmbiente.ler(Map.of(nome, "110")))
+                    .as(nome).isInstanceOf(IllegalStateException.class).hasMessageContaining(nome);
+        }
+        assertThat(AjustesDoAmbiente.ler(Map.of("MISSAOMARTE_ADMINS", "x", "MISSAOMARTE_DB_URL", "y")))
+                .isEqualTo(AjustesDeVoo.PADRAO);
+    }
+
     @Test
     void valorQueNaoENumeroImpedeASubida() {
         assertThatThrownBy(() -> AjustesDoAmbiente.ler(Map.of("MISSAOMARTE_AJUSTE_MEDIO_QUEDA", "rápido")))

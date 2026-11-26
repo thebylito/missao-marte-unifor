@@ -51,8 +51,7 @@ class EventosNoCanal {
     }
 
     synchronized void verificar(Instant agora, Collection<Piloto> pilotos) {
-        transmissoes.values().removeIf(t -> agora.isAfter(t.evento.fim()
-                .plusSeconds(EventoAoVivo.FOLGA_RESULTADO_SEGUNDOS)));
+        transmissoes.values().removeIf(t -> agora.isAfter(t.evento.fimDosResultados()));
         if (pilotos.isEmpty()) {
             return;
         }

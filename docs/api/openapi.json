@@ -742,6 +742,10 @@
                         "type": "integer",
                         "format": "int64",
                         "description": "N\u00famero da horda. Obrigat\u00f3rio no modo HORDA."
+                    },
+                    "comAjustes": {
+                        "type": "boolean",
+                        "description": "O jogo aplica os ajustes gravados na horda (DA-48). Sem ele, uma horda com ajustes diferentes do padr\u00e3o recusa o bilhete (409 JOGO_DESATUALIZADO)."
                     }
                 },
                 "required": [

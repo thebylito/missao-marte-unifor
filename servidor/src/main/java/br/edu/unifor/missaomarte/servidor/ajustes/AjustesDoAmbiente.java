@@ -52,7 +52,7 @@ public final class AjustesDoAmbiente {
         Map<String, Double> valores = new HashMap<>();
         for (Map.Entry<String, String> variavel : ambiente.entrySet()) {
             String nome = variavel.getKey();
-            if (!nome.startsWith(PREFIXO)) {
+            if (!pareceAjuste(nome)) {
                 continue;
             }
             if (!NOMES.contains(nome)) {
@@ -68,6 +68,14 @@ public final class AjustesDoAmbiente {
         return new AjustesDeVoo(dificuldade("FACIL", padrao.facil(), valores),
                 dificuldade("MEDIO", padrao.medio(), valores), dificuldade("DIFICIL", padrao.dificil(), valores),
                 eventos(padrao.eventos(), valores));
+    }
+
+    /**
+     * O nome tenta ser um ajuste: começa com "MISSAOMARTE_AJUST", sem contar maiúsculas e separadores. Assim um erro
+     * no começo do nome ({@code MISSAOMARTE_AJUSTES_...}, {@code missaomarte_ajuste_...}) também impede a subida.
+     */
+    public static boolean pareceAjuste(String nome) {
+        return nome.toUpperCase(java.util.Locale.ROOT).replaceAll("[^A-Z0-9]", "").startsWith("MISSAOMARTEAJUST");
     }
 
     private static AjustesDaDificuldade dificuldade(String nome, AjustesDaDificuldade padrao,

@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.servidor.ajustes;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -9,9 +10,11 @@ import br.edu.unifor.missaomarte.pilotagem.horda.DescricaoDaHorda;
 import br.edu.unifor.missaomarte.pilotagem.horda.SorteioDaHorda;
 import br.edu.unifor.missaomarte.pilotagem.horda.TipoDeEvento;
 import br.edu.unifor.missaomarte.servidor.ApiTeste;
+import br.edu.unifor.missaomarte.servidor.evento.EventoAoVivo;
 import br.edu.unifor.missaomarte.servidor.evento.ServicoDeEventos;
 import br.edu.unifor.missaomarte.servidor.horda.CatalogoDeCavernas;
 import br.edu.unifor.missaomarte.servidor.horda.ServicoDeHordas;
+import com.jayway.jsonpath.JsonPath;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -20,8 +23,10 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -98,6 +103,54 @@ class ApiDeAjustesTeste extends ApiTeste {
         eventos.solicitar(TipoDeEvento.TEMPESTADE, relogio.instant());
 
         assertThat(duracaoDoEvento("TEMPESTADE")).isEqualTo(Duration.ofSeconds(25));
+    }
+
+    /**
+     * Revisão do PR #33: o jogo publicado antes da DA-48 joga a horda com o padrão. Numa horda com ajustes diferentes,
+     * ele não recebe o bilhete, e sem bilhete não entra no Top 10 da horda.
+     */
+    @Test
+    void oJogoAntigoNaoRecebeBilheteDeUmaHordaComAjustes() throws Exception {
+        String token = novoJogador("Antiga");
+        String dificuldade = JsonPath.read(atual(), "$.dificuldade");
+        long numero = ServicoDeHordas.numeroEm(MEIO_DA_HORDA);
+
+        pedirBilhete(token, numero, dificuldade, "")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.motivo").value("JOGO_DESATUALIZADO"))
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("Atualize o jogo")));
+        pedirBilhete(token, numero, dificuldade, ",\"comAjustes\":true").andExpect(status().isCreated());
+    }
+
+    @Test
+    void numaHordaComOPadraoOJogoAntigoRecebeOBilhete() throws Exception {
+        gravarHordaSemAjustes();
+        String token = novoJogador("Antiga");
+        String dificuldade = JsonPath.read(atual(), "$.dificuldade");
+
+        pedirBilhete(token, ServicoDeHordas.numeroEm(MEIO_DA_HORDA), dificuldade, "").andExpect(status().isCreated());
+    }
+
+    /** Revisão do PR #33: um evento encurtado continua ativo para o resultado do jogo antigo, que dura o padrão. */
+    @Test
+    void umEventoEncurtadoContinuaAtivoAteOPrazoDoJogoAntigo() {
+        Instant inicio = MEIO_DA_HORDA.minusSeconds(30);
+        jdbc.update("insert into eventos_ao_vivo (evento, tipo, semente, inicio, fim) values (?, ?, ?, ?, ?)",
+                "e-curto", "TEMPESTADE", 7L, inicio.atOffset(ZoneOffset.UTC), inicio.plusSeconds(10).atOffset(ZoneOffset.UTC));
+
+        assertThat(eventos.ativos(inicio.plusSeconds(39))).extracting(EventoAoVivo::id).contains("e-curto");
+        assertThat(eventos.ativos(inicio.plusSeconds(41))).extracting(EventoAoVivo::id).doesNotContain("e-curto");
+    }
+
+    private String atual() throws Exception {
+        return mvc.perform(get("/api/hordas/atual")).andExpect(status().isOk()).andReturn().getResponse()
+                .getContentAsString();
+    }
+
+    private ResultActions pedirBilhete(String token, long numero, String dificuldade, String extra) throws Exception {
+        return mvc.perform(post("/api/partidas/inicio").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"modo\":\"HORDA\",\"horda\":" + numero
+                        + ",\"dificuldade\":\"" + dificuldade + "\"" + extra + "}"));
     }
 
     private Duration duracaoDoEvento(String tipo) {

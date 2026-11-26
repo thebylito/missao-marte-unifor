@@ -26,7 +26,7 @@ class ConfiguracaoDosAjustes {
         for (PropertySource<?> fonte : ambiente.getPropertySources()) {
             if (fonte instanceof EnumerablePropertySource<?> nomes) {
                 for (String nome : nomes.getPropertyNames()) {
-                    if (nome.startsWith(AjustesDoAmbiente.PREFIXO)) {
+                    if (AjustesDoAmbiente.pareceAjuste(nome)) {
                         definidas.putIfAbsent(nome, ambiente.getProperty(nome));
                     }
                 }

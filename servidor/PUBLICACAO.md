@@ -373,19 +373,25 @@ No Dokploy, acrescente as linhas na aba **Environment** do `missao-marte-api` e 
 | `MISSAOMARTE_AJUSTE_DURACAO_CHUVA`, `_TEMPESTADE`, `_PANE`, `_VIP` | duração de cada evento, em segundos inteiros | 20, 25, 20 e 45 | 10 a 90 |
 
 Os nomes abreviados com `_` seguem o mesmo começo. Por exemplo, `_MEDIO_INCLINACAO` é
-`MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO`. O valor aceita vírgula ou ponto (`0,9` ou `0.9`).
+`MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO`. O valor aceita vírgula ou ponto (`0,9` ou `0.9`). Um valor vazio conta como
+não definido.
 
 Quando cada mudança vale:
 - **Pilotagem Livre:** na próxima partida de quem voltar ao menu depois do deploy.
 - **Horda:** a partir da próxima horda. A horda em andamento continua com os ajustes gravados nela.
 - **Eventos ao vivo:** a duração é a da horda em andamento, inclusive nos eventos disparados pelo painel.
-- **Jogo publicado antes da DA-48:** continua com os números da Fase 8 até a pessoa instalar o jogo novo.
+- **Jogo publicado antes da DA-48:** continua com os números da Fase 8 até a pessoa instalar o jogo novo. Numa
+  horda com ajustes diferentes do padrão, ele não recebe o bilhete e mostra "Atualize o jogo pelo site". Na
+  Pilotagem Livre ele continua jogando, com o padrão, e entra no mesmo ranking.
 
 Se algo estiver errado, o servidor novo não sobe e o log diz o quê, por exemplo:
 `Ajuste do jogo inválido em MISSAOMARTE_AJUSTE_MEDIO_INCLINACAO: inclinacaoMaxima precisa estar entre 5 e 45 (veio 46)`.
-Isso vale para um nome com erro de digitação, um valor que não é número, uma duração com casas decimais ou um valor
-fora da faixa. No deploy start-first, o servidor anterior continua atendendo: corrija a variável e faça o deploy de
+Isso vale para um nome com erro de digitação (também no começo, como `MISSAOMARTE_AJUSTES_...`), um valor que não é
+número, uma duração com casas decimais ou um valor fora da faixa. No deploy start-first, o servidor anterior continua atendendo: corrija a variável e faça o deploy de
 novo. Na subida, o log mostra os ajustes em uso (`Ajustes do jogo: {...}`), e `GET /api/ajustes` mostra o resultado.
+
+Num rollback para uma imagem anterior à DA-48, os ajustes deixam de valer, e uma horda sorteada por ela fica com o
+padrão até o fim.
 
 Mudar um ajuste muda a dificuldade da Pilotagem Livre para quem joga depois. O ranking não é zerado: os recordes
 anteriores foram feitos com a regra de antes.

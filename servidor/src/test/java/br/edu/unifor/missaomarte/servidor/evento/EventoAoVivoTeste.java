@@ -36,13 +36,26 @@ class EventoAoVivoTeste {
         assertThat(evento.podeReceberResultado(INICIO.plusSeconds(55))).isFalse();
     }
 
+    /**
+     * Num evento mais curto, o resultado vale do fim dele até 15 s depois da duração padrão: o jogo antigo encerra o
+     * perigo só na duração padrão (revisão do PR #33).
+     */
     @Test
-    void numEventoMaisCurtoOResultadoValeDoFimDele() {
+    void numEventoMaisCurtoOResultadoValeDoFimDeleAteOPrazoDoJogoAntigo() {
         EventoAoVivo evento = EventoAoVivo.novo(1, 1, TipoDeEvento.TEMPESTADE, 7, INICIO, null, 12);
 
         assertThat(evento.podeReceberResultado(INICIO.plusSeconds(11))).isFalse();
         assertThat(evento.podeReceberResultado(INICIO.plusSeconds(12))).isTrue();
-        assertThat(evento.podeReceberResultado(INICIO.plusSeconds(27))).isFalse();
+        assertThat(evento.podeReceberResultado(INICIO.plusSeconds(39))).isTrue();
+        assertThat(evento.podeReceberResultado(INICIO.plusSeconds(40))).isFalse();
+        assertThat(evento.fimDosResultados()).isEqualTo(INICIO.plusSeconds(40));
+    }
+
+    @Test
+    void comADuracaoPadraoOPrazoDosResultadosEODeAntes() {
+        EventoAoVivo evento = EventoAoVivo.novo(1, 1, TipoDeEvento.PANE_DE_GRAVIDADE, 7, INICIO);
+
+        assertThat(evento.fimDosResultados()).isEqualTo(evento.fim().plusSeconds(15));
     }
 
     @Test

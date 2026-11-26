@@ -111,6 +111,8 @@ public final class ServidorHttp implements ServidorDoJogo {
             corpo.addChild("horda", new JsonValue(horda));
         }
         corpo.addChild("dificuldade", new JsonValue(dificuldade.name()));
+        // DA-48: este jogo aplica os ajustes gravados na horda (o servidor recusa a horda com ajustes a quem não diz).
+        corpo.addChild("comAjustes", new JsonValue(true));
         enviar(HttpMethods.POST, "/api/partidas/inicio", sessao, corpo,
                 json -> new Bilhete(json.getString("bilhete"), Instant.parse(json.getString("validoAte"))), resposta);
     }

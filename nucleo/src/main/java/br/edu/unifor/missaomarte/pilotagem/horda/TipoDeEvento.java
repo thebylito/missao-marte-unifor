@@ -19,8 +19,8 @@ public enum TipoDeEvento {
     }
 
     /**
-     * A duração padrão, da tabela da análise. Desde a DA-48 o servidor pode ajustá-la ({@code AjustesDosEventos}); a
-     * agenda dos eventos ao vivo continua sorteando os horários com esta, para não mudar as hordas já gravadas.
+     * A duração padrão, da tabela da análise. Desde a DA-48 o servidor pode ajustá-la ({@code AjustesDosEventos}), e
+     * cada horda guarda as durações dela. O jogo publicado antes da DA-48 continua usando esta.
      */
     public double duracaoSegundos() { return duracaoSegundos; }
 

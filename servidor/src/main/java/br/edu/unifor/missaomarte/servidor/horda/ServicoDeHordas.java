@@ -80,6 +80,11 @@ public class ServicoDeHordas {
         return gravada(numero).orElseGet(() -> gerar(numero));
     }
 
+    /** Os ajustes gravados nesta horda (DA-48); o padrão, se ela não estiver gravada. */
+    public AjustesDeVoo ajustesDa(long numero, Instant agora) {
+        return sala(numero, agora).map(horda -> horda.descricao().ajustes()).orElse(AjustesDeVoo.PADRAO);
+    }
+
     /** Salas só são abertas para hordas publicadas, dentro da janela das partidas. */
     public Optional<Horda> sala(long numero, Instant agora) {
         if (!naJanela(numero, agora)) {

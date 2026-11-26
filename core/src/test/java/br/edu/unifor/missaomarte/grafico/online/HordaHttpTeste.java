@@ -139,6 +139,7 @@ class HordaHttpTeste {
         assertEquals("HORDA", inicio.getString("modo"));
         assertEquals("DIFICIL", inicio.getString("dificuldade"));
         assertEquals(42, inicio.getLong("horda"));
+        assertTrue(inicio.getBoolean("comAjustes"), "o jogo diz que aplica os ajustes da horda (DA-48)");
 
         var p = new PartidaParaEnviar("VITORIA", "DIFICIL", 70, 3, 4, 110, "HORDA")
                 .comHorda(42).comBilhete(bilhete.bilhete());
