@@ -51,6 +51,13 @@ def metadata():
             entry.update(degreesPerFrame=11.25,rotationAxis=[.36,.84,.40],loop=True)
         if name=='rocha_tile':
             entry['tileable']=True
+        if name=='sentinela':
+            entry.update(pivot={'x':64,'y':118},pivotName='fixed ground contact',
+                         loop=True,animation='stationary base; rotating scanning head')
+        if name=='antena_missao':
+            entry.update(pivot={'x':128,'y':178},pivotName='fixed ground contact',
+                         states={'off':[0,3],'activating':[4,7],'active':[8,11]},
+                         animation='stationary base; reflector orientation and transmitting dipole')
         data['assets'][name]=entry
     return data
 

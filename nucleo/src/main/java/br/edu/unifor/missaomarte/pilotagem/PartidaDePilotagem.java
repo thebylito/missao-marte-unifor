@@ -79,6 +79,7 @@ public final class PartidaDePilotagem {
     private int pontosDosResgates;
     private int bonus;
     private int entregues;
+    private boolean objetivoAdicionalCumprido = true;
     private int pousos;
     private boolean avisouNaveCheia;
     /** A superfície de onde a nave acabou de decolar (NaN quando já subiu o bastante para girar). */
@@ -505,7 +506,7 @@ public final class PartidaDePilotagem {
     }
 
     private void entregar() {
-        if (nave.getABordo().isEmpty()) {
+        if (nave.getABordo().isEmpty() || !objetivoAdicionalCumprido) {
             return;
         }
         int pontos = 0;
@@ -522,6 +523,14 @@ public final class PartidaDePilotagem {
             estado = Partida.Estado.VITORIA;
             emitir(EventoDeVoo.Tipo.VITORIA, "Missão cumprida!", getPontos());
         }
+    }
+
+    /** Campanhas podem exigir uma instalação antes de permitir a entrega na base. */
+    public void exigirObjetivoAdicional() { objetivoAdicionalCumprido = false; }
+    public void cumprirObjetivoAdicional() {
+        objetivoAdicionalCumprido = true;
+        if (estado == Partida.Estado.EM_ANDAMENTO && nave.estado == NaveEmVoo.Estado.POUSADA
+                && nave.plataforma.getTipo() == PlataformaDePouso.Tipo.BASE) entregar();
     }
 
     /** Impacto externo de um encontro da história, usando a mesma perda de vida do voo. */

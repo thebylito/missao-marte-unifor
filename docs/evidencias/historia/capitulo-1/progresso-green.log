@@ -1,0 +1,22 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon JVM discovery is an incubating feature.
+Daemon will be stopped at the end of the build
+> Task :nucleo:compileJava
+> Task :nucleo:processResources NO-SOURCE
+> Task :nucleo:classes
+> Task :nucleo:jar
+> Task :nucleo:compileTestJava
+> Task :nucleo:processTestResources NO-SOURCE
+> Task :nucleo:testClasses
+> Task :nucleo:test
+> Task :core:compileJava
+> Task :core:gerarServidorPadrao UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes
+> Task :core:compileTestJava
+> Task :core:processTestResources NO-SOURCE
+> Task :core:testClasses
+> Task :core:test
+
+BUILD SUCCESSFUL in 8s
+9 actionable tasks: 7 executed, 2 up-to-date

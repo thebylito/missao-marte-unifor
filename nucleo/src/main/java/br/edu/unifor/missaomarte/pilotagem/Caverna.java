@@ -53,6 +53,12 @@ public final class Caverna {
         return this;
     }
 
+    /** Posto pousável sem passageiro; não participa da contagem de resgates. */
+    public Caverna instalacao(double x,double superficie) {
+        plataformas.add(new PlataformaDePouso(PlataformaDePouso.Tipo.INSTALACAO,x,superficie,256,36));
+        return this;
+    }
+
     public Caverna asteroide(AsteroideEmOrbita asteroide) {
         asteroides.add(asteroide);
         return this;

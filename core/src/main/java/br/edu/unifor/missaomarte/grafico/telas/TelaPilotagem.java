@@ -835,6 +835,7 @@ public class TelaPilotagem extends TelaBase {
         }
         for (PlataformaDePouso pl : c.getPlataformas()) {
             formas().setColor(pl.getTipo() == PlataformaDePouso.Tipo.BASE ? SEGURO
+                    : pl.getTipo() == PlataformaDePouso.Tipo.INSTALACAO ? Color.CYAN
                     : pl.getEsperando().isPresent() ? ALERTA : Color.GRAY);
             formas().rect(m.x() + (float) pl.getX() * escala, m.y() + (float) pl.getSuperficie() * escala,
                     (float) pl.getLargura() * escala, 3);

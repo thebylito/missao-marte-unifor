@@ -85,3 +85,5 @@ for pessoa in ('astronauta','engenheiro','professor'):
         chave = pessoa + '_' + acao
         SPECS[chave] = Spec(chave, chave + '.png', (64,80,12,6,2))
 SPECS['abrigo'] = Spec('abrigo','abrigo.png',(128,128,8,4,2))
+SPECS['sentinela'] = Spec('sentinela','sentinela.png',(128,128,16,4,4))
+SPECS['antena_missao'] = Spec('antena_missao','antena_missao.png',(256,192,12,4,3))

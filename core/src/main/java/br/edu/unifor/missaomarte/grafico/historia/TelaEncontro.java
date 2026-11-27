@@ -110,10 +110,10 @@ public class TelaEncontro extends TelaPilotagem {
     @Override protected float yDaMensagem() { return visivel().y() + 215; }
 
     @Override protected void atualizar(float delta) {
-        EncontroDeResgate.Estado anterior = encontro.estado();
+        boolean alertaAnterior = encontro.emAlerta();
         double pulsoAnterior = encontro.pulsoRestante();
         super.atualizar(delta);
-        if (encontro.estado() == EncontroDeResgate.Estado.AVISO && encontro.estado() != anterior) {
+        if (encontro.emAlerta() && !alertaAnterior) {
             jogo.getSons().tocar(Som.ALERTA);
         }
         if (encontro.pulsoRestante() > pulsoAnterior) jogo.getSons().tocar(Som.MOVER);
@@ -129,6 +129,7 @@ public class TelaEncontro extends TelaPilotagem {
             case RECUPERANDO -> Color.CYAN;
             default -> Color.WHITE;
         };
+        if (encontro.patrulhaAtiva()) {
         lote().setColor(cor);
         lote().draw(recursos().quadro(Folha.PATRULHEIRO, quadro), x - 48, y - 32, 96, 64);
         lote().setColor(Color.WHITE);
@@ -136,8 +137,41 @@ public class TelaEncontro extends TelaPilotagem {
             escrever("!", x - 6, y + 62, Color.ORANGE, 2);
         } else if (encontro.estado() == EncontroDeResgate.Estado.DESATIVADO) {
             escrever("DESATIVADO", x - 54, y + 54, Color.CYAN, .75f);
-        } else if (encontro.alvoNoCone()) {
+        } else if (encontro.patrulheiroNoCone()) {
             escrever("ALVO", x - 22, y + 54, Color.CYAN, .8f);
+        }
+        }
+        var sentinela=encontro.sentinela();
+        if(sentinela!=null) {
+            Color luz=switch(sentinela.estado()) {
+                case AVISO -> Color.ORANGE;
+                case DESATIVADO -> Color.GRAY;
+                case RECUPERANDO -> Color.CYAN;
+                default -> Color.WHITE;
+            };
+            float sx=(float)sentinela.x(),sy=(float)sentinela.y();
+            lote().setColor(luz);
+            int frame=(int)(encontro.partida().getTempo()*.7/(2*Math.PI)*16)%16;
+            lote().draw(recursos().quadro(Folha.SENTINELA,frame),sx-64,sy-96,128,128);
+            lote().setColor(Color.WHITE);
+            if(sentinela.vulneravel()) {
+                double angulo=Math.toRadians(sentinela.angulo()),distancia=0;
+                for(double d=10;d<=520;d+=10) {
+                    double px=sx+Math.cos(angulo)*d,py=sy+Math.sin(angulo)*d;
+                    boolean rocha=false;
+                    for(var r:encontro.partida().getCaverna().getRochas())if(r.contem(px,py)){rocha=true;break;}
+                    if(rocha)break;distancia=d;
+                }
+                lote().end();
+                formas().begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
+                formas().setColor(sentinela.estado()==br.edu.unifor.missaomarte.pilotagem.historia.SentinelaDeVarredura.Estado.AVISO?Color.ORANGE:Color.SKY);
+                formas().line(sx,sy,(float)(sx+Math.cos(angulo)*distancia),(float)(sy+Math.sin(angulo)*distancia));
+                formas().end();lote().begin();
+            }
+            if(sentinela.estado()==br.edu.unifor.missaomarte.pilotagem.historia.SentinelaDeVarredura.Estado.AVISO)
+                escrever("!",sx-6,sy+65,Color.ORANGE,2);
+            else if(!sentinela.vulneravel())escrever("DESATIVADA",sx-45,sy+56,Color.CYAN,.75f);
+            else if(encontro.sentinelaNoCone())escrever("ALVO",sx-22,sy+56,Color.CYAN,.8f);
         }
         for (EncontroDeResgate.Projetil p : encontro.projeteis()) {
             lote().draw(recursos().quadro(Folha.DISPARO_HISTORIA, quadro % 4),

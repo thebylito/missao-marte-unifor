@@ -1,0 +1,16 @@
+INSTRUMENTATION_STATUS: etapa=M02: Processo reaberto: capítulo e três pontuações carregados no mapa.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=M02: Briefing e rádio pela entrada normal.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=M02: Replay M02 iniciado pela interface.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=M02: Replay M02 em retrato após resize real: 720x1280.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=M02: Replay M02 abortado; três recordes preservados no arquivo.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: pontuacoes=M01:32,M02:20,M03:40
+INSTRUMENTATION_STATUS_CODE: 2
+INSTRUMENTATION_STATUS: etapa=M02: Replay abortado: mapa em paisagem e save mantêm capítulo completo e três pontuações idênticas.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: resultado=PASS
+INSTRUMENTATION_CODE: -1

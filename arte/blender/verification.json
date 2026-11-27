@@ -703,6 +703,24 @@
       "result": "PASS"
     },
     {
+      "asset": "sentinela",
+      "size": [
+        512,
+        512
+      ],
+      "frames": 16,
+      "result": "PASS"
+    },
+    {
+      "asset": "antena_missao",
+      "size": [
+        1024,
+        576
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
       "asset": "naves/catalogo.json",
       "result": "PASS"
     },

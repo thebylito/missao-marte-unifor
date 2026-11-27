@@ -1,0 +1,5 @@
+Validação local: Java 17; Android SDK local; minSdk 26.
+Emulador: Small_Phone_API_36, Android 16/API36, SwiftShader, sem janela.
+Aparelho físico: Samsung SM-S928B, Android 17.
+Pacote usado no ensaio: br.edu.unifor.missaomarte.historia (separado do app publicado).
+Sem limpeza de dados: save antigo da M01 é mantido/migrado pelo próprio jogo.

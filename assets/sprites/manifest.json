@@ -1286,6 +1286,55 @@
         "y": 64.0
       },
       "opaque": false
+    },
+    "sentinela": {
+      "file": "sentinela.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 4,
+      "frames": 16,
+      "width": 512,
+      "height": 512,
+      "pivot": {
+        "x": 64,
+        "y": 118
+      },
+      "opaque": false,
+      "pivotName": "fixed ground contact",
+      "loop": true,
+      "animation": "stationary base; rotating scanning head"
+    },
+    "antena_missao": {
+      "file": "antena_missao.png",
+      "cellW": 256,
+      "cellH": 192,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 1024,
+      "height": 576,
+      "pivot": {
+        "x": 128,
+        "y": 178
+      },
+      "opaque": false,
+      "pivotName": "fixed ground contact",
+      "states": {
+        "off": [
+          0,
+          3
+        ],
+        "activating": [
+          4,
+          7
+        ],
+        "active": [
+          8,
+          11
+        ]
+      },
+      "animation": "stationary base; reflector orientation and transmitting dipole"
     }
   }
 }

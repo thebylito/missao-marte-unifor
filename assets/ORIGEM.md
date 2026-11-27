@@ -168,3 +168,18 @@ A Padrão tem a abertura frontal. A Guará tem a abertura lateral no cofre direi
 - `sprites/engenheiro_comemorar.png` é gerado por `pessoas_animadas.py`, em doze quadros.
 - `sprites/professor_proteger.png` é gerado por `pessoas_animadas.py`, em doze quadros.
 - `sprites/professor_comemorar.png` é gerado por `pessoas_animadas.py`, em doze quadros.
+
+## Capítulo 1 — sentinela e antena da missão
+
+Modelos originais construídos somente com primitivas e materiais procedurais do Blender, sem imagens, texturas ou modelos externos. Compartilham a câmera ortográfica XZ, a iluminação superior esquerda, o fundo transparente com alfa reto e a antisserrilha do pipeline existente.
+
+- `sprites/sentinela.png`: `arte/blender/sentinela.py`, 16 quadros em grade 4×4, células de 128×128 px. Torre fixa com sapatas, coluna octogonal e cabeça blindada; a lente e a cabeça fazem a varredura enquanto o pedestal permanece imóvel. Pivô no contato com o chão: `(64,118)`, medido a partir do canto superior esquerdo da célula.
+- `sprites/antena_missao.png`: `arte/blender/antena_missao.py`, 12 quadros em grade 4×3, células de 256×192 px. Refletor côncavo, tripé do foco, dipolo e módulos de energia próprios, distintos do posto habitável. Quadros 0–3 desligados, com luz fraca e deslocamento mínimo; 4–7 orientam o refletor e acendem a luz âmbar; 8–11 transmitem com luz verde e movimento do dipolo. Pivô no contato com o chão: `(128,178)`.
+
+Os pivôs e os intervalos de estado são gravados no manifesto por `render_all.metadata()`. Regeneração, sempre sem janela:
+
+```bash
+rtk proxy /Applications/Blender.app/Contents/MacOS/Blender --background --python-exit-code 1 --python arte/blender/render_all.py -- --only sentinela antena_missao --engine cycles --samples 64
+```
+
+As evidências de inspeção e verificação ficam em `docs/evidencias/historia/capitulo-1/arte/`.

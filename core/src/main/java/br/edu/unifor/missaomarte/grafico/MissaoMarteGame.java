@@ -177,6 +177,11 @@ public class MissaoMarteGame extends Game {
         trocarTela(new br.edu.unifor.missaomarte.grafico.historia.TelaMissaoHistoria(this, servico));
     }
 
+    public void iniciarMissaoHistoria(br.edu.unifor.missaomarte.grafico.historia.ServicoHistoria servico,
+            br.edu.unifor.missaomarte.historia.MissaoHistoria missao) {
+        trocarTela(new br.edu.unifor.missaomarte.grafico.historia.TelaMissaoHistoria(this,servico,missao));
+    }
+
     public void irParaMenu() {
         trocarTela(new TelaMenu(this));
         ajustes.atualizar(servicos.servidor());
