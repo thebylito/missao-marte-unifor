@@ -1,0 +1,64 @@
+> Task :nucleo:compileJava UP-TO-DATE
+> Task :core:compileJava UP-TO-DATE
+> Task :core:gerarServidorPadrao UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes UP-TO-DATE
+
+> Task :core:compileTestJava FAILED
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:8: error: cannot find symbol
+        assertEquals(0,AnimacaoDoPassageiro.subidaNaRampa(0,0));
+                                           ^
+  symbol:   method subidaNaRampa(int,int)
+  location: class AnimacaoDoPassageiro
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:9: error: cannot find symbol
+        float inicio=AnimacaoDoPassageiro.subidaNaRampa(.01f,0);
+                                         ^
+  symbol:   method subidaNaRampa(float,int)
+  location: class AnimacaoDoPassageiro
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:11: error: cannot find symbol
+        assertEquals(26,AnimacaoDoPassageiro.subidaNaRampa(1,0));
+                                            ^
+  symbol:   method subidaNaRampa(int,int)
+  location: class AnimacaoDoPassageiro
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:12: error: cannot find symbol
+        assertEquals(0,AnimacaoDoPassageiro.subidaNaRampa(.5f,30));
+                                           ^
+  symbol:   method subidaNaRampa(float,int)
+  location: class AnimacaoDoPassageiro
+4 errors
+
+[Incubating] Problems report is available at: file:///Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':core:compileTestJava'.
+> Compilation failed; see the compiler output below.
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:8: error: cannot find symbol
+          assertEquals(0,AnimacaoDoPassageiro.subidaNaRampa(0,0));
+                                             ^
+    symbol:   method subidaNaRampa(int,int)
+    location: class AnimacaoDoPassageiro
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:9: error: cannot find symbol
+          float inicio=AnimacaoDoPassageiro.subidaNaRampa(.01f,0);
+                                           ^
+    symbol:   method subidaNaRampa(float,int)
+    location: class AnimacaoDoPassageiro
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:11: error: cannot find symbol
+          assertEquals(26,AnimacaoDoPassageiro.subidaNaRampa(1,0));
+                                              ^
+    symbol:   method subidaNaRampa(int,int)
+    location: class AnimacaoDoPassageiro
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/src/test/java/br/edu/unifor/missaomarte/grafico/apresentacao/AnimacaoDoPassageiroTeste.java:12: error: cannot find symbol
+          assertEquals(0,AnimacaoDoPassageiro.subidaNaRampa(.5f,30));
+                                             ^
+    symbol:   method subidaNaRampa(float,int)
+    location: class AnimacaoDoPassageiro
+  4 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 661ms
+5 actionable tasks: 1 executed, 4 up-to-date

@@ -1,58 +1,100 @@
 {
   "blenderVersion": "5.2.3 LTS",
   "assets": {
-    "padrao_2": {
-      "seconds": 3.645,
+    "porta_padrao": {
+      "seconds": 0.976,
       "engines": [
         "CYCLES"
       ],
-      "frames": 64
+      "frames": 12
     },
-    "padrao_3": {
-      "seconds": 3.8,
+    "porta_padrao_2": {
+      "seconds": 1.212,
       "engines": [
         "CYCLES"
       ],
-      "frames": 64
+      "frames": 12
     },
-    "padrao_4": {
-      "seconds": 4.554,
+    "porta_padrao_3": {
+      "seconds": 1.226,
       "engines": [
         "CYCLES"
       ],
-      "frames": 64
+      "frames": 12
     },
-    "padrao_5": {
-      "seconds": 4.965,
+    "porta_padrao_4": {
+      "seconds": 1.37,
       "engines": [
         "CYCLES"
       ],
-      "frames": 64
+      "frames": 12
     },
-    "guara_2": {
-      "seconds": 3.481,
+    "porta_padrao_5": {
+      "seconds": 1.591,
       "engines": [
         "CYCLES"
       ],
-      "frames": 64
+      "frames": 12
     },
-    "guara_3": {
-      "seconds": 3.855,
+    "porta_guara": {
+      "seconds": 0.943,
       "engines": [
         "CYCLES"
       ],
-      "frames": 64
+      "frames": 12
     },
-    "guara_4": {
-      "seconds": 5.863,
+    "porta_guara_2": {
+      "seconds": 1.016,
       "engines": [
         "CYCLES"
       ],
-      "frames": 64
+      "frames": 12
+    },
+    "porta_guara_3": {
+      "seconds": 1.089,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_guara_4": {
+      "seconds": 1.727,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "astronauta_proteger": {
+      "seconds": 0.518,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "engenheiro_proteger": {
+      "seconds": 0.448,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "professor_proteger": {
+      "seconds": 0.502,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "abrigo": {
+      "seconds": 0.84,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 8
     }
   },
   "complete": true,
-  "renderSeconds": 30.165,
+  "renderSeconds": 13.684,
   "underTenMinutes": true,
-  "totalSeconds": 30.165
+  "totalSeconds": 15.019
 }

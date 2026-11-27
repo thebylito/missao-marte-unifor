@@ -1,0 +1,28 @@
+INSTRUMENTATION_STATUS: etapa=Poço Polar carregado. Passageiro 3. Skin padrao_5. Início da aproximação.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Passageiro ao alcance do aceno.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Jato ao alcance da plataforma.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Pouso confirmado.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Porta aberta para o passageiro.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Aceno mantido em 1386 quadros da aproximação.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Porta abriu completamente e fechou após o embarque.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Embarque confirmado. 2231 atualizações; 374 quadros com motor na faixa dos cristais.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Aproximação da base para entrega e abastecimento.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Pouso confirmado.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Passageiro entregue. Caminhada até o abrigo.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Braço conectado e reabastecendo.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Entrega, suspensão e reabastecimento confirmados.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: resultado=PASS
+INSTRUMENTATION_CODE: -1

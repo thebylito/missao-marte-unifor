@@ -37,7 +37,7 @@ def metadata():
         w,h,n,c,r = spec.grid
         entry={'file':spec.output,'cellW':w,'cellH':h,'cols':c,'rows':r,'frames':n,
                'width':w*c,'height':h*r,'pivot':{'x':w/2,'y':0 if name=='chama' else h/2},
-               'opaque':name in ('fundo','rocha_tile')}
+               'opaque':name in ('fundo','rocha_tile','parede_gelo','parede_ferro','fundo_polar','fundo_ferro')}
         if name=='nave' or name in SKINS:
             entry.update(frame0='nose up',rotationDirection='counterclockwise',degreesPerFrame=5.625)
         if name.startswith('plataforma_'):
@@ -97,7 +97,7 @@ def render_asset(name,args,frame_path):
     start=time.perf_counter()
     spec = SPECS[name]
     w,h,n,c,r = spec.grid
-    s=scene(w,h,opaque=name in ('fundo','rocha_tile'),engine=args.engine,samples=args.samples)
+    s=scene(w,h,opaque=name in ('fundo','rocha_tile','parede_gelo','parede_ferro','fundo_polar','fundo_ferro'),engine=args.engine,samples=args.samples)
     module=importlib.import_module(spec.module)
     animate=module.build()
     sheet=np.zeros((r*h,c*w,4),np.float32)

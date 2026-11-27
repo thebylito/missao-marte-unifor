@@ -162,8 +162,9 @@ public class TelaPartida extends TelaBase {
         int i = 0;
         for (Asteroide a : missao.getAsteroides()) {
             Quadrado q = geometria.celula(a.getPosicao());
-            int quadro = FolhaDeSprites.quadroEmLaco(Folha.ASTEROIDE, t + i++ * 0.37f, 12);
-            desenharCentralizado(Folha.ASTEROIDE, quadro, q.centroX() + dx, q.centroY() + dy, lado * 0.95f);
+            Folha rocha = i % 2 == 0 ? Folha.ASTEROIDE : Folha.CRATERADO;
+            int quadro = FolhaDeSprites.quadroEmLaco(rocha, t + i++ * 0.37f, 12);
+            desenharCentralizado(rocha, quadro, q.centroX() + dx, q.centroY() + dy, lado * 0.95f);
         }
 
         i = 0;

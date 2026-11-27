@@ -50,7 +50,7 @@ public final class InicioDaPartida implements Resposta<Bilhete> {
                 resposta.falha(new Falha(Falha.Motivo.RESPOSTA_INVALIDA, "A descrição da Horda é inválida."));
                 return;
             }
-            resposta.sucesso(new ControladorDaPilotagem(partida, horda.numero(), bilhete.bilhete()));
+            resposta.sucesso(new ControladorDaPilotagem(partida, horda.numero(), bilhete.bilhete(), horda.caverna().id()));
         }, resposta::falha));
     }
 

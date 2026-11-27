@@ -14,6 +14,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class VooDaHordaTeste {
     private static final Sessao PILOTO = new Sessao("Iara", "token");
@@ -22,7 +23,11 @@ class VooDaHordaTeste {
     private Falha erro;
 
     private void pedir() {
-        var caverna = new DescricaoDeCaverna("ensaio", "Ensaio", 2200, 1000, List.of(),
+        pedir("ensaio");
+    }
+
+    private void pedir(String idDaCaverna) {
+        var caverna = new DescricaoDeCaverna(idDaCaverna, "Ensaio", 2200, 1000, List.of(),
                 new PontoDePouso(100, 120), List.of(new PontoDePouso(500, 120),
                 new PontoDePouso(900, 120), new PontoDePouso(1600, 120)), List.of(), true);
         var horda = new DescricaoDaHorda(53, Dificuldade.DIFICIL, caverna, List.of(
@@ -31,6 +36,14 @@ class VooDaHordaTeste {
                 List.of(new Modificador(TipoDeModificador.VENTO, 16)),
                 List.of(new PerigoDoRoteiro(TipoDeEvento.PANE_DE_GRAVIDADE, 0.025, 971)));
         InicioDaPartida.pedirHorda(PILOTO, servidor, horda, Resposta.de(c -> controle = c, f -> erro = f));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"poco-polar,true", "veio-de-ferro,false", "marciana,false", "desconhecida,false"})
+    void reconheceOVisualPeloIdDaCaverna(String id, boolean polar) {
+        pedir(id);
+        servidor.bilhete.sucesso(new Bilhete("ensaio", null));
+        assertEquals(polar, controle.noPocoPolar());
     }
 
     @Test void aguardaOBilheteEFicaNoMenuSeOServidorRecusar() {
