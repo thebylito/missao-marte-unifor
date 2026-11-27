@@ -23,6 +23,7 @@ public class TelaMenu extends TelaBase {
         "6. Trocar de Piloto",
         "7. Hangar",
     };
+    private static final Retangulo ENCONTRO = new Retangulo(40, 178, 185, 54);
     private static final float Y_DAS_OPCOES = 385;
     private static final float PASSO = 36;
     private static final Retangulo FAIXA_HORDA = new Retangulo(40, 8, 720, 100);
@@ -44,6 +45,10 @@ public class TelaMenu extends TelaBase {
         return new InputAdapter() {
             @Override
             public boolean keyDown(int tecla) {
+                if (tecla == Keys.NUM_8 && !controlador.isConfirmandoApagar()) {
+                    jogo.iniciarEncontroHistoria();
+                    return true;
+                }
                 switch (controlador.teclaPressionada(tecla)) {
                     case NOVA_PARTIDA: jogo.irParaNovaPartida(); break;
                     case RANKING: jogo.irParaRanking(); break;
@@ -67,6 +72,7 @@ public class TelaMenu extends TelaBase {
             alvos.add(tecla(BOTAO_NAO, Keys.N, 'n'));
             return alvos;
         }
+        alvos.add(tecla(ENCONTRO, Keys.NUM_8, '8'));
         alvos.add(tecla(FAIXA_HORDA, Keys.H, 'h'));
         for (int i = 0; i < OPCOES.length; i++) {
             alvos.add(tecla(linha(240, Y_DAS_OPCOES - i * PASSO, 460, PASSO - 2), Keys.NUM_1 + i, (char) ('1' + i)));
@@ -105,6 +111,7 @@ public class TelaMenu extends TelaBase {
         escreverComQuebra(controlador.getMensagem(), 42, 145, 716, corDaMensagem, 1f);
         lote().end();
         if (!controlador.isConfirmandoApagar()) {
+            desenharBotoes(List.of(ENCONTRO), List.of("Encontro protótipo"), .9f);
             boolean conectado = jogo.getSessao().isPresent();
             if (conectado) desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1, FUNDO_HORDA);
             else desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1);

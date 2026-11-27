@@ -1,0 +1,91 @@
+> Task :android:preBuild UP-TO-DATE
+> Task :android:preDebugBuild UP-TO-DATE
+> Task :android:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :nucleo:compileJava UP-TO-DATE
+> Task :core:compileJava UP-TO-DATE
+> Task :core:gerarServidorPadrao UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes UP-TO-DATE
+> Task :core:jar UP-TO-DATE
+> Task :nucleo:processResources NO-SOURCE
+> Task :nucleo:classes UP-TO-DATE
+> Task :nucleo:jar UP-TO-DATE
+> Task :android:javaPreCompileDebug UP-TO-DATE
+> Task :android:checkDebugAarMetadata UP-TO-DATE
+> Task :android:processDebugNavigationResources
+> Task :android:compileDebugNavigationResources UP-TO-DATE
+> Task :android:generateDebugResValues UP-TO-DATE
+> Task :android:mapDebugSourceSetPaths
+> Task :android:generateDebugResources
+> Task :android:packageDebugResources
+> Task :android:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :android:extractDeepLinksDebug UP-TO-DATE
+> Task :android:processDebugMainManifest UP-TO-DATE
+> Task :android:processDebugManifest UP-TO-DATE
+> Task :android:processDebugManifestForPackage UP-TO-DATE
+> Task :android:mergeDebugShaders UP-TO-DATE
+> Task :android:compileDebugShaders NO-SOURCE
+> Task :android:generateDebugAssets UP-TO-DATE
+> Task :android:mergeDebugAssets UP-TO-DATE
+> Task :android:compressDebugAssets UP-TO-DATE
+> Task :android:desugarDebugFileDependencies UP-TO-DATE
+> Task :android:processDebugJavaRes NO-SOURCE
+> Task :android:parseDebugLocalResources
+> Task :android:mergeDebugJavaResource UP-TO-DATE
+> Task :android:checkDebugDuplicateClasses UP-TO-DATE
+> Task :android:mergeExtDexDebug UP-TO-DATE
+> Task :android:mergeLibDexDebug UP-TO-DATE
+> Task :android:mergeDebugResources
+> Task :android:copiarNativas
+> Task :android:mergeDebugJniLibFolders UP-TO-DATE
+> Task :android:mergeDebugNativeLibs UP-TO-DATE
+> Task :android:stripDebugDebugSymbols UP-TO-DATE
+> Task :android:validateSigningDebug UP-TO-DATE
+> Task :android:writeDebugAppMetadata UP-TO-DATE
+> Task :android:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :android:preDebugAndroidTestBuild SKIPPED
+> Task :android:javaPreCompileDebugAndroidTest UP-TO-DATE
+> Task :android:checkDebugAndroidTestAarMetadata UP-TO-DATE
+> Task :android:processDebugAndroidTestNavigationResources UP-TO-DATE
+> Task :android:compileDebugAndroidTestNavigationResources UP-TO-DATE
+> Task :android:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :android:mapDebugAndroidTestSourceSetPaths UP-TO-DATE
+> Task :android:generateDebugAndroidTestResources UP-TO-DATE
+> Task :android:mergeDebugAndroidTestResources UP-TO-DATE
+> Task :android:processDebugAndroidTestManifest UP-TO-DATE
+> Task :android:processDebugAndroidTestResources UP-TO-DATE
+> Task :android:mergeDebugAndroidTestShaders UP-TO-DATE
+> Task :android:compileDebugAndroidTestShaders NO-SOURCE
+> Task :android:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :android:mergeDebugAndroidTestAssets UP-TO-DATE
+> Task :android:compressDebugAndroidTestAssets UP-TO-DATE
+> Task :android:desugarDebugAndroidTestFileDependencies UP-TO-DATE
+> Task :android:processDebugAndroidTestJavaRes NO-SOURCE
+> Task :android:mergeDebugAndroidTestJavaResource UP-TO-DATE
+> Task :android:checkDebugAndroidTestDuplicateClasses UP-TO-DATE
+> Task :android:mergeExtDexDebugAndroidTest UP-TO-DATE
+> Task :android:mergeLibDexDebugAndroidTest UP-TO-DATE
+> Task :android:mergeDebugAndroidTestJniLibFolders UP-TO-DATE
+> Task :android:mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :android:stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :android:validateSigningDebugAndroidTest UP-TO-DATE
+> Task :android:writeDebugAndroidTestSigningConfigVersions UP-TO-DATE
+> Task :android:processDebugResources
+> Task :android:compileDebugJavaWithJavac UP-TO-DATE
+> Task :android:dexBuilderDebug UP-TO-DATE
+> Task :android:mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :android:mergeProjectDexDebug UP-TO-DATE
+> Task :android:bundleDebugClassesToCompileJar UP-TO-DATE
+> Task :android:compileDebugAndroidTestJavaWithJavac UP-TO-DATE
+> Task :android:dexBuilderDebugAndroidTest UP-TO-DATE
+> Task :android:mergeDebugAndroidTestGlobalSynthetics UP-TO-DATE
+> Task :android:mergeProjectDexDebugAndroidTest UP-TO-DATE
+> Task :android:packageDebugAndroidTest UP-TO-DATE
+> Task :android:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :android:assembleDebugAndroidTest UP-TO-DATE
+> Task :android:packageDebug
+> Task :android:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :android:assembleDebug
+
+BUILD SUCCESSFUL in 786ms
+71 actionable tasks: 9 executed, 62 up-to-date

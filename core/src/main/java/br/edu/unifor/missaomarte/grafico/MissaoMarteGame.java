@@ -283,6 +283,11 @@ public class MissaoMarteGame extends Game {
         trocarTela(new TelaHistorico(this));
     }
 
+    public void iniciarEncontroHistoria() {
+        var encontro = br.edu.unifor.missaomarte.pilotagem.historia.EncontroDeResgate.novo();
+        trocarTela(new br.edu.unifor.missaomarte.grafico.historia.TelaEncontro(this, encontro));
+    }
+
     public void irParaNovaPartida() {
         trocarTela(new TelaNovaPartida(this));
     }

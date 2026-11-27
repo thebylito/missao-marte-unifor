@@ -226,6 +226,33 @@
       }
     },
     {
+      "asset": "patrulheiro",
+      "size": [
+        768,
+        64
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "disparo_historia",
+      "size": [
+        96,
+        24
+      ],
+      "frames": 4,
+      "result": "PASS"
+    },
+    {
+      "asset": "pulso_historia",
+      "size": [
+        384,
+        192
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
       "asset": "naves/catalogo.json",
       "result": "PASS"
     },

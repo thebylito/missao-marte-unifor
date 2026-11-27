@@ -98,3 +98,9 @@ python3 arte/sons/gerar_sons.py
 | `fontes/ChakraPetch-SemiBold.ttf` | mesma origem. SHA-256 `45264de3…734b` | SIL Open Font License 1.1 |
 
 A OFL permite distribuir a fonte junto com o jogo, desde que o texto da licença acompanhe os arquivos.
+
+## Encontro protótipo da história
+
+- `sprites/patrulheiro.png` é o drone original de `arte/blender/patrulheiro.py`, com oito quadros de rotores.
+- `sprites/disparo_historia.png` é o projétil âmbar de `arte/blender/disparo_historia.py`, com quatro quadros.
+- `sprites/pulso_historia.png` é a frente de energia de `arte/blender/pulso_historia.py`, com oito quadros.
