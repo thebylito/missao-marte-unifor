@@ -9,11 +9,14 @@ import java.util.List;
 /** Comandos do protótipo, com resultado temporário. */
 public final class ControladorDoEncontro extends ControladorDaPilotagem {
     private final EncontroDeResgate encontro;
+    private final String titulo;
     private boolean pulso;
     private boolean pulsoPendente;
     private boolean assistido;
 
-    public ControladorDoEncontro(EncontroDeResgate encontro) {
+    public ControladorDoEncontro(EncontroDeResgate encontro) { this(encontro, "ENCONTRO PROTÓTIPO"); }
+
+    public ControladorDoEncontro(EncontroDeResgate encontro, String titulo) {
         super(encontro.partida(), new ServicoRanking(new RepositorioRanking() {
             private List<RegistroRanking> registros = List.of();
             public List<RegistroRanking> carregar() { return registros; }
@@ -21,6 +24,7 @@ public final class ControladorDoEncontro extends ControladorDaPilotagem {
             public void apagar() { registros = List.of(); }
         }, Relogio.DO_SISTEMA));
         this.encontro=encontro;
+        this.titulo=titulo;
     }
 
     @Override protected void avancarSimulacao(float segundos) {
@@ -29,7 +33,7 @@ public final class ControladorDoEncontro extends ControladorDaPilotagem {
         if (encontro.partida().getTempo() > antes) pulsoPendente = false;
     }
 
-    @Override public String tituloDoVoo() { return "ENCONTRO PROTÓTIPO"; }
+    @Override public String tituloDoVoo() { return titulo; }
     public void pulso(boolean ligado) {
         if (ligado && !pulso) pulsoPendente = true;
         pulso = ligado;

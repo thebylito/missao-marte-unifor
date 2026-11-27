@@ -1,22 +1,15 @@
 {
   "blenderVersion": "5.2.3 LTS",
   "assets": {
-    "patrulheiro": {
-      "seconds": 0.176,
+    "baliza_sos": {
+      "seconds": 0.261,
       "engines": [
         "CYCLES"
       ],
       "frames": 8
     },
-    "disparo_historia": {
-      "seconds": 0.013,
-      "engines": [
-        "CYCLES"
-      ],
-      "frames": 4
-    },
-    "pulso_historia": {
-      "seconds": 0.098,
+    "posto_m01": {
+      "seconds": 0.742,
       "engines": [
         "CYCLES"
       ],
@@ -24,7 +17,7 @@
     }
   },
   "complete": true,
-  "renderSeconds": 0.599,
+  "renderSeconds": 1.239,
   "underTenMinutes": true,
-  "totalSeconds": 1.496
+  "totalSeconds": 2.221
 }

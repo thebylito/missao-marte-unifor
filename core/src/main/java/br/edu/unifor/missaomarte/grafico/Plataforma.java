@@ -2,6 +2,7 @@ package br.edu.unifor.missaomarte.grafico;
 
 import br.edu.unifor.missaomarte.grafico.online.ConfiguracaoDoServidor;
 import br.edu.unifor.missaomarte.grafico.online.SessaoGuardada;
+import java.nio.file.Path;
 
 /**
  * O que muda de uma plataforma para outra (Fase 6), escolhido pelo launcher de cada uma (raiz de composição).
@@ -11,7 +12,12 @@ import br.edu.unifor.missaomarte.grafico.online.SessaoGuardada;
  * @param servidor       endereço do servidor de ranking, configurável dentro do jogo
  * @param sessaoGuardada onde a sessão do piloto fica entre uma abertura do jogo e outra (DA-38)
  */
-public record Plataforma(boolean toque, ConfiguracaoDoServidor servidor, SessaoGuardada sessaoGuardada) {
+public record Plataforma(boolean toque, ConfiguracaoDoServidor servidor, SessaoGuardada sessaoGuardada,
+                         Path pastaHistoria) {
+
+    public Plataforma(boolean toque, ConfiguracaoDoServidor servidor, SessaoGuardada sessaoGuardada) {
+        this(toque, servidor, sessaoGuardada, java.nio.file.Paths.get("historia"));
+    }
 
     /** Sem lugar para guardar a sessão (testes e o piloto da janela): ela fica só na memória. */
     public Plataforma(boolean toque, ConfiguracaoDoServidor servidor) {

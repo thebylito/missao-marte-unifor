@@ -1,0 +1,4 @@
+INSTRUMENTATION_STATUS: etapa=Briefing e rádio da M01 pela entrada normal.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=M01 iniciada na base. Voo contínuo sem reposicionamento.
+INSTRUMENTATION_STATUS_CODE: 1

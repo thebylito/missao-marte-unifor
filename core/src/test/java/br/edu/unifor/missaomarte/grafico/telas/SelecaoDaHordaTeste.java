@@ -165,6 +165,13 @@ class SelecaoDaHordaTeste {
         assertEquals(0, servidor.pedidosComuns);
     }
 
+    @Test void feedbackDoMenuFicaForaDoBotaoHistoria() {
+        jogo.jogarComoConvidado();
+        var menu=assertInstanceOf(TelaMenu.class,jogo.getScreen());
+        var area=menu.areaDaMensagem();
+        assertTrue(area.x()>=240,"feedback não pode ocupar a coluna dos botões de história");
+    }
+
     private TelaNovaPartida abrirNovaMissao(boolean conectado, boolean publicada) {
         servidor.publicada = publicada;
         if (conectado) jogo.entrarComo(PILOTO);

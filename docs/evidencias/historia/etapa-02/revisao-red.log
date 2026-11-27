@@ -1,0 +1,101 @@
+> Task :nucleo:compileJava UP-TO-DATE
+> Task :nucleo:processResources NO-SOURCE
+> Task :nucleo:classes UP-TO-DATE
+> Task :nucleo:jar UP-TO-DATE
+> Task :nucleo:compileTestJava
+> Task :nucleo:processTestResources NO-SOURCE
+> Task :nucleo:testClasses
+
+
+5 tests completed, 1 failed
+> Task :nucleo:test FAILED
+
+HistoriaArquivoTeste > copiaDeVersaoFuturaTambemEProtegida() FAILED
+    org.opentest4j.AssertionFailedError: expected: <false> but was: <true>
+        at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+        at app//org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+        at app//org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+        at app//org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+        at app//org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:31)
+        at app//org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:231)
+        at app//br.edu.unifor.missaomarte.historia.HistoriaArquivoTeste.copiaDeVersaoFuturaTambemEProtegida(HistoriaArquivoTeste.java:16)
+
+> Task :core:compileJava UP-TO-DATE
+> Task :core:gerarServidorPadrao UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes UP-TO-DATE
+> Task :core:jar UP-TO-DATE
+
+> Task :core:compileTestJava FAILED
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/core/src/test/java/br/edu/unifor/missaomarte/grafico/telas/SelecaoDaHordaTeste.java:171: error: cannot find symbol
+        var area=menu.areaDaMensagem();
+                     ^
+  symbol:   method areaDaMensagem()
+  location: variable menu of type TelaMenu
+1 error
+
+> Task :core:processTestResources NO-SOURCE
+> Task :lwjgl3:compileJava UP-TO-DATE
+> Task :lwjgl3:processResources UP-TO-DATE
+> Task :lwjgl3:classes UP-TO-DATE
+
+> Task :lwjgl3:compileTestJava FAILED
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/lwjgl3/src/test/java/br/edu/unifor/missaomarte/lwjgl3/HistoriaPastaTeste.java:12: error: cannot find symbol
+            assertEquals(pasta.resolve("historia"),Lwjgl3Launcher.pastaDaHistoria());
+                                                                 ^
+  symbol:   method pastaDaHistoria()
+  location: class Lwjgl3Launcher
+1 error
+
+> Task :lwjgl3:processTestResources NO-SOURCE
+
+[Incubating] Problems report is available at: file:///Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/build/reports/problems/problems-report.html
+
+FAILURE: Build completed with 3 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':nucleo:test'.
+> There were failing tests. See the report at: file:///Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/nucleo/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':core:compileTestJava'.
+> Compilation failed; see the compiler output below.12 actionable tasks: 4 executed, 8 up-to-date
+
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/core/src/test/java/br/edu/unifor/missaomarte/grafico/telas/SelecaoDaHordaTeste.java:171: error: cannot find symbol
+          var area=menu.areaDaMensagem();
+                       ^
+    symbol:   method areaDaMensagem()
+    location: variable menu of type TelaMenu
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+==============================================================================
+
+3: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':lwjgl3:compileTestJava'.
+> Compilation failed; see the compiler output below.
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/lwjgl3/src/test/java/br/edu/unifor/missaomarte/lwjgl3/HistoriaPastaTeste.java:12: error: cannot find symbol
+              assertEquals(pasta.resolve("historia"),Lwjgl3Launcher.pastaDaHistoria());
+                                                                   ^
+    symbol:   method pastaDaHistoria()
+    location: class Lwjgl3Launcher
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+==============================================================================
+
+BUILD FAILED in 1s

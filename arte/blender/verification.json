@@ -253,6 +253,24 @@
       "result": "PASS"
     },
     {
+      "asset": "baliza_sos",
+      "size": [
+        512,
+        128
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "posto_m01",
+      "size": [
+        1024,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
       "asset": "naves/catalogo.json",
       "result": "PASS"
     },

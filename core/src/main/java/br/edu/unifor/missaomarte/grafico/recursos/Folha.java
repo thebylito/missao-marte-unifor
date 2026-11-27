@@ -13,6 +13,8 @@ public enum Folha {
     PATRULHEIRO("sprites/patrulheiro.png", 96, 64, 8, 1, 8),
     DISPARO_HISTORIA("sprites/disparo_historia.png", 24, 24, 4, 1, 4),
     PULSO_HISTORIA("sprites/pulso_historia.png", 96, 96, 4, 2, 8),
+    BALIZA_SOS("sprites/baliza_sos.png", 64, 128, 8, 1, 8),
+    POSTO_M01("sprites/posto_m01.png", 256, 128, 4, 2, 8),
     INIMIGO("sprites/inimigo.png", 96, 96, 8, 1, 8),
     ASTRONAUTA("sprites/astronauta.png", 48, 64, 8, 1, 8),
     ENGENHEIRO("sprites/engenheiro.png", 48, 64, 8, 1, 8),
