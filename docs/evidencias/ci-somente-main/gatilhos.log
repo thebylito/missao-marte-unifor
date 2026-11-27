@@ -1,0 +1,4 @@
+PASS: PR e push de feature não têm gatilhos; CI chamado uma vez pelo deploy na main.
+PASS: testes -> imagem -> deploy, sem bypass por always() ou continue-on-error.
+PASS: execução manual fora da main bloqueada no primeiro job.
+PASS: concorrência isolada por ref; outra branch não cancela a main.

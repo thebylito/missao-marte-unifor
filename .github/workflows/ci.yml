@@ -1,10 +1,8 @@
 name: CI
 
-# Testes do jogo e do servidor em cada PR. O "Build & Deploy" também chama este workflow antes de gerar a imagem:
-# só chega ao Dokploy uma versão com os testes passando, e o APK e o jogo desktop da página saem daqui.
+# Reutilizado pelo "Build & Deploy" após a entrada na main, sem execução em PRs.
+# Os testes precisam passar antes da publicação; APK e pacotes desktop também saem daqui.
 on:
-  pull_request:
-    branches: [main]
   workflow_call:
 
 permissions:
@@ -118,17 +116,3 @@ jobs:
           name: pacote-${{ matrix.sistema }}
           path: ${{ matrix.arquivo }}
           retention-days: 7
-
-  # Só no PR: confere que a imagem ainda constrói, sem publicar nada (a pasta downloads fica só com o .gitkeep).
-  imagem:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - name: Build da imagem (sem push)
-        run: |
-          docker buildx build \
-            --cache-from type=gha \
-            --cache-to type=gha,mode=max \
-            -f servidor/Dockerfile .

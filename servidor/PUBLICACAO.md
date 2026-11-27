@@ -182,17 +182,21 @@ desenvolvimento continua com `localhost` e `10.0.2.2`. O jogador ainda pode troc
 
 Quem faz o build é o GitHub Actions. O Dokploy só implanta a imagem pronta, no mesmo fluxo do `portfolio-coletivo`:
 
-1. **`CI`** (`.github/workflows/ci.yml`), em cada PR:
+1. **`CI`** (`.github/workflows/ci.yml`) é reutilizável (`workflow_call`), sem gatilho em PRs:
    - testes do servidor (`servidor/`);
    - testes do jogo, o APK e o zip desktop com o endereço publicado (artefato `downloads`);
    - os pacotes nativos com o Java embutido (`jpackage`, `./gradlew :lwjgl3:pacoteNativo`), um por máquina: Windows
-     (`windows-latest`), Mac Apple Silicon (`macos-15`) e Mac Intel (`macos-15-intel`) (artefatos `pacote-*`);
-   - a imagem é construída, mas não é publicada.
-2. **`Build & Deploy`** (`.github/workflows/deploy.yml`), em cada merge na `main` que mexe no jogo ou no servidor:
-   - roda o mesmo CI;
-   - coloca o APK, o zip e os pacotes nativos em `servidor/downloads/` e gera a imagem;
+     (`windows-latest`), Mac Apple Silicon (`macos-15`) e Mac Intel (`macos-15-intel`) (artefatos `pacote-*`).
+2. **`Build & Deploy`** (`.github/workflows/deploy.yml`), em cada entrada na `main` que mexe no jogo, no servidor
+   ou nos arquivos de build/workflow listados em `paths`:
+   - chama o CI uma única vez;
+   - somente se os testes e pacotes passarem, coloca os artefatos em `servidor/downloads/` e gera a imagem;
    - publica `ghcr.io/thebylito/missao-marte-unifor-servidor:sha-<commit>` (e `:latest`);
    - chama o Dokploy (`nodilabs/dokploy-deploy-action`) para implantar essa tag.
+
+PRs e pushes em outras branches não executam verificações remotas. Builds, testes e execução local com evidências
+continuam obrigatórios antes do merge. Mudanças apenas em documentação não disparam o deploy. O acionamento manual
+continua disponível, mas só executa os jobs quando a branch selecionada é `main`.
 
 Enquanto os secrets do Dokploy não existirem, o workflow só publica a imagem e avisa que o deploy foi ignorado. Para
 reimplantar sem novo commit: aba **Actions → Build & Deploy → Run workflow**.

@@ -1,0 +1,121 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon JVM discovery is an incubating feature.
+Daemon will be stopped at the end of the build
+> Task :nucleo:compileJava
+> Task :core:compileJava
+> Task :core:gerarServidorPadrao
+> Task :core:processResources
+> Task :core:classes
+> Task :core:jar
+> Task :nucleo:processResources NO-SOURCE
+> Task :nucleo:classes
+> Task :nucleo:jar
+> Task :android:preBuild UP-TO-DATE
+> Task :android:preDebugBuild UP-TO-DATE
+> Task :android:javaPreCompileDebug
+> Task :android:checkDebugAarMetadata
+> Task :android:processDebugNavigationResources
+> Task :android:generateDebugResValues
+> Task :android:compileDebugNavigationResources
+> Task :android:mapDebugSourceSetPaths
+> Task :android:generateDebugResources
+> Task :android:packageDebugResources
+> Task :android:mergeDebugResources
+> Task :android:createDebugCompatibleScreenManifests
+> Task :android:extractDeepLinksDebug
+> Task :android:parseDebugLocalResources
+> Task :android:processDebugMainManifest
+> Task :android:processDebugManifest
+> Task :android:preDebugUnitTestBuild UP-TO-DATE
+> Task :android:processDebugJavaRes NO-SOURCE
+> Task :android:javaPreCompileDebugUnitTest
+> Task :android:processDebugManifestForPackage
+> Task :android:processDebugUnitTestJavaRes NO-SOURCE
+> Task :android:preReleaseBuild UP-TO-DATE
+> Task :android:javaPreCompileRelease
+> Task :android:checkReleaseAarMetadata
+> Task :android:processReleaseNavigationResources
+> Task :android:compileReleaseNavigationResources
+> Task :android:generateReleaseResValues
+> Task :android:mapReleaseSourceSetPaths
+> Task :android:generateReleaseResources
+> Task :android:processDebugResources
+> Task :android:mergeReleaseResources
+> Task :android:compileDebugJavaWithJavac
+> Task :android:bundleDebugClassesToRuntimeJar
+> Task :android:bundleDebugClassesToCompileJar
+> Task :android:packageReleaseResources
+> Task :android:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :android:testDebugUnitTest NO-SOURCE
+> Task :android:createReleaseCompatibleScreenManifests
+> Task :android:parseReleaseLocalResources
+> Task :android:extractDeepLinksRelease
+> Task :android:processReleaseMainManifest
+> Task :android:processReleaseManifest
+> Task :android:preReleaseUnitTestBuild UP-TO-DATE
+> Task :android:processReleaseJavaRes NO-SOURCE
+> Task :android:javaPreCompileReleaseUnitTest
+> Task :android:processReleaseUnitTestJavaRes NO-SOURCE
+> Task :console:compileJava
+> Task :console:processResources NO-SOURCE
+> Task :console:classes
+> Task :console:compileTestJava
+> Task :console:processTestResources NO-SOURCE
+> Task :console:testClasses
+> Task :console:test
+> Task :core:compileTestJava
+> Task :core:processTestResources NO-SOURCE
+> Task :core:testClasses
+> Task :core:test
+> Task :lwjgl3:compileJava
+> Task :lwjgl3:processResources
+> Task :lwjgl3:classes
+> Task :lwjgl3:jar
+> Task :lwjgl3:compileTestJava
+> Task :lwjgl3:processTestResources NO-SOURCE
+> Task :lwjgl3:testClasses
+> Task :lwjgl3:test
+> Task :nucleo:compileTestJava
+> Task :nucleo:processTestResources NO-SOURCE
+> Task :nucleo:testClasses
+> Task :nucleo:test
+> Task :android:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :android:mergeDebugShaders
+> Task :android:compileDebugShaders NO-SOURCE
+> Task :android:generateDebugAssets UP-TO-DATE
+> Task :android:mergeDebugAssets
+> Task :android:desugarDebugFileDependencies
+> Task :android:dexBuilderDebug
+> Task :android:compressDebugAssets
+> Task :android:checkDebugDuplicateClasses
+> Task :android:mergeDebugGlobalSynthetics
+> Task :android:copiarNativas
+> Task :android:mergeProjectDexDebug
+> Task :android:mergeDebugJniLibFolders
+> Task :android:mergeDebugNativeLibs
+> Task :android:validateSigningDebug
+> Task :android:mergeLibDexDebug
+> Task :android:writeDebugAppMetadata
+> Task :android:writeDebugSigningConfigVersions
+
+> Task :android:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libgdx-freetype.so, libgdx.so. Run with --info option to learn more.
+
+> Task :android:mergeDebugJavaResource
+> Task :lwjgl3:startScripts
+> Task :android:mergeExtDexDebug
+> Task :lwjgl3:distZip
+> Task :android:processReleaseManifestForPackage
+> Task :android:processReleaseResources
+> Task :android:packageDebug
+> Task :android:compileReleaseJavaWithJavac
+> Task :android:bundleReleaseClassesToCompileJar
+> Task :android:bundleReleaseClassesToRuntimeJar
+> Task :android:createDebugApkListingFileRedirect
+> Task :android:compileReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :android:testReleaseUnitTest NO-SOURCE
+> Task :android:test UP-TO-DATE
+> Task :android:assembleDebug
+
+BUILD SUCCESSFUL in 31s
+80 actionable tasks: 80 executed
