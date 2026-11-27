@@ -524,6 +524,13 @@ public final class PartidaDePilotagem {
         }
     }
 
+    /** Impacto externo de um encontro da história, usando a mesma perda de vida do voo. */
+    public void receberAtaque() {
+        if (estado == Partida.Estado.EM_ANDAMENTO && nave.estado != NaveEmVoo.Estado.DESTRUIDA) {
+            destruir("Atingida por um projétil!");
+        }
+    }
+
     private void destruir(String motivo) {
         for (PerigoAtivo perigo : perigos) {
             perigo.sobreviveu = false;

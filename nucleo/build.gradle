@@ -5,3 +5,6 @@
 plugins {
     id 'java-library'
 }
+
+// Condutor compartilhado apenas entre testes e instrumentação, sem integrar o jogo.
+sourceSets.test.java.srcDir(rootProject.file('validacao/historia/piloto'))

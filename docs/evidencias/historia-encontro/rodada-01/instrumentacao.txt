@@ -1,0 +1,20 @@
+INSTRUMENTATION_STATUS: etapa=Encontro carregado pela entrada normal do menu.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Aviso de ataque antes do disparo.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Impacto absorvido pelo escudo; pulso EMP acionado.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Patrulheiro desativado por quatro segundos.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Aproximação real da plataforma de resgate.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Maria embarcou após pouso real.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Retorno à base para entrega.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Resgate concluído. Resultado local, sem submissão.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Fluidez: 1959 quadros, 1 intervalos acima de 50ms, máximo 64ms.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: resultado=PASS
+INSTRUMENTATION_CODE: -1

@@ -153,6 +153,25 @@ class SelecaoDaHordaTeste {
         assertSame(menu, jogo.getScreen());
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void encontroLocalAbrePorTeclaOuToqueSemBilhete(boolean toque) {
+        jogo.jogarComoConvidado();
+        var menu = assertInstanceOf(TelaMenu.class, jogo.getScreen());
+        if (toque) menu.acaoNoPonto(80, 200).orElseThrow().run();
+        else entrada.keyDown(Keys.NUM_8);
+        assertInstanceOf(br.edu.unifor.missaomarte.grafico.historia.TelaEncontro.class, jogo.getScreen());
+        assertEquals(0, servidor.pedidosDaHorda);
+        assertEquals(0, servidor.pedidosComuns);
+    }
+
+    @Test void feedbackDoMenuFicaForaDoBotaoHistoria() {
+        jogo.jogarComoConvidado();
+        var menu=assertInstanceOf(TelaMenu.class,jogo.getScreen());
+        var area=menu.areaDaMensagem();
+        assertTrue(area.x()>=240,"feedback não pode ocupar a coluna dos botões de história");
+    }
+
     private TelaNovaPartida abrirNovaMissao(boolean conectado, boolean publicada) {
         servidor.publicada = publicada;
         if (conectado) jogo.entrarComo(PILOTO);

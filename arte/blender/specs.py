@@ -64,6 +64,12 @@ SKINS = tuple(item['id'] for item in CATALOGO[1:])
 for skin in SKINS:
     SPECS[skin] = Spec(f'naves.{skin}_modelo', f'naves/{skin}.png', SPECS['nave'].grid)
 
+SPECS['patrulheiro'] = Spec('patrulheiro','patrulheiro.png',(96,64,8,8,1))
+SPECS['disparo_historia'] = Spec('disparo_historia','disparo_historia.png',(24,24,4,4,1))
+SPECS['pulso_historia'] = Spec('pulso_historia','pulso_historia.png',(96,96,8,4,2))
+
+SPECS['baliza_sos'] = Spec('baliza_sos','baliza_sos.png',(64,128,8,8,1))
+SPECS['posto_m01'] = Spec('posto_m01','posto_m01.png',(256,128,8,4,2))
 # Folhas da porta, com a nave pousada no mesmo pivô dos quadros de voo.
 for item in CATALOGO:
     nome = item['id']

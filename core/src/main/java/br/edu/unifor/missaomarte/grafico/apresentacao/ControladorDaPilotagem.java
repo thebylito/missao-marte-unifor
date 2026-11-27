@@ -29,7 +29,7 @@ import java.util.Set;
  * teclas apertadas e onde está cada dedo (cada toque tem um número), e a cada quadro traduz isso em {@link Comandos}.
  * Assim dá para girar com um polegar e acelerar com o outro.
  */
-public final class ControladorDaPilotagem {
+public class ControladorDaPilotagem {
 
     /** Quanto tempo uma mensagem fica na tela, em segundos. */
     static final float DURACAO_DA_MENSAGEM = 2.5f;
@@ -115,6 +115,12 @@ public final class ControladorDaPilotagem {
         dedos.remove(dedo);
     }
 
+    /** Perda de foco ou mudança de geometria invalida as entradas mantidas. */
+    public void limparComandos() {
+        teclas.clear();
+        dedos.clear();
+    }
+
     public void abortar() {
         partida.abortar();
     }
@@ -154,7 +160,7 @@ public final class ControladorDaPilotagem {
         if (fim != null) {
             return List.of();
         }
-        partida.atualizar(segundos, comandos());
+        avancarSimulacao(segundos);
         List<EventoDeVoo> eventos = partida.consumirEventos();
         for (EventoDeVoo e : eventos) {
             if (!e.mensagem().isEmpty()) {
@@ -171,6 +177,10 @@ public final class ControladorDaPilotagem {
             fim = concluir();
         }
         return eventos;
+    }
+
+    protected void avancarSimulacao(float segundos) {
+        partida.atualizar(segundos, comandos());
     }
 
     /** O som de cada acontecimento do voo (o fim da partida tem o seu, tocado pela tela de fim). */

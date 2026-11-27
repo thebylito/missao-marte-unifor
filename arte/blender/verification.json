@@ -433,6 +433,51 @@
       }
     },
     {
+      "asset": "patrulheiro",
+      "size": [
+        768,
+        64
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "disparo_historia",
+      "size": [
+        96,
+        24
+      ],
+      "frames": 4,
+      "result": "PASS"
+    },
+    {
+      "asset": "pulso_historia",
+      "size": [
+        384,
+        192
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "baliza_sos",
+      "size": [
+        512,
+        128
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "posto_m01",
+      "size": [
+        1024,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
       "asset": "porta_padrao",
       "size": [
         512,

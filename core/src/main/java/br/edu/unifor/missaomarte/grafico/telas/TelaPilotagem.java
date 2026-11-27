@@ -4,6 +4,7 @@ import br.edu.unifor.missaomarte.aplicacao.Partida;
 import br.edu.unifor.missaomarte.dominio.Passageiro;
 import br.edu.unifor.missaomarte.grafico.MissaoMarteGame;
 import br.edu.unifor.missaomarte.grafico.apresentacao.CameraDaPilotagem;
+import br.edu.unifor.missaomarte.grafico.apresentacao.FimDePartida;
 import br.edu.unifor.missaomarte.grafico.apresentacao.AnimacaoDoPassageiro;
 import br.edu.unifor.missaomarte.grafico.apresentacao.PortaDaNave;
 import br.edu.unifor.missaomarte.grafico.apresentacao.AnimacaoDaNave;
@@ -289,7 +290,7 @@ public class TelaPilotagem extends TelaBase {
         controlador.getFim().ifPresent(fim -> {
             esperaDoFim += delta;
             if (fim.estado() != Partida.Estado.VITORIA || esperaDoFim >= ESPERA_DA_VITORIA) {
-                jogo.irParaFimDePartida(fim);
+                concluirPartida(fim);
             }
         });
     }
@@ -327,6 +328,7 @@ public class TelaPilotagem extends TelaBase {
         desenharPassageiros(p);
         desenharDesembarque(p.getCaverna());
         desenharAsteroides(p.getCaverna());
+        desenharElementosExtras();
         desenharMeteoros(rastro, 0.76f, 0.35f);
         desenharMeteoros(meteoros, 1.25f, 1);
         p.getCapsulaVip().ifPresent(this::desenharVip);
@@ -343,7 +345,16 @@ public class TelaPilotagem extends TelaBase {
         desenharPainel(p);
         desenharMinimapa(p);
         desenharBotoesDeVoo();
+        desenharInterfaceExtra();
         sombras.mensagemDoEvento().ifPresent(this::desenharFaixaDoEvento);
+    }
+
+    protected void desenharElementosExtras() {}
+
+    protected void desenharInterfaceExtra() {}
+
+    protected void concluirPartida(FimDePartida fim) {
+        jogo.irParaFimDePartida(fim);
     }
 
     private void desenharFaixaDoEvento(String aviso) {
@@ -792,8 +803,7 @@ public class TelaPilotagem extends TelaBase {
         linhaDasSombras.ifPresent(texto -> escrever(texto, x + 12, topo - 218,
                 sombras.getSituacao() == SombrasDaPilotagem.Situacao.CONECTADAS ? Color.SKY : Color.LIGHT_GRAY, 0.9f));
         // as mensagens ficam embaixo (acima dos botões), longe da nave, que a câmera mantém no meio da tela
-        Retangulo motor = layout.botoes().get(Botao.MOTOR);
-        float yDaMensagem = v.y() + MARGEM + (motor != null ? motor.altura() + 34 : 46);
+        float yDaMensagem = yDaMensagem();
         String mensagem = controlador.getMensagem();
         if (!mensagem.isEmpty()) {
             escreverCentralizado(mensagem, yDaMensagem, Color.WHITE, 1.1f);
@@ -803,6 +813,11 @@ public class TelaPilotagem extends TelaBase {
                     yDaMensagem, Color.SKY, 1f);
         }
         lote().end();
+    }
+
+    protected float yDaMensagem() {
+        Retangulo motor = layout.botoes().get(Botao.MOTOR);
+        return visivel().y() + MARGEM + (motor != null ? motor.altura() + 34 : 46);
     }
 
     private void desenharMinimapa(PartidaDePilotagem p) {

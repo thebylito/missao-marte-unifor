@@ -1,0 +1,30 @@
+INSTRUMENTATION_STATUS: etapa=Encontro carregado pela entrada normal do menu.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Teste de pulso e motor por dois toques simultâneos.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Soltar o pulso preserva o motor do outro dedo.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Pausa limpa entradas; redimensionamento para retrato com botões pressionados.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Retrato validado; retorno à orientação paisagem.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Pouso na base para reposição da bateria.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Aviso de ataque antes do disparo.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Impacto absorvido pelo escudo; pulso EMP acionado.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Patrulheiro desativado por quatro segundos.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Aproximação real da plataforma de resgate.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Maria embarcou após pouso real.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Retorno à base para entrega.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Resgate concluído. Resultado local, sem submissão.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Fluidez: 2287 quadros, 0 intervalos acima de 50ms, máximo 49ms.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: resultado=PASS
+INSTRUMENTATION_CODE: -1

@@ -23,6 +23,8 @@ public class TelaMenu extends TelaBase {
         "6. Trocar de Piloto",
         "7. Hangar",
     };
+    private static final Retangulo HISTORIA = new Retangulo(40, 116, 185, 54);
+    private static final Retangulo ENCONTRO = new Retangulo(40, 178, 185, 54);
     private static final float Y_DAS_OPCOES = 385;
     private static final float PASSO = 36;
     private static final Retangulo FAIXA_HORDA = new Retangulo(40, 8, 720, 100);
@@ -44,6 +46,13 @@ public class TelaMenu extends TelaBase {
         return new InputAdapter() {
             @Override
             public boolean keyDown(int tecla) {
+                if (tecla == Keys.NUM_9 && !controlador.isConfirmandoApagar()) {
+                    jogo.irParaHistoria(); return true;
+                }
+                if (tecla == Keys.NUM_8 && !controlador.isConfirmandoApagar()) {
+                    jogo.iniciarEncontroHistoria();
+                    return true;
+                }
                 switch (controlador.teclaPressionada(tecla)) {
                     case NOVA_PARTIDA: jogo.irParaNovaPartida(); break;
                     case RANKING: jogo.irParaRanking(); break;
@@ -67,6 +76,8 @@ public class TelaMenu extends TelaBase {
             alvos.add(tecla(BOTAO_NAO, Keys.N, 'n'));
             return alvos;
         }
+        alvos.add(tecla(ENCONTRO, Keys.NUM_8, '8'));
+        alvos.add(tecla(HISTORIA, Keys.NUM_9, '9'));
         alvos.add(tecla(FAIXA_HORDA, Keys.H, 'h'));
         for (int i = 0; i < OPCOES.length; i++) {
             alvos.add(tecla(linha(240, Y_DAS_OPCOES - i * PASSO, 460, PASSO - 2), Keys.NUM_1 + i, (char) ('1' + i)));
@@ -78,6 +89,11 @@ public class TelaMenu extends TelaBase {
     protected void atualizar(float delta) {
         tempo += delta;
         controlador.atualizarHorda();
+    }
+
+    Retangulo areaDaMensagem() {
+        return controlador.isConfirmandoApagar() ? new Retangulo(42, 109, 716, 36)
+                : new Retangulo(250, 109, 508, 36);
     }
 
     @Override
@@ -102,9 +118,11 @@ public class TelaMenu extends TelaBase {
         ControladorDoMenu.textoDoSaldo(jogo.getSessao(), jogo.getSaldo())
                 .ifPresent(saldo -> escreverCentralizado(saldo, 407, Color.ORANGE, 1f));
         Color corDaMensagem = controlador.isConfirmandoApagar() ? Color.YELLOW : Color.SKY;
-        escreverComQuebra(controlador.getMensagem(), 42, 145, 716, corDaMensagem, 1f);
+        Retangulo mensagem = areaDaMensagem();
+        escreverComQuebra(controlador.getMensagem(), mensagem.x(), mensagem.topo(), mensagem.largura(), corDaMensagem, 1f);
         lote().end();
         if (!controlador.isConfirmandoApagar()) {
+            desenharBotoes(List.of(ENCONTRO,HISTORIA), List.of("8. Encontro protótipo","9. Modo História"), .85f);
             boolean conectado = jogo.getSessao().isPresent();
             if (conectado) desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1, FUNDO_HORDA);
             else desenharBotoes(List.of(FAIXA_HORDA), List.of(""), 1);

@@ -1,0 +1,70 @@
+00:00.806  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 1/8
+00:00.827  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 2/8
+00:00.843  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 3/8
+00:00.860  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 4/8
+00:00.878  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 5/8
+00:00.894  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 6/8
+00:00.909  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 7/8
+00:00.925  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME baliza_sos 8/8
+ASSET baliza_sos: 512x128; 0.26s
+00:01.029  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 1/8
+00:01.118  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 2/8
+00:01.207  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 3/8
+00:01.305  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 4/8
+00:01.398  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 5/8
+00:01.485  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 6/8
+00:01.572  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 7/8
+00:01.659  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-m01/arte/blender/.render_frame_64305.png'
+FRAME posto_m01 8/8
+ASSET posto_m01: 1024x256; 0.74s
+
+ASSET                       SIZE          FRAMES  RESULT
+nave.png                    1024 x 1024   64    PASS
+chama.png                    256 x 96      4    PASS
+explosao.png                 512 x 512    16    PASS
+asteroide.png                768 x 384    32    PASS
+plataforma_base.png          256 x 64      1    PASS
+plataforma_passageiro.png    160 x 48      1    PASS
+astronauta.png               384 x 64      8    PASS
+engenheiro.png               384 x 64      8    PASS
+professor.png                384 x 64      8    PASS
+rocha_tile.png               256 x 256     1    PASS
+fundo.png                   1200 x 900     1    PASS
+icone.png                    256 x 256     1    PASS
+inimigo.png                  768 x 96      8    PASS
+naves/padrao_2.png          1024 x 1024   64    PASS
+naves/padrao_3.png          1024 x 1024   64    PASS
+naves/padrao_4.png          1024 x 1024   64    PASS
+naves/padrao_5.png          1024 x 1024   64    PASS
+naves/guara.png             1024 x 1024   64    PASS
+naves/guara_2.png           1024 x 1024   64    PASS
+naves/guara_3.png           1024 x 1024   64    PASS
+naves/guara_4.png           1024 x 1024   64    PASS
+patrulheiro.png              768 x 64      8    PASS
+disparo_historia.png          96 x 24      4    PASS
+pulso_historia.png           384 x 192     8    PASS
+baliza_sos.png               512 x 128     8    PASS
+posto_m01.png               1024 x 256     8    PASS
+naves/catalogo.json                            PASS
+naves/previas.png                              PASS
+naves/sombras.png                              PASS
+PASS: dimensions, RGBA, frame contents, corners, clipping, pivots/landing lines, orientation, tile edges, catalog, atlases, and evolution.
+TOTAL RENDER 1.24s; TOTAL 2.22s
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:31:22)
+
+Blender quit

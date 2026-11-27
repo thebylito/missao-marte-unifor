@@ -1,0 +1,15 @@
+beforeProject { projeto ->
+    if (projeto.path == ':android') {
+        projeto.plugins.withId('com.android.application') {
+            projeto.androidComponents.finalizeDsl { dsl ->
+                dsl.defaultConfig.applicationId = 'br.edu.unifor.missaomarte.historia'
+                dsl.defaultConfig.testApplicationId = 'br.edu.unifor.missaomarte.historia.test'
+            }
+            projeto.android.defaultConfig.testInstrumentationRunner = 'ensaio.Missao01'
+            projeto.android.sourceSets.debug.res.srcDir(projeto.rootProject.file('validacao/historia/android/res'))
+            projeto.android.sourceSets.androidTest.java.srcDirs(
+                projeto.rootProject.file('validacao/historia/android'),
+                projeto.rootProject.file('validacao/historia/piloto'))
+        }
+    }
+}

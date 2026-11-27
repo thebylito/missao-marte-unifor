@@ -1,0 +1,7 @@
+AVD: Small_Phone_API_36
+Execução: sem janela, GPU SwiftShader
+ro.product.model: sdk_gphone16k_arm64
+ro.build.version.sdk: 36
+ro.build.version.release: 16
+7d92e0fd42aa03f247e191a472431ee15ba6d264f4b56b3b7949a2ec4505d018  android/build/outputs/apk/debug/android-debug.apk
+568fd9bec4839375c96af1af27d058f493d94e76739730122242058f558309a0  android/build/outputs/apk/androidTest/debug/android-debug-androidTest.apk
