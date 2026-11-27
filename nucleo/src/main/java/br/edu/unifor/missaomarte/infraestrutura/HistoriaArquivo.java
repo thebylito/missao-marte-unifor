@@ -86,14 +86,26 @@ public final class HistoriaArquivo implements RepositorioHistoria {
         Properties p = new Properties();
         p.load(new StringReader(texto.toString()));
         int versao = Integer.parseInt(obrigatorio(p, "versao"));
-        if (versao > 1) throw new VersaoFutura();
-        if (versao != 1 || !"missao-marte".equals(obrigatorio(p, "campanha"))
+        if (versao > 2) throw new VersaoFutura();
+        if ((versao != 1 && versao != 2) || !"missao-marte".equals(obrigatorio(p, "campanha"))
                 || !"expedicao".equals(obrigatorio(p, "perfil"))) throw new DadosInvalidos();
-        String concluida = obrigatorio(p, "m01Concluida");
-        if (!concluida.equals("true") && !concluida.equals("false")) throw new DadosInvalidos();
-        var progresso = new ProgressoDaHistoria(Boolean.parseBoolean(concluida), obrigatorio(p, "retomada"),
-                Integer.parseInt(obrigatorio(p, "melhorPontuacao")));
-        if (!assinatura(progresso).equals(obrigatorio(p, "integridade"))) throw new DadosInvalidos();
+        ProgressoDaHistoria progresso;
+        if (versao == 1) {
+            String concluida = obrigatorio(p, "m01Concluida");
+            if (!concluida.equals("true") && !concluida.equals("false")) throw new DadosInvalidos();
+            progresso = new ProgressoDaHistoria(Boolean.parseBoolean(concluida), obrigatorio(p, "retomada"),
+                    Integer.parseInt(obrigatorio(p, "melhorPontuacao")));
+            if (!assinaturaLegada(progresso).equals(obrigatorio(p,"integridade"))) throw new DadosInvalidos();
+        } else {
+            var resultados = new java.util.LinkedHashMap<String,Integer>();
+            String valores=obrigatorio(p,"resultados");
+            if (!valores.isEmpty()) for(String item:valores.split(",",-1)) {
+                String[] par=item.split("=",-1);
+                if(par.length!=2 || resultados.put(par[0],Integer.parseInt(par[1]))!=null) throw new DadosInvalidos();
+            }
+            progresso=new ProgressoDaHistoria(resultados,obrigatorio(p,"retomada"));
+            if (!assinatura(progresso).equals(obrigatorio(p,"integridade"))) throw new DadosInvalidos();
+        }
         return progresso;
     }
 
@@ -103,19 +115,28 @@ public final class HistoriaArquivo implements RepositorioHistoria {
         return valor;
     }
 
-    private static String assinatura(ProgressoDaHistoria p) {
+    private static String assinaturaLegada(ProgressoDaHistoria p) {
         CRC32 crc = new CRC32();
         crc.update(("1|missao-marte|expedicao|" + p.m01Concluida() + "|" + p.retomada() + "|"
                 + p.melhorPontuacao()).getBytes(StandardCharsets.UTF_8));
         return Long.toHexString(crc.getValue());
     }
 
+    private static String resultados(ProgressoDaHistoria p) {
+        return p.resultados().entrySet().stream().map(e->e.getKey()+"="+e.getValue())
+                .collect(java.util.stream.Collectors.joining(","));
+    }
+    private static String assinatura(ProgressoDaHistoria p) {
+        CRC32 crc=new CRC32();
+        crc.update(("2|missao-marte|expedicao|"+resultados(p)+"|"+p.retomada()).getBytes(StandardCharsets.UTF_8));
+        return Long.toHexString(crc.getValue());
+    }
+
     private static String codificar(ProgressoDaHistoria progresso) throws IOException {
         Properties p = new Properties();
-        p.setProperty("versao", "1"); p.setProperty("campanha", "missao-marte"); p.setProperty("perfil", "expedicao");
-        p.setProperty("m01Concluida", Boolean.toString(progresso.m01Concluida()));
+        p.setProperty("versao", "2"); p.setProperty("campanha", "missao-marte"); p.setProperty("perfil", "expedicao");
+        p.setProperty("resultados", resultados(progresso));
         p.setProperty("retomada", progresso.retomada());
-        p.setProperty("melhorPontuacao", Integer.toString(progresso.melhorPontuacao()));
         p.setProperty("integridade", assinatura(progresso));
         StringWriter texto = new StringWriter(); p.store(texto, "Missão Marte - progresso local");
         return texto.toString();

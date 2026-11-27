@@ -9,7 +9,7 @@ import java.util.Optional;
  */
 public final class PlataformaDePouso {
 
-    public enum Tipo { BASE, PASSAGEIRO, VIP }
+    public enum Tipo { BASE, PASSAGEIRO, VIP, INSTALACAO }
 
     private final Tipo tipo;
     private final double x;

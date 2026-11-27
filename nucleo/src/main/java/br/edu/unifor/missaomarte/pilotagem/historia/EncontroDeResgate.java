@@ -25,7 +25,11 @@ public final class EncontroDeResgate {
     private final List<Disparo> disparos = new ArrayList<>();
     private Estado estado = Estado.PATRULHA;
     private double x = 800;
-    private final double y = 540;
+    private double y = 540;
+    private double limiteEsquerdo=800, limiteDireito=1500;
+    private boolean patrulhaAtiva=true;
+    private SentinelaDeVarredura sentinela;
+    private ObjetivoDaAntena antena;
     private double direcao = 1;
     private double tempoEstado;
     private double acumulador;
@@ -44,6 +48,15 @@ public final class EncontroDeResgate {
         this.partida = partida;
         vidas = partida.getVidas();
     }
+
+    public EncontroDeResgate semPatrulha() {patrulhaAtiva=false;return this;}
+    public EncontroDeResgate comSentinela(double px,double py) {sentinela=new SentinelaDeVarredura(px,py);return this;}
+    public EncontroDeResgate comAntena(PlataformaDePouso plataforma) {
+        antena=new ObjetivoDaAntena(plataforma);partida.exigirObjetivoAdicional();return this;
+    }
+    public SentinelaDeVarredura sentinela(){return sentinela;}
+    public ObjetivoDaAntena antena(){return antena;}
+    public boolean patrulhaAtiva(){return patrulhaAtiva;}
 
     public static EncontroDeResgate novo() {
         Caverna caverna = new Caverna(2400, 1200)
@@ -80,13 +93,18 @@ public final class EncontroDeResgate {
             disparos.clear();
         }
         NaveEmVoo nave = partida.getNave();
+        if (antena!=null) antena.atualizar(dt,partida);
         if (nave.getEstado() == NaveEmVoo.Estado.DESTRUIDA) return;
         if (nave.getEstado() == NaveEmVoo.Estado.POUSADA
                 && nave.getPlataforma().getTipo() == PlataformaDePouso.Tipo.BASE) {
             bateria=4;
             escudo=2;
         }
-        atualizarPatrulheiro(dt);
+        if(patrulhaAtiva) atualizarPatrulheiro(dt);
+        if(sentinela!=null && sentinela.atualizar(dt,nave.getX(),nave.getY(),
+                !bloqueado(sentinela.x(),sentinela.y(),nave.getX(),nave.getY()))) {
+            atirar(sentinela.x(),sentinela.y(),nave);
+        }
         boolean mira = alvoNoCone();
         if (intervaloPulso == 0 && bateria > 0 && (disparar || assistido && mira)) {
             bateria--;
@@ -95,12 +113,13 @@ public final class EncontroDeResgate {
             pulsoX=nave.getX();
             pulsoY=nave.getY();
             pulsoAngulo=nave.getAngulo();
-            if (mira) {
+            if (patrulhaAtiva && patrulheiroNoCone()) {
                 estado=Estado.DESATIVADO;
                 tempoEstado=0;
             }
+            if(sentinelaNoCone()) sentinela.desativar();
         }
-        if (estado != Estado.AVISO && estado != Estado.ESPERA && bateria < 4) {
+        if (!emAlerta() && bateria < 4) {
             recarga += dt;
             if (recarga + 1e-9 >= 3) {
                 bateria++;
@@ -119,7 +138,7 @@ public final class EncontroDeResgate {
             }
         }
         disparos.removeIf(tiro -> tiro.idade>4 || dentroDeRocha(tiro.x,tiro.y));
-        if (estado != Estado.DESATIVADO && estado != Estado.RECUPERANDO
+        if (patrulhaAtiva && estado != Estado.DESATIVADO && estado != Estado.RECUPERANDO
                 && Math.hypot(x-nave.getX(),y-nave.getY())<57) atingir();
     }
 
@@ -134,8 +153,8 @@ public final class EncontroDeResgate {
             return;
         }
         x += direcao*55*dt;
-        if (x>=1500) { x=1500; direcao=-1; }
-        if (x<=800) { x=800; direcao=1; }
+        if (x>=limiteDireito) { x=limiteDireito; direcao=-1; }
+        if (x<=limiteEsquerdo) { x=limiteEsquerdo; direcao=1; }
         NaveEmVoo nave=partida.getNave();
         boolean detecta = nave.getX()>500 && Math.hypot(x-nave.getX(),y-nave.getY())<=480
                 && !bloqueado(x,y,nave.getX(),nave.getY());
@@ -143,12 +162,7 @@ public final class EncontroDeResgate {
         else if (estado == Estado.AVISO) {
             if (!detecta) trocar(Estado.PATRULHA);
             else if (tempoEstado+1e-9>=1) {
-                double distancia=Math.hypot(nave.getX()-x,nave.getY()-y);
-                if (distancia>0) {
-                    disparos.add(new Disparo(x,y,(nave.getX()-x)*180/distancia,
-                            (nave.getY()-y)*180/distancia));
-                    tiros++;
-                }
+                atirar(x,y,nave);
                 trocar(Estado.ESPERA);
             }
         } else if (estado == Estado.ESPERA && tempoEstado>=2) trocar(Estado.PATRULHA);
@@ -167,8 +181,24 @@ public final class EncontroDeResgate {
         else partida.receberAtaque();
     }
 
-    public boolean alvoNoCone() {
-        if (estado==Estado.DESATIVADO || estado==Estado.RECUPERANDO) return false;
+    private void atirar(double x,double y,NaveEmVoo nave) {
+        double distancia=Math.hypot(nave.getX()-x,nave.getY()-y);
+        if(distancia>0) {
+            disparos.add(new Disparo(x,y,(nave.getX()-x)*180/distancia,(nave.getY()-y)*180/distancia));
+            tiros++;
+        }
+    }
+    public boolean emAlerta() {
+        return (patrulhaAtiva && (estado==Estado.AVISO || estado==Estado.ESPERA))
+            || (sentinela!=null && (sentinela.estado()==SentinelaDeVarredura.Estado.AVISO
+                || sentinela.estado()==SentinelaDeVarredura.Estado.ESPERA));
+    }
+    public boolean alvoNoCone() {return patrulheiroNoCone() || sentinelaNoCone();}
+    public boolean patrulheiroNoCone() {
+        return patrulhaAtiva && estado!=Estado.DESATIVADO && estado!=Estado.RECUPERANDO && noCone(x,y);
+    }
+    public boolean sentinelaNoCone() {return sentinela!=null && sentinela.vulneravel() && noCone(sentinela.x(),sentinela.y());}
+    private boolean noCone(double x,double y) {
         NaveEmVoo nave=partida.getNave();
         double dx=x-nave.getX(), dy=y-nave.getY();
         double distancia=Math.hypot(dx,dy);

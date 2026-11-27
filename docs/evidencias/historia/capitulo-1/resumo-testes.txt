@@ -1,0 +1,5 @@
+nucleo: {'tests': 240, 'failures': 0, 'errors': 0, 'skipped': 0}
+core: {'tests': 341, 'failures': 0, 'errors': 0, 'skipped': 0}
+console: {'tests': 3, 'failures': 0, 'errors': 0, 'skipped': 0}
+lwjgl3: {'tests': 5, 'failures': 0, 'errors': 0, 'skipped': 0}
+servidor: {'tests': 216, 'failures': 0, 'errors': 0, 'skipped': 0}

@@ -29,15 +29,16 @@ public final class ServicoHistoria implements AutoCloseable {
         return enviar(() -> { repositorio.reiniciarAposCorrupcao(); return repositorio.carregar(); });
     }
 
-    public CompletableFuture<ProgressoDaHistoria> iniciarM01() { return atualizar(ProgressoDaHistoria::iniciarM01); }
-
-    public CompletableFuture<ProgressoDaHistoria> concluirM01(int pontos) {
-        return atualizar(progresso -> {
-            if (progresso.retomada().isEmpty()) {
-                if (progresso.m01Concluida()) return progresso;
-                throw new IllegalStateException("Nenhuma missão iniciada");
-            }
-            return progresso.concluirM01(pontos);
+    public CompletableFuture<ProgressoDaHistoria> iniciarM01() { return iniciar("M01"); }
+    public CompletableFuture<ProgressoDaHistoria> concluirM01(int pontos) { return concluir("M01",pontos); }
+    public CompletableFuture<ProgressoDaHistoria> iniciar(String id) {
+        return atualizar(p->p.iniciar(id));
+    }
+    public CompletableFuture<ProgressoDaHistoria> concluir(String id,int pontos) {
+        return atualizar(p -> {
+            if (p.retomada().isEmpty() && p.concluida(id)) return p;
+            if (!p.retomada().equals(id)) throw new IllegalStateException("Missão não iniciada");
+            return p.concluir(id,pontos);
         });
     }
 

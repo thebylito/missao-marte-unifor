@@ -1,0 +1,81 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon JVM discovery is an incubating feature.
+Daemon will be stopped at the end of the build
+> Task :nucleo:compileJava UP-TO-DATE
+> Task :core:compileJava
+> Task :core:gerarServidorPadrao UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes
+
+> Task :core:compileTestJava FAILED
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:24: error: cannot find symbol
+   assertEquals("M02",((TelaBriefingHistoria)j.getScreen()).missao().id());
+                                                           ^
+  symbol:   method missao()
+  location: class TelaBriefingHistoria
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:30: error: constructor TelaResultadoHistoria in class TelaResultadoHistoria cannot be applied to given types;
+   var r=new TelaResultadoHistoria(j,s,Partida.Estado.VITORIA,40,MissaoHistoria.porId("M01"));
+         ^
+  required: MissaoMarteGame,ServicoHistoria,Estado,int
+  found:    MissaoMarteGame,ServicoHistoria,Estado,int,MissaoHistoria
+  reason: actual and formal argument lists differ in length
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:33: error: cannot find symbol
+   assertEquals("M02",((TelaBriefingHistoria)j.getScreen()).missao().id());
+                                                           ^
+  symbol:   method missao()
+  location: class TelaBriefingHistoria
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:39: error: constructor TelaBriefingHistoria in class TelaBriefingHistoria cannot be applied to given types;
+   var t=new TelaBriefingHistoria(j,s,MissaoHistoria.porId("M02"));t.entrada().keyDown(Keys.ENTER);
+         ^
+  required: MissaoMarteGame,ServicoHistoria
+  found:    MissaoMarteGame,ServicoHistoria,MissaoHistoria
+  reason: actual and formal argument lists differ in length
+/Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:41: error: cannot find symbol
+   assertEquals("M02",((TelaMissaoHistoria)j.getScreen()).missao().id());
+                                                         ^
+  symbol:   method missao()
+  location: class TelaMissaoHistoria
+5 errors
+
+[Incubating] Problems report is available at: file:///Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':core:compileTestJava'.
+> Compilation failed; see the compiler output below.
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:30: error: constructor TelaResultadoHistoria in class TelaResultadoHistoria cannot be applied to given types;
+     var r=new TelaResultadoHistoria(j,s,Partida.Estado.VITORIA,40,MissaoHistoria.porId("M01"));
+           ^
+    required: MissaoMarteGame,ServicoHistoria,Estado,int
+    found:    MissaoMarteGame,ServicoHistoria,Estado,int,MissaoHistoria
+    reason: actual and formal argument lists differ in length
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:39: error: constructor TelaBriefingHistoria in class TelaBriefingHistoria cannot be applied to given types;
+     var t=new TelaBriefingHistoria(j,s,MissaoHistoria.porId("M02"));t.entrada().keyDown(Keys.ENTER);
+           ^
+    required: MissaoMarteGame,ServicoHistoria
+    found:    MissaoMarteGame,ServicoHistoria,MissaoHistoria
+    reason: actual and formal argument lists differ in length
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:24: error: cannot find symbol
+     assertEquals("M02",((TelaBriefingHistoria)j.getScreen()).missao().id());
+                                                             ^
+    symbol:   method missao()
+    location: class TelaBriefingHistoria
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:33: error: cannot find symbol
+     assertEquals("M02",((TelaBriefingHistoria)j.getScreen()).missao().id());
+                                                             ^
+    symbol:   method missao()
+    location: class TelaBriefingHistoria
+  /Users/thebylito/Documents/cursos/bezerra/projeto-final-historia-capitulo1/core/src/test/java/br/edu/unifor/missaomarte/grafico/historia/FluxoCapituloUmTeste.java:41: error: cannot find symbol
+     assertEquals("M02",((TelaMissaoHistoria)j.getScreen()).missao().id());
+                                                           ^
+    symbol:   method missao()
+    location: class TelaMissaoHistoria
+  5 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 5s
+5 actionable tasks: 2 executed, 3 up-to-date

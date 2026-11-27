@@ -10,6 +10,8 @@ public enum Folha {
     NAVE("sprites/nave.png", 128, 128, 8, 8, 64),
     EXPLOSAO("sprites/explosao.png", 128, 128, 4, 4, 16),
     ASTEROIDE("sprites/asteroide.png", 96, 96, 8, 4, 32),
+    SENTINELA("sprites/sentinela.png",128,128,4,4,16),
+    ANTENA_MISSAO("sprites/antena_missao.png",256,192,4,3,12),
     PATRULHEIRO("sprites/patrulheiro.png", 96, 64, 8, 1, 8),
     DISPARO_HISTORIA("sprites/disparo_historia.png", 24, 24, 4, 1, 4),
     PULSO_HISTORIA("sprites/pulso_historia.png", 96, 96, 4, 2, 8),

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capítulo 1 — prévia dos sprites</title>
+<style>
+  body { margin:32px; font:16px system-ui; background:#17252f; color:#eaf0e9; }
+  main { max-width:1100px; margin:auto; }
+  section { border:1px solid #49616d; padding:20px; margin:20px 0; border-radius:12px; }
+  canvas { background:repeating-conic-gradient(#223640 0 25%,#293e48 0 50%) 0/24px 24px; max-width:100%; }
+  button { padding:8px 16px; margin:4px; border:0; border-radius:6px; cursor:pointer; }
+  button[aria-pressed=true] { background:#75e2ba; }
+  small { color:#b6c8cf; }
+</style>
+<main>
+  <h1>Capítulo 1 — inspeção da arte</h1>
+  <p>Prévia local das folhas produzidas no Blender. A linha verde marca o contato fixo com o chão. Esta página não registra aprovação humana.</p>
+  <section>
+    <h2>Sentinela</h2>
+    <canvas id="sentinela" width="256" height="256"></canvas>
+    <p>16 quadros · 128 × 128 px · varredura da cabeça e da lente; pedestal fixo.</p>
+  </section>
+  <section>
+    <h2>Antena da missão</h2>
+    <div id="states">
+      <button data-state="off" aria-pressed="true">Desligada · 0–3</button>
+      <button data-state="activating" aria-pressed="false">Ativando · 4–7</button>
+      <button data-state="active" aria-pressed="false">Ativa · 8–11</button>
+    </div>
+    <canvas id="antena" width="512" height="384"></canvas>
+    <p>12 quadros · 256 × 192 px · refletor orientável, indicação âmbar e transmissão verde.</p>
+  </section>
+  <p><small>Folhas e relatórios: <a href="../../../../../assets/sprites/sentinela.png">sentinela.png</a> · <a href="../../../../../assets/sprites/antena_missao.png">antena_missao.png</a> · <a href="geometria.json">geometria.json</a></small></p>
+</main>
+<script>
+  const base = '../../../../../assets/sprites/';
+  const sentinel = new Image(), antenna = new Image();
+  sentinel.src = base + 'sentinela.png'; antenna.src = base + 'antena_missao.png';
+  let state = 'off', start = performance.now();
+  const ranges = {off:[0,4],activating:[4,4],active:[8,4]};
+  document.querySelectorAll('button').forEach(button => button.onclick = () => {
+    state = button.dataset.state; start = performance.now();
+    document.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed', item === button));
+  });
+  function draw(id, image, frame, w, h, ground) {
+    const canvas = document.getElementById(id), ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if (image.complete && image.naturalWidth) ctx.drawImage(image, (frame%4)*w, Math.floor(frame/4)*h,w,h,0,0,w*2,h*2);
+    ctx.strokeStyle='#73b198'; ctx.setLineDash([6,5]); ctx.beginPath(); ctx.moveTo(0,ground*2); ctx.lineTo(w*2,ground*2); ctx.stroke();
+  }
+  function tick(now) {
+    draw('sentinela',sentinel,Math.floor(now/125)%16,128,128,118);
+    const [first,count] = ranges[state];
+    const offset = state === 'activating' ? Math.min(3,Math.floor((now-start)/500)) : Math.floor((now-start)/250)%count;
+    draw('antena',antenna,first+offset,256,192,178);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+</script>
+</html>
