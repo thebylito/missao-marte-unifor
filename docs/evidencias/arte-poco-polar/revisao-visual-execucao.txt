@@ -1,0 +1,28 @@
+professor INSTRUMENTATION_STATUS: etapa=Poço Polar carregado. Passageiro 3. Skin padrao_5. Início da aproximação.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Passageiro ao alcance do aceno.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Jato ao alcance da plataforma.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Pouso confirmado.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Porta aberta para o passageiro.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Porta abriu completamente e fechou após o embarque.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Embarque confirmado. 2234 atualizações; 375 quadros com motor na faixa dos cristais.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Aproximação da base para entrega e abastecimento.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Pouso confirmado.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Passageiro entregue. Caminhada até o abrigo.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Braço conectado e reabastecendo.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_STATUS: etapa=Entrega, suspensão e reabastecimento confirmados.
+professor INSTRUMENTATION_STATUS_CODE: 1
+professor INSTRUMENTATION_RESULT: resultado=PASS
+professor INSTRUMENTATION_CODE: -1
+/data/local/tmp/missao-marte-professor-1795747477104345000.mp4: 1 file pulled, 0 skipped. 37.1 MB/s (7393567 bytes in 0.190s)
+PASS: ciclos solicitados concluídos.

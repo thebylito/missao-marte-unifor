@@ -83,8 +83,8 @@ def _parts():
     add('mesh', 'Heat-darkened nozzle lip', 'refractory',
         *_rings(((NOZZLE_EXIT_Z, NOZZLE_EXIT_RADIUS, NOZZLE_EXIT_RADIUS),
                  (-27.4, 7.7975, 7.7975)), caps=False))
-    add('cube', 'Service hatch', 'metal', (0, -13.5, -7), (12, 2.5, 7), bevel=.7)
-    add('cube', 'Hatch ceramic handle', 'ceramic', (0, -15, -7), (6, 1, 1.6), bevel=.3)
+    from porta_modelo import acrescentar_porta
+    acrescentar_porta(add, 0, -15, -5, 14, 17, 'metal', 'graphite', 'amber')
     for sign in (-1, 1):
         side = 'Port' if sign < 0 else 'Starboard'
         add('cube', side + ' ceramic service pod', 'ceramic',

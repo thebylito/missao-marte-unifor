@@ -290,14 +290,24 @@ def _wave(r, p, kind):
     return animate
 
 
-def build_person(kind):
+def build_person(kind, espera=False):
     builders = {'astronauta': _astronaut, 'engenheiro': _engineer,
                 'professor': _professor}
     builder = builders[kind]
     r = root(kind + ' centered body; boot soles at Z=-32')
     p = _palette(kind)
     builder(r, p)
-    return _wave(r, p, kind)
+    acenar = _wave(r, p, kind)
+    if not espera:
+        return acenar
+    import bpy
+    ombro = next(o for o in r.children if o.name.startswith('Waving shoulder'))
+    cotovelo = next(o for o in ombro.children if o.name.startswith('Waving elbow'))
+    def aguardar(i):
+        t = 2 * math.pi * i / 8
+        ombro.rotation_euler[1] = 2.75 + .035 * math.sin(t)
+        cotovelo.rotation_euler[1] = -.35 + .08 * math.cos(t)
+    return aguardar
 
 
 def _smooth_opaque_rgb(a):

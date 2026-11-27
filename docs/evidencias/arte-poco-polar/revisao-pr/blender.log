@@ -1,0 +1,78 @@
+
+ASSET                       SIZE          FRAMES  RESULT
+nave.png                    1024 x 1024   64    PASS
+chama.png                    256 x 96      4    PASS
+explosao.png                 512 x 512    16    PASS
+asteroide.png                768 x 384    32    PASS
+plataforma_base.png          256 x 64      1    PASS
+plataforma_passageiro.png    160 x 48      1    PASS
+astronauta.png               384 x 64      8    PASS
+engenheiro.png               384 x 64      8    PASS
+professor.png                384 x 64      8    PASS
+rocha_tile.png               256 x 256     1    PASS
+fundo.png                   1200 x 900     1    PASS
+icone.png                    256 x 256     1    PASS
+inimigo.png                  768 x 96      8    PASS
+craterado.png                768 x 384    32    PASS
+gelo_polar.png               768 x 384    32    PASS
+ferro.png                    768 x 384    32    PASS
+meteoro.png                  768 x 384    32    PASS
+astronauta_espera.png        512 x 160    16    PASS
+astronauta_reacao.png        384 x 160    12    PASS
+astronauta_andar.png         384 x 160    12    PASS
+astronauta_sinalizar.png     384 x 160    12    PASS
+engenheiro_espera.png        512 x 160    16    PASS
+engenheiro_reacao.png        384 x 160    12    PASS
+engenheiro_andar.png         384 x 160    12    PASS
+engenheiro_sinalizar.png     384 x 160    12    PASS
+professor_espera.png         512 x 160    16    PASS
+professor_reacao.png         384 x 160    12    PASS
+professor_andar.png          384 x 160    12    PASS
+professor_sinalizar.png      384 x 160    12    PASS
+sonda.png                   1536 x 512     8    PASS
+guindaste.png               1536 x 512     8    PASS
+antena.png                  1536 x 512     8    PASS
+parede_gelo.png              256 x 256     1    PASS
+parede_ferro.png             256 x 256     1    PASS
+fundo_polar.png             1200 x 900     1    PASS
+fundo_ferro.png             1200 x 900     1    PASS
+naves/padrao_2.png          1024 x 1024   64    PASS
+naves/padrao_3.png          1024 x 1024   64    PASS
+naves/padrao_4.png          1024 x 1024   64    PASS
+naves/padrao_5.png          1024 x 1024   64    PASS
+naves/guara.png             1024 x 1024   64    PASS
+naves/guara_2.png           1024 x 1024   64    PASS
+naves/guara_3.png           1024 x 1024   64    PASS
+naves/guara_4.png           1024 x 1024   64    PASS
+naves/porta_padrao.png       512 x 384    12    PASS
+naves/porta_padrao_2.png     512 x 384    12    PASS
+naves/porta_padrao_3.png     512 x 384    12    PASS
+naves/porta_padrao_4.png     512 x 384    12    PASS
+naves/porta_padrao_5.png     512 x 384    12    PASS
+naves/porta_guara.png        512 x 384    12    PASS
+naves/porta_guara_2.png      512 x 384    12    PASS
+naves/porta_guara_3.png      512 x 384    12    PASS
+naves/porta_guara_4.png      512 x 384    12    PASS
+naves/pouso_padrao.png       512 x 256     8    PASS
+naves/pouso_padrao_2.png     512 x 256     8    PASS
+naves/pouso_padrao_3.png     512 x 256     8    PASS
+naves/pouso_padrao_4.png     512 x 256     8    PASS
+naves/pouso_padrao_5.png     512 x 256     8    PASS
+naves/pouso_guara.png        512 x 256     8    PASS
+naves/pouso_guara_2.png      512 x 256     8    PASS
+naves/pouso_guara_3.png      512 x 256     8    PASS
+naves/pouso_guara_4.png      512 x 256     8    PASS
+astronauta_proteger.png      384 x 160    12    PASS
+astronauta_comemorar.png     384 x 160    12    PASS
+engenheiro_proteger.png      384 x 160    12    PASS
+engenheiro_comemorar.png     384 x 160    12    PASS
+professor_proteger.png       384 x 160    12    PASS
+professor_comemorar.png      384 x 160    12    PASS
+abrigo.png                   512 x 256     8    PASS
+naves/catalogo.json                            PASS
+naves/previas.png                              PASS
+naves/sombras.png                              PASS
+PASS: dimensions, RGBA, frame contents, corners, clipping, pivots/landing lines, orientation, tile edges, catalog, atlases, and evolution.
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:31:22)
+
+Blender quit

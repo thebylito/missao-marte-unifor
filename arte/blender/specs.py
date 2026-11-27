@@ -24,6 +24,22 @@ SPECS = {
     'inimigo': Spec('inimigo', 'inimigo.png', (96,96,8,8,1)),
 }
 
+for nome in ('craterado', 'gelo_polar', 'ferro', 'meteoro'):
+    SPECS[nome] = Spec(nome, nome + '.png', (96,96,32,8,4))
+for nome in ('astronauta', 'engenheiro', 'professor'):
+    SPECS[nome + '_espera'] = Spec(nome + '_espera', nome + '_espera.png', (64,80,16,8,2))
+    for sequencia in ('reacao', 'andar', 'sinalizar'):
+        chave = nome + '_' + sequencia
+        SPECS[chave] = Spec(chave, chave + '.png', (64,80,12,6,2))
+
+for nome in ('sonda', 'guindaste', 'antena'):
+    SPECS[nome] = Spec(nome, nome + '.png', (384,256,8,4,2))
+for nome in ('parede_gelo', 'parede_ferro'):
+    SPECS[nome] = Spec(nome, nome + '.png', (256,256,1,1,1))
+
+for nome in ('fundo_polar', 'fundo_ferro'):
+    SPECS[nome] = Spec(nome, nome + '.png', (1200,900,1,1,1))
+
 CATALOGO = [
     dict(id='padrao', nome='Padrão', descricao='Nave de reconhecimento e resgate com casco cerâmico e cabine ciano.',
          linha='padrao', nivel=1),
@@ -47,3 +63,19 @@ CATALOGO = [
 SKINS = tuple(item['id'] for item in CATALOGO[1:])
 for skin in SKINS:
     SPECS[skin] = Spec(f'naves.{skin}_modelo', f'naves/{skin}.png', SPECS['nave'].grid)
+
+# Folhas da porta, com a nave pousada no mesmo pivô dos quadros de voo.
+for item in CATALOGO:
+    nome = item['id']
+    chave = 'porta_' + nome
+    SPECS[chave] = Spec(chave, 'naves/' + chave + '.png', (128,128,12,4,3))
+
+for item in CATALOGO:
+    nome = item['id']
+    chave = 'pouso_' + nome
+    SPECS[chave] = Spec(chave, 'naves/' + chave + '.png', (128,128,8,4,2))
+for pessoa in ('astronauta','engenheiro','professor'):
+    for acao in ('proteger','comemorar'):
+        chave = pessoa + '_' + acao
+        SPECS[chave] = Spec(chave, chave + '.png', (64,80,12,6,2))
+SPECS['abrigo'] = Spec('abrigo','abrigo.png',(128,128,8,4,2))

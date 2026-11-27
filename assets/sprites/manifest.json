@@ -491,6 +491,726 @@
       "frame0": "nose up",
       "rotationDirection": "counterclockwise",
       "degreesPerFrame": 5.625
+    },
+    "gelo_polar": {
+      "file": "gelo_polar.png",
+      "cellW": 96,
+      "cellH": 96,
+      "cols": 8,
+      "rows": 4,
+      "frames": 32,
+      "width": 768,
+      "height": 384,
+      "pivot": {
+        "x": 48.0,
+        "y": 48.0
+      },
+      "opaque": false
+    },
+    "craterado": {
+      "file": "craterado.png",
+      "cellW": 96,
+      "cellH": 96,
+      "cols": 8,
+      "rows": 4,
+      "frames": 32,
+      "width": 768,
+      "height": 384,
+      "pivot": {
+        "x": 48.0,
+        "y": 48.0
+      },
+      "opaque": false
+    },
+    "ferro": {
+      "file": "ferro.png",
+      "cellW": 96,
+      "cellH": 96,
+      "cols": 8,
+      "rows": 4,
+      "frames": 32,
+      "width": 768,
+      "height": 384,
+      "pivot": {
+        "x": 48.0,
+        "y": 48.0
+      },
+      "opaque": false
+    },
+    "meteoro": {
+      "file": "meteoro.png",
+      "cellW": 96,
+      "cellH": 96,
+      "cols": 8,
+      "rows": 4,
+      "frames": 32,
+      "width": 768,
+      "height": 384,
+      "pivot": {
+        "x": 48.0,
+        "y": 48.0
+      },
+      "opaque": false
+    },
+    "astronauta_espera": {
+      "file": "astronauta_espera.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 8,
+      "rows": 2,
+      "frames": 16,
+      "width": 512,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "engenheiro_espera": {
+      "file": "engenheiro_espera.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 8,
+      "rows": 2,
+      "frames": 16,
+      "width": 512,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "professor_espera": {
+      "file": "professor_espera.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 8,
+      "rows": 2,
+      "frames": 16,
+      "width": 512,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "sonda": {
+      "file": "sonda.png",
+      "cellW": 384,
+      "cellH": 256,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 1536,
+      "height": 512,
+      "pivot": {
+        "x": 192.0,
+        "y": 128.0
+      },
+      "opaque": false
+    },
+    "guindaste": {
+      "file": "guindaste.png",
+      "cellW": 384,
+      "cellH": 256,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 1536,
+      "height": 512,
+      "pivot": {
+        "x": 192.0,
+        "y": 128.0
+      },
+      "opaque": false
+    },
+    "antena": {
+      "file": "antena.png",
+      "cellW": 384,
+      "cellH": 256,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 1536,
+      "height": 512,
+      "pivot": {
+        "x": 192.0,
+        "y": 128.0
+      },
+      "opaque": false
+    },
+    "parede_gelo": {
+      "file": "parede_gelo.png",
+      "cellW": 256,
+      "cellH": 256,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 256,
+      "height": 256,
+      "pivot": {
+        "x": 128.0,
+        "y": 128.0
+      },
+      "opaque": true
+    },
+    "parede_ferro": {
+      "file": "parede_ferro.png",
+      "cellW": 256,
+      "cellH": 256,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 256,
+      "height": 256,
+      "pivot": {
+        "x": 128.0,
+        "y": 128.0
+      },
+      "opaque": true
+    },
+    "fundo_polar": {
+      "file": "fundo_polar.png",
+      "cellW": 1200,
+      "cellH": 900,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 1200,
+      "height": 900,
+      "pivot": {
+        "x": 600.0,
+        "y": 450.0
+      },
+      "opaque": true
+    },
+    "fundo_ferro": {
+      "file": "fundo_ferro.png",
+      "cellW": 1200,
+      "cellH": 900,
+      "cols": 1,
+      "rows": 1,
+      "frames": 1,
+      "width": 1200,
+      "height": 900,
+      "pivot": {
+        "x": 600.0,
+        "y": 450.0
+      },
+      "opaque": true
+    },
+    "astronauta_reacao": {
+      "file": "astronauta_reacao.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "astronauta_andar": {
+      "file": "astronauta_andar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "engenheiro_reacao": {
+      "file": "engenheiro_reacao.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "engenheiro_andar": {
+      "file": "engenheiro_andar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "professor_reacao": {
+      "file": "professor_reacao.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "professor_andar": {
+      "file": "professor_andar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "astronauta_sinalizar": {
+      "file": "astronauta_sinalizar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "engenheiro_sinalizar": {
+      "file": "engenheiro_sinalizar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "professor_sinalizar": {
+      "file": "professor_sinalizar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "porta_padrao": {
+      "file": "naves/porta_padrao.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_padrao_2": {
+      "file": "naves/porta_padrao_2.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_padrao_3": {
+      "file": "naves/porta_padrao_3.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_padrao_4": {
+      "file": "naves/porta_padrao_4.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_padrao_5": {
+      "file": "naves/porta_padrao_5.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_guara": {
+      "file": "naves/porta_guara.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_guara_2": {
+      "file": "naves/porta_guara_2.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_guara_3": {
+      "file": "naves/porta_guara_3.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "porta_guara_4": {
+      "file": "naves/porta_guara_4.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 3,
+      "frames": 12,
+      "width": 512,
+      "height": 384,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_padrao": {
+      "file": "naves/pouso_padrao.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_padrao_2": {
+      "file": "naves/pouso_padrao_2.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_padrao_3": {
+      "file": "naves/pouso_padrao_3.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_padrao_4": {
+      "file": "naves/pouso_padrao_4.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_padrao_5": {
+      "file": "naves/pouso_padrao_5.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_guara": {
+      "file": "naves/pouso_guara.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_guara_2": {
+      "file": "naves/pouso_guara_2.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_guara_3": {
+      "file": "naves/pouso_guara_3.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "pouso_guara_4": {
+      "file": "naves/pouso_guara_4.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
+    },
+    "astronauta_proteger": {
+      "file": "astronauta_proteger.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "astronauta_comemorar": {
+      "file": "astronauta_comemorar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "engenheiro_proteger": {
+      "file": "engenheiro_proteger.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "engenheiro_comemorar": {
+      "file": "engenheiro_comemorar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "professor_proteger": {
+      "file": "professor_proteger.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "professor_comemorar": {
+      "file": "professor_comemorar.png",
+      "cellW": 64,
+      "cellH": 80,
+      "cols": 6,
+      "rows": 2,
+      "frames": 12,
+      "width": 384,
+      "height": 160,
+      "pivot": {
+        "x": 32.0,
+        "y": 40.0
+      },
+      "opaque": false
+    },
+    "abrigo": {
+      "file": "abrigo.png",
+      "cellW": 128,
+      "cellH": 128,
+      "cols": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 512,
+      "height": 256,
+      "pivot": {
+        "x": 64.0,
+        "y": 64.0
+      },
+      "opaque": false
     }
   }
 }

@@ -38,6 +38,7 @@ public final class ControladorDaPilotagem {
     private final ServicoRanking servicoRanking;
     private final Ranking rankingAntes;
     private final Long horda;
+    private final String idDaCaverna;
     private final String bilhete;
     private final Set<Integer> teclas = new HashSet<>();
     private final Map<Integer, float[]> dedos = new HashMap<>();
@@ -50,16 +51,24 @@ public final class ControladorDaPilotagem {
         this.partida = partida;
         this.servicoRanking = servicoRanking;
         this.horda = null;
+        this.idDaCaverna = "marciana";
         this.bilhete = null;
         this.rankingAntes = servicoRanking.carregar();   // como no clássico: para o recorde e para o Top 5
     }
 
-    ControladorDaPilotagem(PartidaDePilotagem partida, long horda, String bilhete) {
+    ControladorDaPilotagem(PartidaDePilotagem partida, long horda, String bilhete, String idDaCaverna) {
         this.partida = partida;
         this.horda = horda;
+        this.idDaCaverna = idDaCaverna;
         this.bilhete = bilhete;
         this.servicoRanking = null;
         this.rankingAntes = Ranking.vazio();
+    }
+
+    public String getIdDaCaverna() { return idDaCaverna; }
+
+    public boolean noPocoPolar() {
+        return "poco-polar".equals(idDaCaverna);
     }
 
     public String sala() {

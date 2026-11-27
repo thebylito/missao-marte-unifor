@@ -22,6 +22,10 @@ public final class RecursosDasNaves implements Disposable {
     private String skinCarregada;
     private String skinSolicitada;
     private Texture folha;
+    private Texture porta;
+    private Texture pouso;
+    private TextureRegion[][] quadrosDoPouso;
+    private TextureRegion[][] quadrosDaPorta;
     private TextureRegion[][] quadros;
     private TextureRegion[][] previas;
     private TextureRegion[][] sombras;
@@ -44,6 +48,16 @@ public final class RecursosDasNaves implements Disposable {
             return;
         }
         if (!disponivel.equals(skinCarregada)) {
+            if (pouso != null) {
+                pouso.dispose();
+                pouso = null;
+                quadrosDoPouso = null;
+            }
+            if (porta != null) {
+                porta.dispose();
+                porta = null;
+                quadrosDaPorta = null;
+            }
             if (folha != null) {
                 folha.dispose();
                 folha = null;
@@ -57,7 +71,53 @@ public final class RecursosDasNaves implements Disposable {
                 carregarFolha(GEOMETRIA.getCaminho(), SKIN_PADRAO);
             }
         }
+        if (quadrosDaPorta == null) {
+            carregarPorta();
+            carregarPouso();
+        }
         skinSolicitada = disponivel;
+    }
+
+    private void carregarPouso() {
+        FileHandle arquivo = assets.child("sprites/naves/pouso_" + skinCarregada + ".png");
+        if (!arquivo.exists()) return;
+        Texture textura = new Texture(arquivo);
+        if (textura.getWidth() != 512 || textura.getHeight() != 256) {
+            textura.dispose();
+            return;
+        }
+        textura.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        pouso = textura;
+        quadrosDoPouso = TextureRegion.split(textura, 128, 128);
+    }
+
+    public TextureRegion quadroDoPouso(float compressao) {
+        if (quadrosDoPouso == null) return null;
+        return regiao(quadrosDoPouso, Math.round(Math.max(0, Math.min(1, compressao)) * 7), 4);
+    }
+
+    private void carregarPorta() {
+        FileHandle arquivo = assets.child("sprites/naves/porta_" + skinCarregada + ".png");
+        if (!arquivo.exists()) return;
+        Texture textura = new Texture(arquivo);
+        if (textura.getWidth() != 128 * 4 || textura.getHeight() != 128 * 3) {
+            textura.dispose();
+            return;
+        }
+        textura.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        porta = textura;
+        quadrosDaPorta = TextureRegion.split(textura, 128, 128);
+    }
+
+    /** Só a nave pousada usa esta folha. Distribuições antigas continuam usando a folha de voo. */
+    public TextureRegion quadroDaPorta(float abertura) {
+        if (quadrosDaPorta == null) return null;
+        int quadro = Math.round(Math.max(0, Math.min(1, abertura)) * 11);
+        return regiao(quadrosDaPorta, quadro, 4);
+    }
+
+    public float deslocamentoDaPorta() {
+        return skinCarregada != null && skinCarregada.startsWith("guara") ? 21 : 0;
     }
 
     private void carregarFolhaAlternativa(String id) {
@@ -195,6 +255,8 @@ public final class RecursosDasNaves implements Disposable {
 
     @Override
     public void dispose() {
+        if (porta != null) porta.dispose();
+        if (pouso != null) pouso.dispose();
         if (folha != null) {
             folha.dispose();
         }

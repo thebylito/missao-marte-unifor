@@ -1,0 +1,129 @@
+00:00.567  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 1/12
+00:00.586  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 2/12
+00:00.606  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 3/12
+00:00.626  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 4/12
+00:00.648  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 5/12
+00:00.668  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 6/12
+00:00.689  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 7/12
+00:00.708  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 8/12
+00:00.727  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 9/12
+00:00.746  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 10/12
+00:00.768  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 11/12
+00:00.792  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME astronauta_reacao 12/12
+ASSET astronauta_reacao: 384x160; 0.32s
+00:00.861  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 1/12
+00:00.880  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 2/12
+00:00.898  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 3/12
+00:00.915  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 4/12
+00:00.933  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 5/12
+00:00.951  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 6/12
+00:00.969  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 7/12
+00:00.992  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 8/12
+00:01.018  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 9/12
+00:01.039  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 10/12
+00:01.060  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 11/12
+00:01.084  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME engenheiro_reacao 12/12
+ASSET engenheiro_reacao: 384x160; 0.30s
+00:01.170  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 1/12
+00:01.193  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 2/12
+00:01.213  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 3/12
+00:01.234  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 4/12
+00:01.255  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 5/12
+00:01.275  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 6/12
+00:01.295  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 7/12
+00:01.315  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 8/12
+00:01.334  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 9/12
+00:01.354  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 10/12
+00:01.372  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 11/12
+00:01.393  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_57134.png'
+FRAME professor_reacao 12/12
+ASSET professor_reacao: 384x160; 0.30s
+
+ASSET                       SIZE          FRAMES  RESULT
+nave.png                    1024 x 1024   64    PASS
+chama.png                    256 x 96      4    PASS
+explosao.png                 512 x 512    16    PASS
+asteroide.png                768 x 384    32    PASS
+plataforma_base.png          256 x 64      1    PASS
+plataforma_passageiro.png    160 x 48      1    PASS
+astronauta.png               384 x 64      8    PASS
+engenheiro.png               384 x 64      8    PASS
+professor.png                384 x 64      8    PASS
+rocha_tile.png               256 x 256     1    PASS
+fundo.png                   1200 x 900     1    PASS
+icone.png                    256 x 256     1    PASS
+inimigo.png                  768 x 96      8    PASS
+craterado.png                768 x 384    32    PASS
+gelo_polar.png               768 x 384    32    PASS
+ferro.png                    768 x 384    32    PASS
+meteoro.png                  768 x 384    32    PASS
+astronauta_espera.png        512 x 160    16    PASS
+astronauta_reacao.png        384 x 160    12    PASS
+astronauta_andar.png         384 x 160    12    PASS
+astronauta_sinalizar.png     384 x 160    12    PASS
+engenheiro_espera.png        512 x 160    16    PASS
+engenheiro_reacao.png        384 x 160    12    PASS
+engenheiro_andar.png         384 x 160    12    PASS
+engenheiro_sinalizar.png     384 x 160    12    PASS
+professor_espera.png         512 x 160    16    PASS
+professor_reacao.png         384 x 160    12    PASS
+professor_andar.png          384 x 160    12    PASS
+professor_sinalizar.png      384 x 160    12    PASS
+sonda.png                   1536 x 512     8    PASS
+guindaste.png               1536 x 512     8    PASS
+antena.png                  1536 x 512     8    PASS
+parede_gelo.png              256 x 256     1    PASS
+parede_ferro.png             256 x 256     1    PASS
+fundo_polar.png             1200 x 900     1    PASS
+fundo_ferro.png             1200 x 900     1    PASS
+naves/padrao_2.png          1024 x 1024   64    PASS
+naves/padrao_3.png          1024 x 1024   64    PASS
+naves/padrao_4.png          1024 x 1024   64    PASS
+naves/padrao_5.png          1024 x 1024   64    PASS
+naves/guara.png             1024 x 1024   64    PASS
+naves/guara_2.png           1024 x 1024   64    PASS
+naves/guara_3.png           1024 x 1024   64    PASS
+naves/guara_4.png           1024 x 1024   64    PASS
+naves/catalogo.json                            PASS
+naves/previas.png                              PASS
+naves/sombras.png                              PASS
+PASS: dimensions, RGBA, frame contents, corners, clipping, pivots/landing lines, orientation, tile edges, catalog, atlases, and evolution.
+TOTAL RENDER 1.12s; TOTAL 2.19s
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:31:22)
+
+Blender quit
