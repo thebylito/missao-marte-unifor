@@ -46,9 +46,11 @@ public final class Lwjgl3Launcher {
         ConfiguracaoDoServidor servidor = new ConfiguracaoDoServidor(preferencias,
                 ConfiguracaoDoServidor.padraoDoBuild(SERVIDOR_PADRAO), System.getProperty(PROPRIEDADE_SERVIDOR));
         Plataforma plataforma = new Plataforma(Boolean.getBoolean(PROPRIEDADE_TOQUE), servidor,
-                new SessaoGuardada(preferencias));
+                new SessaoGuardada(preferencias), pastaDaHistoria());
         new Lwjgl3Application(new MissaoMarteGame(montarServicos(servidor), plataforma), configuracao());
     }
+
+    static Path pastaDaHistoria() { return pastaDosDados().resolve("historia"); }
 
     static ServicosDoJogo montarServicos(ConfiguracaoDoServidor servidor) {
         Relogio relogio = Relogio.DO_SISTEMA;

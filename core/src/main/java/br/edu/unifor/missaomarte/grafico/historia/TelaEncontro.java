@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 /** Arena local de validação do combate leve da campanha. */
-public final class TelaEncontro extends TelaPilotagem {
+public class TelaEncontro extends TelaPilotagem {
     private final EncontroDeResgate encontro;
     private final ControladorDoEncontro controle;
     private final Set<Integer> dedosPulso = new HashSet<>();
@@ -27,7 +27,7 @@ public final class TelaEncontro extends TelaPilotagem {
         this(jogo, encontro, new ControladorDoEncontro(encontro));
     }
 
-    private TelaEncontro(MissaoMarteGame jogo, EncontroDeResgate encontro, ControladorDoEncontro controle) {
+    protected TelaEncontro(MissaoMarteGame jogo, EncontroDeResgate encontro, ControladorDoEncontro controle) {
         super(jogo, controle);
         this.encontro = encontro;
         this.controle = controle;
@@ -159,12 +159,15 @@ public final class TelaEncontro extends TelaPilotagem {
         lote().begin();
         escrever("Escudo: " + encontro.escudo() + "/2   EMP: " + encontro.bateria() + "/4",
                 v.x() + 32, v.topo() - 255, Color.CYAN, 1);
-        escrever("Resgate Maria e volte à base", v.x() + 32, v.topo() - 283, Color.WHITE, .85f);
-        escrever("EMP frontal: 300 m. Recarrega na base.", v.x() + 32, v.topo() - 309, Color.LIGHT_GRAY, .75f);
+        escrever(objetivoPrincipal(), v.x() + 32, v.topo() - 283, Color.WHITE, .85f);
+        escrever(ajudaDoEncontro(), v.x() + 32, v.topo() - 309, Color.LIGHT_GRAY, .75f);
         lote().end();
         desenharBotoes(List.of(botaoPulso(), botaoAssistencia()),
                 List.of("PULSO [F]", controle.assistido() ? "Auto: ligado [G]" : "Auto: desligado [G]"), .85f);
     }
+
+    protected String objetivoPrincipal() { return "Resgate Maria e volte à base"; }
+    protected String ajudaDoEncontro() { return "EMP frontal: 300 m. Recarrega na base."; }
 
     @Override protected void concluirPartida(FimDePartida fim) {
         jogo.trocarTela(new TelaResultadoDoEncontro(jogo, encontro));

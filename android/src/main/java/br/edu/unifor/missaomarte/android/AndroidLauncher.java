@@ -56,7 +56,7 @@ public class AndroidLauncher extends AndroidApplication {
 
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
         config.useImmersiveMode = true;      // esconde as barras do sistema durante o jogo
-        initialize(new MissaoMarteGame(servicos, new Plataforma(true, servidor, new SessaoGuardada(preferencias))),
+        initialize(new MissaoMarteGame(servicos, new Plataforma(true, servidor, new SessaoGuardada(preferencias), getFilesDir().toPath().resolve("historia"))),
                 config);
     }
 }

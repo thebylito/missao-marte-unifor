@@ -64,6 +64,7 @@ public class MissaoMarteGame extends Game {
     public static final float ALTURA = 600;
 
     private final ServicosDoJogo servicos;
+    private br.edu.unifor.missaomarte.grafico.historia.ServicoHistoria historia;
     private final Plataforma plataforma;
     private ShapeRenderer formas;
     private SpriteBatch lote;
@@ -128,6 +129,7 @@ public class MissaoMarteGame extends Game {
     @Override
     public void dispose() {
         Diario.registrar("dispose: liberando a tela atual e os recursos compartilhados");
+        if (historia != null) historia.close();
         super.dispose();             // Game.dispose() só chama hide() na tela atual...
         Screen atual = getScreen();
         if (atual != null) {
@@ -161,6 +163,19 @@ public class MissaoMarteGame extends Game {
     }
 
     // ---- navegação: cada método cria a próxima tela ----
+
+    public void irParaHistoria() {
+        if (historia == null) {
+            historia = new br.edu.unifor.missaomarte.grafico.historia.ServicoHistoria(
+                    new br.edu.unifor.missaomarte.infraestrutura.HistoriaArquivo(
+                            plataforma.pastaHistoria().resolve("expedicao.properties")));
+        }
+        trocarTela(new br.edu.unifor.missaomarte.grafico.historia.TelaCampanha(this, historia));
+    }
+
+    public void iniciarM01(br.edu.unifor.missaomarte.grafico.historia.ServicoHistoria servico) {
+        trocarTela(new br.edu.unifor.missaomarte.grafico.historia.TelaMissaoHistoria(this, servico));
+    }
 
     public void irParaMenu() {
         trocarTela(new TelaMenu(this));

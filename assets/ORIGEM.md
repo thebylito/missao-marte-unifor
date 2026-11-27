@@ -104,3 +104,9 @@ A OFL permite distribuir a fonte junto com o jogo, desde que o texto da licença
 - `sprites/patrulheiro.png` é o drone original de `arte/blender/patrulheiro.py`, com oito quadros de rotores.
 - `sprites/disparo_historia.png` é o projétil âmbar de `arte/blender/disparo_historia.py`, com quatro quadros.
 - `sprites/pulso_historia.png` é a frente de energia de `arte/blender/pulso_historia.py`, com oito quadros.
+
+## Marcos da M01 — Primeiro sinal
+
+Baliza SOS e posto Expedição modelados no Blender com geometria original e materiais procedurais. Scripts em arte/blender/baliza_sos.py e posto_m01.py. Sem imagens ou modelos externos; os apoios ficam alinhados à base das respectivas células.
+
+Arquivos gerados: `sprites/baliza_sos.png` e `sprites/posto_m01.png`.
