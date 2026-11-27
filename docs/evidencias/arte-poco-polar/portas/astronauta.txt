@@ -1,0 +1,16 @@
+INSTRUMENTATION_STATUS: etapa=Poço Polar carregado. Passageiro 1. Skin padrao. Início da aproximação.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Passageiro ao alcance do aceno.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Jato ao alcance da plataforma.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Pouso confirmado.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Porta aberta para o passageiro.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Porta abriu completamente e fechou após o embarque.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Embarque confirmado. 3601 atualizações; 370 quadros com motor na faixa dos cristais.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: resultado=PASS
+INSTRUMENTATION_CODE: -1

@@ -1,0 +1,23 @@
+{
+  "blenderVersion": "5.2.3 LTS",
+  "assets": {
+    "baliza_sos": {
+      "seconds": 0.261,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 8
+    },
+    "posto_m01": {
+      "seconds": 0.742,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 8
+    }
+  },
+  "complete": true,
+  "renderSeconds": 1.239,
+  "underTenMinutes": true,
+  "totalSeconds": 2.221
+}

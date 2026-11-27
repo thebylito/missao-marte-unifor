@@ -63,6 +63,19 @@ class CatalogoDeAssetsTeste {
     }
 
     @Test
+    void todaSkinPublicadaTemUmaPortaComDozeQuadros() throws IOException {
+        var catalogo = CatalogoDeNaves.carregar(new com.badlogic.gdx.files.FileHandle(ASSETS.toFile()));
+        for (var nave : catalogo.naves()) {
+            Path caminho = ASSETS.resolve("sprites/naves/porta_" + nave.id() + ".png");
+            assertTrue(Files.isRegularFile(caminho), "falta porta da skin " + nave.id());
+            byte[] png = Files.readAllBytes(caminho);
+            ByteBuffer dimensoes = ByteBuffer.wrap(png).order(ByteOrder.BIG_ENDIAN);
+            assertEquals(512, dimensoes.getInt(16), nave.id());
+            assertEquals(384, dimensoes.getInt(20), nave.id());
+        }
+    }
+
+    @Test
     void cadaSomEhUmWavPcm16BitsMono44Khz() throws IOException {
         for (Som s : Som.values()) {
             byte[] wav = Files.readAllBytes(ASSETS.resolve(s.getCaminho()));

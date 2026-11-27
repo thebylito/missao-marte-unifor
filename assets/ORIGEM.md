@@ -110,3 +110,61 @@ A OFL permite distribuir a fonte junto com o jogo, desde que o texto da licença
 Baliza SOS e posto Expedição modelados no Blender com geometria original e materiais procedurais. Scripts em arte/blender/baliza_sos.py e posto_m01.py. Sem imagens ou modelos externos; os apoios ficam alinhados à base das respectivas células.
 
 Arquivos gerados: `sprites/baliza_sos.png` e `sprites/posto_m01.png`.
+## Ambientação das cavernas
+
+As folhas adicionais foram modeladas e renderizadas no Blender com os scripts em `arte/blender/`.
+
+- `sprites/gelo_polar.png`, `sprites/ferro.png`, `sprites/craterado.png` e `sprites/meteoro.png` usam `variacoes.py`, 32 ângulos, luz fixa e modelos originais.
+- `sprites/astronauta_espera.png`, `sprites/engenheiro_espera.png` e `sprites/professor_espera.png` usam `pessoas.py`, oito poses de espera com o braço abaixado.
+- `sprites/parede_gelo.png` e `sprites/parede_ferro.png` usam a geometria periódica de `rocha_tile.py` com materiais próprios.
+- `sprites/sonda.png`, `sprites/guindaste.png` e `sprites/antena.png` usam os modelos originais de `marcos.py`.
+- `sons/ambiente_marte.wav`, `sons/ambiente_gelo.wav`, `sons/ambiente_ferro.wav` e `sons/embarque_alternativo.wav` são síntese PCM original de `arte/sons/gerar_ambientes.py`.
+
+Regenerar as folhas com `render_all.py --only craterado gelo_polar ferro meteoro astronauta_espera engenheiro_espera professor_espera sonda guindaste antena parede_gelo parede_ferro --engine cycles --samples 64`, executado pelo Blender em segundo plano.
+
+- `sprites/fundo_polar.png` e `sprites/fundo_ferro.png` são paisagens do Blender geradas por `fundo_polar.py` e `fundo_ferro.py`, com paleta e perfil das montanhas próprios.
+
+## Ciclos dos passageiros e equipamentos
+
+`pessoas_animadas.py` reaproveita os modelos originais com pernas articuladas e sequências modeladas no Blender. As folhas de espera têm 16 quadros, as demais têm 12.
+
+- `sprites/astronauta_reacao.png`, `sprites/engenheiro_reacao.png`, `sprites/professor_reacao.png`.
+- `sprites/astronauta_andar.png`, `sprites/engenheiro_andar.png`, `sprites/professor_andar.png`.
+- `sprites/astronauta_sinalizar.png`, `sprites/engenheiro_sinalizar.png`, `sprites/professor_sinalizar.png`.
+
+As folhas de espera continuam nos caminhos documentados acima. A antena, a sonda e o guindaste agora têm oito quadros, incluindo movimento do equipamento e da luz de presença.
+
+## Portas das naves
+
+As nove skins têm portas modeladas em `porta_modelo.py`, reaproveitando cada nave e seus materiais. As folhas de 12 quadros em células de 128 px mostram a abertura com a nave pousada. O quadro fechado coincide com o quadro de voo na orientação vertical.
+
+- `sprites/naves/porta_padrao.png`
+- `sprites/naves/porta_padrao_2.png`
+- `sprites/naves/porta_padrao_3.png`
+- `sprites/naves/porta_padrao_4.png`
+- `sprites/naves/porta_padrao_5.png`
+- `sprites/naves/porta_guara.png`
+- `sprites/naves/porta_guara_2.png`
+- `sprites/naves/porta_guara_3.png`
+- `sprites/naves/porta_guara_4.png`
+
+A Padrão tem a abertura frontal. A Guará tem a abertura lateral no cofre direito, ao lado do guincho.
+
+## Pouso e vida na base
+
+- `sprites/abrigo.png` é gerado por `abrigo.py`, com oito quadros de luz de recepção.
+- `sprites/naves/pouso_padrao.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_padrao_2.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_padrao_3.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_padrao_4.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_padrao_5.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_guara.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_guara_2.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_guara_3.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/naves/pouso_guara_4.png` é gerado por `pouso_modelo.py`, em oito níveis de compressão da suspensão.
+- `sprites/astronauta_proteger.png` é gerado por `pessoas_animadas.py`, em doze quadros.
+- `sprites/astronauta_comemorar.png` é gerado por `pessoas_animadas.py`, em doze quadros.
+- `sprites/engenheiro_proteger.png` é gerado por `pessoas_animadas.py`, em doze quadros.
+- `sprites/engenheiro_comemorar.png` é gerado por `pessoas_animadas.py`, em doze quadros.
+- `sprites/professor_proteger.png` é gerado por `pessoas_animadas.py`, em doze quadros.
+- `sprites/professor_comemorar.png` é gerado por `pessoas_animadas.py`, em doze quadros.

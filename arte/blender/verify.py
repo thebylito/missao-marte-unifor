@@ -127,15 +127,18 @@ def verify():
                 cell=a[(i//c)*h:(i//c+1)*h,(i%c)*w:(i%c+1)*w]
                 alpha=cell[:,:,3]
                 assert alpha.max()>.1, f'empty frame {i}'
-                if name not in ('rocha_tile','fundo'):
+                if name not in ('rocha_tile','parede_gelo','parede_ferro','fundo','fundo_polar','fundo_ferro'):
                     assert max(alpha[0,0],alpha[0,-1],alpha[-1,0],alpha[-1,-1])==0, f'corners frame {i}'
                     assert np.any((alpha>0)&(alpha<1)), f'no antialiasing frame {i}'
                 else:
                     assert alpha.min()==1, 'opaque fill required'
                 if name in SKINS or name in ('nave','asteroide','explosao','icone','inimigo'):
                     assert max(alpha[0].max(),alpha[-1].max(),alpha[:,0].max(),alpha[:,-1].max())==0, f'clipping frame {i}'
-                if name in ('astronauta','engenheiro','professor'):
-                    assert alpha[-1].max()>.5, f'feet do not reach bottom {i}'
+                if any(name == pessoa or name.startswith(pessoa + '_')
+                       for pessoa in ('astronauta','engenheiro','professor')):
+                    if not name.endswith('_comemorar'):
+                        assert alpha[-1].max()>.5, f'feet do not reach bottom {i}'
+                    assert max(alpha[0].max(),alpha[:,0].max(),alpha[:,-1].max())==0, f'passenger clipping {i}'
                 if name=='chama':
                     assert alpha[0,w//2]>.5, f'mouth not at top-center {i}'
                 if name.startswith('plataforma_'):
@@ -143,7 +146,7 @@ def verify():
                     assert alpha[y,w//2]>.5 and alpha[y-1,w//2]<.5, 'landing line mismatch'
                 seen.append(cell.tobytes())
             assert len(set(seen))==n, 'duplicate animation frames'
-            if name=='rocha_tile':
+            if name in ('rocha_tile','parede_gelo','parede_ferro'):
                 dx=float(np.abs(a[:,0]-a[:,-1]).max())
                 dy=float(np.abs(a[0]-a[-1]).max())
                 assert dx==0 and dy==0, f'tile seam {dx}/{dy}'
@@ -158,6 +161,15 @@ def verify():
                     assert len(yy)>3, 'missing cyan cockpit'
                     coord=(yy.mean()-h/2) if axis==0 else (xx.mean()-w/2)
                     assert coord*sign>3, f'orientation frame {idx}'
+            if name.startswith('porta_'):
+                skin = name[len('porta_'):]
+                original = SPECS['nave' if skin == 'padrao' else skin]
+                fechada = pixels(OUT/original.output)[:128,:128]
+                assert np.max(np.abs(a[:128,:128]-fechada)) < .015, 'closed door differs from flight frame'
+                for frame in range(n):
+                    cell = a[(frame//c)*h:(frame//c+1)*h,(frame%c)*w:(frame%c+1)*w]
+                    alpha = cell[:,:,3]
+                    assert max(alpha[0].max(),alpha[-1].max(),alpha[:,0].max(),alpha[:,-1].max())==0, 'door sprite clipped'
             if name in EVOLUTIONS:
                 item = EVOLUTIONS[name]
                 previous = LEVELS[item['linha'], item['nivel']-1]

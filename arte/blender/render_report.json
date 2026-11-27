@@ -1,15 +1,92 @@
 {
   "blenderVersion": "5.2.3 LTS",
   "assets": {
-    "baliza_sos": {
-      "seconds": 0.261,
+    "porta_padrao": {
+      "seconds": 0.976,
       "engines": [
         "CYCLES"
       ],
-      "frames": 8
+      "frames": 12
     },
-    "posto_m01": {
-      "seconds": 0.742,
+    "porta_padrao_2": {
+      "seconds": 1.212,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_padrao_3": {
+      "seconds": 1.226,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_padrao_4": {
+      "seconds": 1.37,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_padrao_5": {
+      "seconds": 1.591,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_guara": {
+      "seconds": 0.943,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_guara_2": {
+      "seconds": 1.016,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_guara_3": {
+      "seconds": 1.089,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "porta_guara_4": {
+      "seconds": 1.727,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "astronauta_proteger": {
+      "seconds": 0.518,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "engenheiro_proteger": {
+      "seconds": 0.448,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "professor_proteger": {
+      "seconds": 0.502,
+      "engines": [
+        "CYCLES"
+      ],
+      "frames": 12
+    },
+    "abrigo": {
+      "seconds": 0.84,
       "engines": [
         "CYCLES"
       ],
@@ -17,7 +94,7 @@
     }
   },
   "complete": true,
-  "renderSeconds": 1.239,
+  "renderSeconds": 13.684,
   "underTenMinutes": true,
-  "totalSeconds": 2.221
+  "totalSeconds": 15.019
 }

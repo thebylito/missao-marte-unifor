@@ -1,0 +1,8 @@
+INSTRUMENTATION_STATUS: etapa=Processo reaberto: mapa carregou conclusão e melhor pontuação. Iniciando replay.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Replay iniciado pela interface. Abortando a repetição.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: etapa=Replay abortado: conclusão e melhor pontuação preservadas no mapa.
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: resultado=PASS
+INSTRUMENTATION_CODE: -1

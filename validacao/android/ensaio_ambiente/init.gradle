@@ -1,0 +1,11 @@
+beforeProject { projeto ->
+    if (projeto.path == ':android') {
+        projeto.plugins.withId('com.android.application') {
+            projeto.android.defaultConfig.testInstrumentationRunner = 'ensaio.Polar'
+            projeto.android.sourceSets.androidTest.java.srcDir(
+                    projeto.rootProject.file('validacao/android/ensaio_ambiente'))
+            projeto.android.sourceSets.androidTest.assets.srcDir(
+                    projeto.rootProject.file('validacao/android/ensaio_ambiente/assets'))
+        }
+    }
+}

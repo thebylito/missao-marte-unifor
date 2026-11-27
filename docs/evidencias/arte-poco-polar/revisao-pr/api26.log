@@ -1,0 +1,6 @@
+APK: android-debug.apk (9 dex); minSdk 26; base: android-36/data/api-versions.xml
+Classes do jogo (br/edu/unifor/*) no APK: 489
+Referências delas à plataforma (Java e Android), conferidas no bytecode final: 346
+Acima do minSdk 26: 0
+Não resolvidas (nem no APK nem no api-versions.xml): 1
+  método java/lang/StringBuilder.setLength(I)V

@@ -47,6 +47,10 @@ public final class CatalogoDeAssets {
             }
         }
         for (CatalogoDeNaves.Nave nave : CatalogoDeNaves.carregar(assets).naves()) {
+            String porta = "sprites/naves/porta_" + nave.id() + ".png";
+            if (assets.child(porta).exists()) todos.add(porta);
+            String pouso = "sprites/naves/pouso_" + nave.id() + ".png";
+            if (assets.child(pouso).exists()) todos.add(pouso);
             if (!todos.contains(nave.folha())) {
                 todos.add(nave.folha());
             }

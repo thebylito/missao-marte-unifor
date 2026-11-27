@@ -1,0 +1,36 @@
+> Task :nucleo:compileJava UP-TO-DATE
+> Task :core:compileJava UP-TO-DATE
+> Task :core:gerarServidorPadrao UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes UP-TO-DATE
+> Task :core:compileTestJava
+> Task :core:processTestResources NO-SOURCE
+> Task :core:testClasses
+> Task :nucleo:processResources NO-SOURCE
+> Task :nucleo:classes UP-TO-DATE
+> Task :nucleo:jar UP-TO-DATE
+
+> Task :core:test FAILED
+
+CicloDoPassageiroTeste > passageiroDevolvidoAposExplosaoRecomecaNaPlataforma() FAILED
+    org.opentest4j.AssertionFailedError: um embarque concluído não mantém progresso de caminhada ==> expected: <false> but was: <true>
+        at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+        at app//org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+        at app//org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+        at app//org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+        at app//org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:239)
+        at app//br.edu.unifor.missaomarte.grafico.telas.CicloDoPassageiroTeste.passageiroDevolvidoAposExplosaoRecomecaNaPlataforma(CicloDoPassageiroTeste.java:35)
+
+1 test completed, 1 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':core:test'.
+> There were failing tests. See the report at: file:///Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/core/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 1s
+7 actionable tasks: 2 executed, 5 up-to-date

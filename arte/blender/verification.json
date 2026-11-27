@@ -119,6 +119,213 @@
       "result": "PASS"
     },
     {
+      "asset": "craterado",
+      "size": [
+        768,
+        384
+      ],
+      "frames": 32,
+      "result": "PASS"
+    },
+    {
+      "asset": "gelo_polar",
+      "size": [
+        768,
+        384
+      ],
+      "frames": 32,
+      "result": "PASS"
+    },
+    {
+      "asset": "ferro",
+      "size": [
+        768,
+        384
+      ],
+      "frames": 32,
+      "result": "PASS"
+    },
+    {
+      "asset": "meteoro",
+      "size": [
+        768,
+        384
+      ],
+      "frames": 32,
+      "result": "PASS"
+    },
+    {
+      "asset": "astronauta_espera",
+      "size": [
+        512,
+        160
+      ],
+      "frames": 16,
+      "result": "PASS"
+    },
+    {
+      "asset": "astronauta_reacao",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "astronauta_andar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "astronauta_sinalizar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "engenheiro_espera",
+      "size": [
+        512,
+        160
+      ],
+      "frames": 16,
+      "result": "PASS"
+    },
+    {
+      "asset": "engenheiro_reacao",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "engenheiro_andar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "engenheiro_sinalizar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "professor_espera",
+      "size": [
+        512,
+        160
+      ],
+      "frames": 16,
+      "result": "PASS"
+    },
+    {
+      "asset": "professor_reacao",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "professor_andar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "professor_sinalizar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "sonda",
+      "size": [
+        1536,
+        512
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "guindaste",
+      "size": [
+        1536,
+        512
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "antena",
+      "size": [
+        1536,
+        512
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "parede_gelo",
+      "size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "parede_ferro",
+      "size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "fundo_polar",
+      "size": [
+        1200,
+        900
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
+      "asset": "fundo_ferro",
+      "size": [
+        1200,
+        900
+      ],
+      "frames": 1,
+      "result": "PASS"
+    },
+    {
       "asset": "padrao_2",
       "size": [
         1024,
@@ -128,7 +335,7 @@
       "result": "PASS",
       "evolution": {
         "iou": 0.881000676132522,
-        "meanRgbDifference": 13.471348170887696,
+        "meanRgbDifference": 13.522256331542595,
         "previous": "padrao"
       }
     },
@@ -142,7 +349,7 @@
       "result": "PASS",
       "evolution": {
         "iou": 1.0,
-        "meanRgbDifference": 15.020960108181203,
+        "meanRgbDifference": 12.331079558260086,
         "previous": "padrao_2"
       }
     },
@@ -156,7 +363,7 @@
       "result": "PASS",
       "evolution": {
         "iou": 0.9993243243243243,
-        "meanRgbDifference": 10.2920892494929,
+        "meanRgbDifference": 10.224137931034482,
         "previous": "padrao_3"
       }
     },
@@ -170,7 +377,7 @@
       "result": "PASS",
       "evolution": {
         "iou": 0.9919544083137781,
-        "meanRgbDifference": 14.647178100709699,
+        "meanRgbDifference": 14.67072209079644,
         "previous": "padrao_4"
       }
     },
@@ -193,7 +400,7 @@
       "result": "PASS",
       "evolution": {
         "iou": 0.9098217406501223,
-        "meanRgbDifference": 6.599948777052119,
+        "meanRgbDifference": 5.0916890767063645,
         "previous": "guara"
       }
     },
@@ -207,7 +414,7 @@
       "result": "PASS",
       "evolution": {
         "iou": 0.9996505939902166,
-        "meanRgbDifference": 9.922987300477688,
+        "meanRgbDifference": 8.209250844692997,
         "previous": "guara_2"
       }
     },
@@ -221,7 +428,7 @@
       "result": "PASS",
       "evolution": {
         "iou": 0.9986038394415357,
-        "meanRgbDifference": 8.604800186415007,
+        "meanRgbDifference": 7.839333566352091,
         "previous": "guara_3"
       }
     },
@@ -265,6 +472,231 @@
       "asset": "posto_m01",
       "size": [
         1024,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_padrao",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_padrao_2",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_padrao_3",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_padrao_4",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_padrao_5",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_guara",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_guara_2",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_guara_3",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "porta_guara_4",
+      "size": [
+        512,
+        384
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_padrao",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_padrao_2",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_padrao_3",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_padrao_4",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_padrao_5",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_guara",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_guara_2",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_guara_3",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "pouso_guara_4",
+      "size": [
+        512,
+        256
+      ],
+      "frames": 8,
+      "result": "PASS"
+    },
+    {
+      "asset": "astronauta_proteger",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "astronauta_comemorar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "engenheiro_proteger",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "engenheiro_comemorar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "professor_proteger",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "professor_comemorar",
+      "size": [
+        384,
+        160
+      ],
+      "frames": 12,
+      "result": "PASS"
+    },
+    {
+      "asset": "abrigo",
+      "size": [
+        512,
         256
       ],
       "frames": 8,

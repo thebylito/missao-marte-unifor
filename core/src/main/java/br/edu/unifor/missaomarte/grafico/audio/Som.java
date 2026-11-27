@@ -5,6 +5,10 @@ package br.edu.unifor.missaomarte.grafico.audio;
  * som de fora) e ficam em {@code assets/sons}.
  */
 public enum Som {
+    AMBIENTE_MARTE("sons/ambiente_marte.wav"),
+    AMBIENTE_GELO("sons/ambiente_gelo.wav"),
+    AMBIENTE_FERRO("sons/ambiente_ferro.wav"),
+    EMBARQUE_ALTERNATIVO("sons/embarque_alternativo.wav"),
     MOVER("sons/mover.wav"),
     EMBARQUE("sons/embarque.wav"),
     COLISAO("sons/colisao.wav"),

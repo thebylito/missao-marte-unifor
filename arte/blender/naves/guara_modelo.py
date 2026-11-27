@@ -27,6 +27,8 @@ def partes():
     add('rod', 'Tambor do guincho', 'metal', (-8,-15,-3), (8,-15,-3), 4)
     for x in (-5, -2, 1, 4):
         add('rod', 'Espira do cabo', 'marfim', (x,-15,-3), (x+1.5,-15,-3), 4.3)
+    from porta_modelo import acrescentar_porta
+    acrescentar_porta(add, 21, -11, -1, 10, 17, 'marfim', 'estrutura', 'marfim')
     return parts
 
 

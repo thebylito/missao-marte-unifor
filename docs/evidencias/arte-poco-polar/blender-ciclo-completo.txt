@@ -1,0 +1,396 @@
+00:00.908  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 1/12
+00:00.963  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 2/12
+00:01.024  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 3/12
+00:01.102  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 4/12
+00:01.164  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 5/12
+00:01.226  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 6/12
+00:01.298  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 7/12
+00:01.363  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 8/12
+00:01.468  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 9/12
+00:01.540  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 10/12
+00:01.613  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 11/12
+00:01.710  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao 12/12
+ASSET porta_padrao: 512x384; 0.98s
+00:01.836  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 1/12
+00:01.981  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 2/12
+00:02.108  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 3/12
+00:02.194  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 4/12
+00:02.285  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 5/12
+00:02.377  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 6/12
+00:02.484  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 7/12
+00:02.606  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 8/12
+00:02.693  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 9/12
+00:02.767  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 10/12
+00:02.842  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 11/12
+00:02.923  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_2 12/12
+ASSET porta_padrao_2: 512x384; 1.21s
+00:03.051  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 1/12
+00:03.124  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 2/12
+00:03.200  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 3/12
+00:03.293  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 4/12
+00:03.429  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 5/12
+00:03.542  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 6/12
+00:03.643  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 7/12
+00:03.749  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 8/12
+00:03.875  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 9/12
+00:03.959  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 10/12
+00:04.048  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 11/12
+00:04.133  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_3 12/12
+ASSET porta_padrao_3: 512x384; 1.23s
+00:04.326  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 1/12
+00:04.428  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 2/12
+00:04.553  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 3/12
+00:04.675  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 4/12
+00:04.787  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 5/12
+00:04.911  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 6/12
+00:05.034  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 7/12
+00:05.138  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 8/12
+00:05.237  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 9/12
+00:05.331  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 10/12
+00:05.424  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 11/12
+00:05.518  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_4 12/12
+ASSET porta_padrao_4: 512x384; 1.37s
+00:05.701  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 1/12
+00:05.807  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 2/12
+00:05.919  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 3/12
+00:06.041  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 4/12
+00:06.141  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 5/12
+00:06.250  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 6/12
+00:06.348  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 7/12
+00:06.552  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 8/12
+00:06.716  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 9/12
+00:06.844  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 10/12
+00:06.971  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 11/12
+00:07.097  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_padrao_5 12/12
+ASSET porta_padrao_5: 512x384; 1.59s
+00:07.222  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 1/12
+00:07.308  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 2/12
+00:07.395  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 3/12
+00:07.479  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 4/12
+00:07.560  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 5/12
+00:07.626  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 6/12
+00:07.692  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 7/12
+00:07.767  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 8/12
+00:07.846  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 9/12
+00:07.908  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 10/12
+00:07.973  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 11/12
+00:08.040  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara 12/12
+ASSET porta_guara: 512x384; 0.94s
+00:08.212  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 1/12
+00:08.281  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 2/12
+00:08.345  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 3/12
+00:08.412  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 4/12
+00:08.488  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 5/12
+00:08.557  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 6/12
+00:08.648  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 7/12
+00:08.739  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 8/12
+00:08.839  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 9/12
+00:08.920  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 10/12
+00:08.992  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 11/12
+00:09.068  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_2 12/12
+ASSET porta_guara_2: 512x384; 1.02s
+00:09.199  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 1/12
+00:09.274  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 2/12
+00:09.380  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 3/12
+00:09.468  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 4/12
+00:09.545  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 5/12
+00:09.640  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 6/12
+00:09.718  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 7/12
+00:09.837  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 8/12
+00:09.912  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 9/12
+00:09.984  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 10/12
+00:10.052  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 11/12
+00:10.155  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_3 12/12
+ASSET porta_guara_3: 512x384; 1.09s
+00:10.337  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 1/12
+00:10.444  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 2/12
+00:10.551  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 3/12
+00:10.678  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 4/12
+00:10.795  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 5/12
+00:10.932  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 6/12
+00:11.097  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 7/12
+00:11.287  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 8/12
+00:11.458  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 9/12
+00:11.584  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 10/12
+00:11.728  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 11/12
+00:11.872  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME porta_guara_4 12/12
+ASSET porta_guara_4: 512x384; 1.73s
+00:11.969  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 1/12
+00:12.007  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 2/12
+00:12.044  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 3/12
+00:12.077  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 4/12
+00:12.112  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 5/12
+00:12.149  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 6/12
+00:12.188  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 7/12
+00:12.234  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 8/12
+00:12.278  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 9/12
+00:12.319  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 10/12
+00:12.362  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 11/12
+00:12.401  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME astronauta_proteger 12/12
+ASSET astronauta_proteger: 384x160; 0.52s
+00:12.486  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 1/12
+00:12.517  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 2/12
+00:12.546  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 3/12
+00:12.578  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 4/12
+00:12.605  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 5/12
+00:12.636  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 6/12
+00:12.678  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 7/12
+00:12.712  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 8/12
+00:12.746  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 9/12
+00:12.780  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 10/12
+00:12.815  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 11/12
+00:12.850  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME engenheiro_proteger 12/12
+ASSET engenheiro_proteger: 384x160; 0.45s
+00:12.959  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 1/12
+00:13.003  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 2/12
+00:13.045  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 3/12
+00:13.081  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 4/12
+00:13.123  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 5/12
+00:13.155  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 6/12
+00:13.197  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 7/12
+00:13.227  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 8/12
+00:13.258  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 9/12
+00:13.289  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 10/12
+00:13.320  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 11/12
+00:13.352  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME professor_proteger 12/12
+ASSET professor_proteger: 384x160; 0.50s
+00:13.443  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 1/8
+00:13.531  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 2/8
+00:13.613  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 3/8
+00:13.719  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 4/8
+00:13.838  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 5/8
+00:13.967  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 6/8
+00:14.067  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 7/8
+00:14.192  render           | Saved: '/Users/thebylito/Documents/cursos/bezerra/projeto-final-arte-polar/arte/blender/.render_frame_61301.png'
+FRAME abrigo 8/8
+ASSET abrigo: 512x256; 0.84s
+
+ASSET                       SIZE          FRAMES  RESULT
+nave.png                    1024 x 1024   64    PASS
+chama.png                    256 x 96      4    PASS
+explosao.png                 512 x 512    16    PASS
+asteroide.png                768 x 384    32    PASS
+plataforma_base.png          256 x 64      1    PASS
+plataforma_passageiro.png    160 x 48      1    PASS
+astronauta.png               384 x 64      8    PASS
+engenheiro.png               384 x 64      8    PASS
+professor.png                384 x 64      8    PASS
+rocha_tile.png               256 x 256     1    PASS
+fundo.png                   1200 x 900     1    PASS
+icone.png                    256 x 256     1    PASS
+inimigo.png                  768 x 96      8    PASS
+craterado.png                768 x 384    32    PASS
+gelo_polar.png               768 x 384    32    PASS
+ferro.png                    768 x 384    32    PASS
+meteoro.png                  768 x 384    32    PASS
+astronauta_espera.png        512 x 160    16    PASS
+astronauta_reacao.png        384 x 160    12    PASS
+astronauta_andar.png         384 x 160    12    PASS
+astronauta_sinalizar.png     384 x 160    12    PASS
+engenheiro_espera.png        512 x 160    16    PASS
+engenheiro_reacao.png        384 x 160    12    PASS
+engenheiro_andar.png         384 x 160    12    PASS
+engenheiro_sinalizar.png     384 x 160    12    PASS
+professor_espera.png         512 x 160    16    PASS
+professor_reacao.png         384 x 160    12    PASS
+professor_andar.png          384 x 160    12    PASS
+professor_sinalizar.png      384 x 160    12    PASS
+sonda.png                   1536 x 512     8    PASS
+guindaste.png               1536 x 512     8    PASS
+antena.png                  1536 x 512     8    PASS
+parede_gelo.png              256 x 256     1    PASS
+parede_ferro.png             256 x 256     1    PASS
+fundo_polar.png             1200 x 900     1    PASS
+fundo_ferro.png             1200 x 900     1    PASS
+naves/padrao_2.png          1024 x 1024   64    PASS
+naves/padrao_3.png          1024 x 1024   64    PASS
+naves/padrao_4.png          1024 x 1024   64    PASS
+naves/padrao_5.png          1024 x 1024   64    PASS
+naves/guara.png             1024 x 1024   64    PASS
+naves/guara_2.png           1024 x 1024   64    PASS
+naves/guara_3.png           1024 x 1024   64    PASS
+naves/guara_4.png           1024 x 1024   64    PASS
+naves/porta_padrao.png       512 x 384    12    PASS
+naves/porta_padrao_2.png     512 x 384    12    PASS
+naves/porta_padrao_3.png     512 x 384    12    PASS
+naves/porta_padrao_4.png     512 x 384    12    PASS
+naves/porta_padrao_5.png     512 x 384    12    PASS
+naves/porta_guara.png        512 x 384    12    PASS
+naves/porta_guara_2.png      512 x 384    12    PASS
+naves/porta_guara_3.png      512 x 384    12    PASS
+naves/porta_guara_4.png      512 x 384    12    PASS
+naves/pouso_padrao.png       512 x 256     8    PASS
+naves/pouso_padrao_2.png     512 x 256     8    PASS
+naves/pouso_padrao_3.png     512 x 256     8    PASS
+naves/pouso_padrao_4.png     512 x 256     8    PASS
+naves/pouso_padrao_5.png     512 x 256     8    PASS
+naves/pouso_guara.png        512 x 256     8    PASS
+naves/pouso_guara_2.png      512 x 256     8    PASS
+naves/pouso_guara_3.png      512 x 256     8    PASS
+naves/pouso_guara_4.png      512 x 256     8    PASS
+astronauta_proteger.png      384 x 160    12    PASS
+astronauta_comemorar.png     384 x 160    12    PASS
+engenheiro_proteger.png      384 x 160    12    PASS
+engenheiro_comemorar.png     384 x 160    12    PASS
+professor_proteger.png       384 x 160    12    PASS
+professor_comemorar.png      384 x 160    12    PASS
+abrigo.png                   512 x 256     8    PASS
+naves/catalogo.json                            PASS
+naves/previas.png                              PASS
+naves/sombras.png                              PASS
+PASS: dimensions, RGBA, frame contents, corners, clipping, pivots/landing lines, orientation, tile edges, catalog, atlases, and evolution.
+TOTAL RENDER 13.68s; TOTAL 15.02s
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:31:22)
+
+Blender quit
